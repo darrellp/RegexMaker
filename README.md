@@ -1,53 +1,26 @@
-# WPF.JoshSmith.Controls.DragCanvas
-
-[![Build status](https://github.com/denxorz/WPF.JoshSmith.Controls.DragCanvas/workflows/.NET%20Core/badge.svg)](https://github.com/denxorz/WPF.JoshSmith.Controls.DragCanvas/actions) [![NuGet](https://buildstats.info/nuget/WPF.JoshSmith.Controls.DragCanvas)](https://www.nuget.org/packages/WPF.JoshSmith.Controls.DragCanvas/) [![License](https://img.shields.io/badge/license-CPOL--1.02-blue)](https://github.com/denxorz/WPF.JoshSmith.Controls.DragCanvas/blob/master/LICENSE.md)
-
+# RegexMaker
 
 ## What does it do?
-A Canvas which manages dragging of the UIElements it contains. This Canvas is made by Josh Smith.
-
-This package is based on the following articles: 
-
-* https://www.codeproject.com/Articles/15354/Dragging-Elements-in-a-Canvas
-
-
-## Examples
-
-```C#
-<jas:DragCanvas>
-  <TextBlock Canvas.Left="20" Canvas.Bottom="50" Text="example"/>
-  <Ellipse Canvas.Left="100" Canvas.Bottom="30" Width="65" Height="70" Fill="Blue" />
-</jas:DragCanvas>
-```
-
-![DragCanvas sample gif](https://github.com/denxorz/WPF.JoshSmith.Controls.DragCanvas/raw/master/sample.gif "DragCanvas sample gif")
-
+Not much at the moment - a work in progress.  The plan is to create a sort of visual programming drag/drop
+screen which will allow setting up nodes which take in patterns and produce patterns.  For instance a Repeat node
+will take a pattern and output a pattern which looks for repeats of that pattern.  Each node will have a parameters
+screen which will allow setting parameters for that node.  For instance the Repeat node will have a parameter for
+min and max times to repeat the pattern (negative value on max will mean infinity - the default).  The output pattern of
+one node can be connected to the input of another node, allowing for complex patterns to be built up visually.  
+The final output will be a regex pattern which can be used in code or elsewhere.  I only started on this last night
+so quite a ways to go.  Right now there is a node class and some example nodes for things like repeat, string,
+concatenate, etc..  The drag canvas is a custom control which allows for dragging the nodes around on the screen. 
+The nodes are just miscellaneous UIElements.  It's adapted for Avalonia from Josh Smith's DragCanvas control.  Whether
+I'll even need it or not is TBD.
 
 ## Tools and Products Used
 
-* [Microsoft Visual Studio Community](https://www.visualstudio.com)
-* [Icons8](https://icons8.com/)
 * [NuGet](https://www.nuget.org/)
 * [GitHub](https://github.com/)
+* [Avalonia](https://avaloniaui.net/)
 
 
 ## Versions & Release Notes
 
-version 2.0.3:
- * Fix missing readme in nuget package
-
-version 2.0.2:
- * Add 'net8.0'
-
-version 2.0.1:
- * Add 'net5.0'
-
-version 2.0: 
- * Replace 'preview mouse down' event by a normal one, so that buttons/comboboxes/scrollbars work when put on draggable controls. Downside, these controls can no longer be dragged on themselves.
- * Replace target `net462` and `net48` by `net472`
-
-version 1.1: 
- * Expose `IsDragInProgress`
-
-version 1.0: 
- * First version
+version 0.1.0:
+ * Initial Checkin
