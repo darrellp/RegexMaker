@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dragCanvas="clr-namespace:Avalonia.Controls;assembly=Avalonia.DragCanvas"
+             xmlns:vm="using:RegexMaker.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="RegexMaker.Views.MainView"
+             x:DataType="vm:MainViewModel">
+    <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainViewModel />
+    </Design.DataContext>
+    <dragCanvas:DragCanvas>
+			<TextBlock Canvas.Left="20" Canvas.Top="50" Text="example"/>
+            <Ellipse Canvas.Left="100" Canvas.Top="30" Width="65" Height="70" Fill="Blue" />
+    </dragCanvas:DragCanvas>
+</UserControl>
