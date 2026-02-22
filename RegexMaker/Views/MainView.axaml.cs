@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Layout;
 
 namespace RegexMaker.Views;
 
@@ -17,7 +18,7 @@ public partial class MainView : UserControl
             {
                 Content = RgxNode.Name,
                 Tag = RgxNode,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch
+                HorizontalAlignment = HorizontalAlignment.Stretch
             };
             SpToolBox.Children.Add(btn);
             btn.IsVisible = true;
