@@ -13,6 +13,11 @@ concatenate, etc..  The drag canvas is a custom control which allows for draggin
 The nodes are just miscellaneous UIElements.  It's adapted for Avalonia from Josh Smith's DragCanvas control.  Whether
 I'll even need it or not is TBD.
 
+It also has a way to produce random strings based on the nodes.  Not precisely sure how this might be useful but it seemed
+easy enough to do that I wanted to get it in early so it will be easy to implement in each node type.  I suppose it might
+be handy to generate test cases ala Bogus.  Perhaps in conjunction with bogus.  It will require some sort of serializer/deserializer
+so people can use it in their code.  Might be fun for producing random nonsense also.
+
 ## Tools and Products Used
 
 * [NuGet](https://www.nuget.org/)
