@@ -20,7 +20,7 @@
         <Rectangle Grid.Row="1" Grid.Column="2" Fill="Green" />
         <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
         <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue">
-            <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="3"
+            <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="5"
                                   Background="LightGray"
                                   Padding="10"
                                   CornerRadius="5"

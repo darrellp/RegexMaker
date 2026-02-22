@@ -12,8 +12,8 @@ public class DragCanvasNode : ContentControl
 {
     private const double PortRadiusNormal = 5.0;
     private const double PortRadiusHover = 7.0;
-    private const double PortPaddingRatio = 0.1;
-    private const double PortSizeRatio = 0.2; // Port + padding = 0.2 + 0.1 = 0.3 per port
+    private const double PortSpacing = 20.0; // Fixed spacing between port centers
+    private const double PortPadding = 10.0; // Fixed padding at top and bottom
     
     private readonly List<PortInfo> _leftPorts = new();
     private readonly List<PortInfo> _rightPorts = new();
@@ -97,14 +97,9 @@ public class DragCanvasNode : ContentControl
     {
         if (portCount == 0) return 0;
         
-        // Each port needs: padding (0.1) + port space (0.2) of total height
-        // First port has top padding, last port has bottom padding
-        // Formula: (portCount * 0.3 + 0.1) * some base unit
-        // We want each port to be visible, so we use actual pixel values
-        var portHeight = PortRadiusNormal * 2;
-        var paddingHeight = portHeight * 0.5; // Padding is half the port height
-        
-        return portCount * (portHeight + paddingHeight) + paddingHeight;
+        // Calculate height needed for ports with fixed spacing
+        // Top padding + (portCount * spacing) + bottom padding
+        return (2 * PortPadding) + ((portCount - 1) * PortSpacing);
     }
 
     private void UpdatePorts()
@@ -117,29 +112,27 @@ public class DragCanvasNode : ContentControl
         
         if (width <= 0 || height <= 0)
             return;
-        
+
         // Create left ports
         CreatePorts(_leftPorts, PortCtLeft, 0, height, PortSide.Left);
-        
+
         // Create right ports
         CreatePorts(_rightPorts, PortCtRight, width, height, PortSide.Right);
     }
 
-    private void CreatePorts(List<PortInfo> portList, int count, double x, double height, PortSide side)
+    private static void CreatePorts(List<PortInfo> portList, int count, double x, double height, PortSide side)
     {
         if (count == 0) return;
 
-        var portHeight = height * PortSizeRatio;
-        var paddingHeight = height * PortPaddingRatio;
-        var totalSpacePerPort = portHeight + paddingHeight;
+        // Calculate total height needed for all ports with fixed spacing
+        var totalPortsHeight = (count - 1) * PortSpacing;
         
-        // Calculate starting Y position to center the ports
-        var totalHeight = count * totalSpacePerPort + paddingHeight;
-        var startY = (height - totalHeight) / 2 + paddingHeight + portHeight / 2;
+        // Center the ports vertically
+        var startY = (height - totalPortsHeight) / 2;
 
         for (int i = 0; i < count; i++)
         {
-            var y = startY + i * totalSpacePerPort;
+            var y = startY + (i * PortSpacing);
             portList.Add(new PortInfo
             {
                 Center = new Point(x, y),
