@@ -5,6 +5,12 @@ namespace RegexMaker.Nodes;
 internal class ConcatenateNode : RgxNode
 {
 
+    // Nodes created with the parameterless constructor are only exemplars and will never calculate
+    public ConcatenateNode()
+        : base(RgxNodeType.Concatenate)
+    {
+    }
+
     public ConcatenateNode(params IRgxNode[] parameters) : base(RgxNodeType.Concatenate, parameters) { }
     internal override string CalculateResult()
     {

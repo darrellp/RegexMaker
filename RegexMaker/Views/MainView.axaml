@@ -12,8 +12,16 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainViewModel />
     </Design.DataContext>
-    <dragCanvas:DragCanvas>
-			<TextBlock Canvas.Left="20" Canvas.Top="50" Text="example"/>
-            <Ellipse Canvas.Left="100" Canvas.Top="30" Width="65" Height="70" Fill="Blue" />
-    </dragCanvas:DragCanvas>
+
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,100">
+        <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
+        <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox">
+        </StackPanel>
+        <Rectangle Grid.Row="1" Grid.Column="2" Fill="Green" />
+        <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
+        <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue">
+			    <TextBlock Canvas.Left="40" Canvas.Top="50" Text="example"/>
+                <Ellipse Canvas.Left="100" Canvas.Top="30" Width="65" Height="70" Fill="Blue" />
+        </dragCanvas:DragCanvas>
+    </Grid>
 </UserControl>

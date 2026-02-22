@@ -10,6 +10,14 @@ internal class RepeatNode : RgxNode
     public int Most { get; private set; }
     public bool IsLazy { get; private set; }
 
+    // Nodes created with the parameterless constructor are only exemplars and will never calculate
+    public RepeatNode()
+        : base(RgxNodeType.Repeat)
+    {
+        Least = Most = 0;
+        IsLazy = false;
+    }
+
     public RepeatNode(IList<IRgxNode> parameters, int least, int most = -1, bool isLazy = false) : base(RgxNodeType.Repeat, parameters.ToArray())
     {
         if (parameters.Count != 1)

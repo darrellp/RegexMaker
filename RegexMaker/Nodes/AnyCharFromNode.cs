@@ -5,6 +5,12 @@ using RegexStringLibrary;
 namespace RegexMaker.Nodes;
 internal class AnyCharFromNode : RgxNode
 {
+    // Nodes created with the parameterless constructor are only exemplars and will never calculate
+    public AnyCharFromNode()
+        : base(RgxNodeType.AnyCharFrom)
+    {
+    }
+
     public AnyCharFromNode(IList<IRgxNode> parameters) : base(RgxNodeType.AnyCharFrom, parameters.ToArray())
     {
     }

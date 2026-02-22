@@ -7,6 +7,14 @@ internal class RangeNode : RgxNode
     public string CharStart { get; private set; }
     public string CharEnd { get; private set; }
 
+    // Nodes created with the parameterless constructor are only exemplars and will never calculate
+    public RangeNode()
+        : base(RgxNodeType.Range)
+    {   
+        CharStart = "a";
+        CharEnd = "z";
+    }
+
     public RangeNode(string chStart, string chEnd) : base(RgxNodeType.Range)
     {
         if (chStart.Length != 1 || chEnd.Length != 1)

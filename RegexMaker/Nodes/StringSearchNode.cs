@@ -1,7 +1,17 @@
-﻿namespace RegexMaker.Nodes;
+﻿using System;
+using System.Collections.Generic;
+
+namespace RegexMaker.Nodes;
 internal class StringSearchNode : RgxNode
 {
     private string _searchString;
+
+    // Nodes created with the parameterless constructor are only exemplars and will never calculate
+    public StringSearchNode()
+        : base(RgxNodeType.StringSearch)
+    {
+        _searchString = string.Empty;
+    }
 
     public StringSearchNode(string searchString) : base(RgxNodeType.StringSearch, new IRgxNode[0])
     {
@@ -19,4 +29,6 @@ internal class StringSearchNode : RgxNode
         // The random match for a string search node is just the search string itself.
         return _searchString;
     }
+
+    public override string Name => "Literal";
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace RegexMaker.Nodes;
@@ -17,10 +19,44 @@ internal abstract class RgxNode : IRgxNode
 
     private string? _cachedResult;
 
+    internal static List<RgxNode> Exemplars { get; private set; }
+
+    static RgxNode()
+    {
+        _idCounter = 0;
+        var derivedTypes = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(RgxNode)))
+            .ToList();
+
+        Exemplars = new List<RgxNode>();
+
+        // Create instances (assumes parameterless constructor or handle constructor parameters)
+        foreach (var type in derivedTypes)
+        {
+            // Check for parameterless constructor
+            if (type.GetConstructor(Type.EmptyTypes) == null)
+            {
+                Debug.WriteLine($"<<<<<<<<<<<< {type.Name} does not have a parameterless constructor. Skipping exemplar creation. >>>>>>>>>>>>>");
+                continue;
+            }
+
+            try
+            {
+                Exemplars.Add((RgxNode)Activator.CreateInstance(type));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not create exemplar for {type.Name}: {ex.Message}");
+            }
+        }
+    }
+
     private string NameFromType()
     {
         return NodeType.ToString();
     }
+
     public RgxNode(RgxNodeType rgxType, params IRgxNode[] parameters)
     {
         ID = _idCounter++;
