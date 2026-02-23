@@ -4,7 +4,9 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace Avalonia.Controls;
 
@@ -12,8 +14,8 @@ public class DragCanvasNode : ContentControl
 {
     private const double PortRadiusNormal = 5.0;
     private const double PortRadiusHover = 7.0;
-    private const double PortSpacing = 20.0; // Fixed spacing between port centers
-    private const double PortPadding = 10.0; // Fixed padding at top and bottom
+    private const double PortSpacing = 20.0;
+    private const double PortPadding = 10.0;
     
     private readonly List<PortInfo> _leftPorts = new();
     private readonly List<PortInfo> _rightPorts = new();
@@ -21,6 +23,13 @@ public class DragCanvasNode : ContentControl
     private PortSide? _hoveredPortSide;
     private Point _lastPointerPosition;
     private Size _lastArrangedSize;
+    private bool _isPortDragInProgress;
+
+    // Routed event for port clicked
+    public static readonly RoutedEvent<PortClickedEventArgs> PortClickedEvent =
+        RoutedEvent.Register<DragCanvasNode, PortClickedEventArgs>(
+            "PortClicked", 
+            RoutingStrategies.Bubble);
 
     // Styled properties for port counts
     public static readonly StyledProperty<int> PortCtLeftProperty =
@@ -171,6 +180,41 @@ public class DragCanvasNode : ContentControl
         }
     }
 
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        // Check if clicking on a port
+        if (_hoveredPortIndex.HasValue && _hoveredPortSide.HasValue)
+        {
+            var point = e.GetCurrentPoint(this);
+            if (point.Properties.IsLeftButtonPressed)
+            {
+                _isPortDragInProgress = true;
+                
+                // Get port position in canvas coordinates
+                var portPosition = GetPortCanvasPosition(_hoveredPortIndex.Value, _hoveredPortSide.Value == PortSide.Left);
+                
+                var args = new PortClickedEventArgs(
+                    PortClickedEvent,
+                    this,
+                    _hoveredPortIndex.Value,
+                    _hoveredPortSide.Value == PortSide.Left,
+                    portPosition);
+                
+                RaiseEvent(args);
+                e.Handled = true;
+                return;
+            }
+        }
+
+        base.OnPointerPressed(e);
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        _isPortDragInProgress = false;
+        base.OnPointerReleased(e);
+    }
+
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
@@ -245,6 +289,84 @@ public class DragCanvasNode : ContentControl
         }
     }
 
+    /// <summary>
+    /// Gets the position of a specific port in local coordinates
+    /// </summary>
+    public Point? GetPortPosition(int portIndex, bool isLeftSide)
+    {
+        // Ensure ports are current
+        if (_leftPorts.Count == 0 && _rightPorts.Count == 0)
+        {
+            UpdatePorts();
+        }
+
+        var portList = isLeftSide ? _leftPorts : _rightPorts;
+        
+        if (portIndex < 0 || portIndex >= portList.Count)
+            return null;
+
+        return portList[portIndex].Center;
+    }
+
+    /// <summary>
+    /// Gets the position of a specific port in canvas coordinates
+    /// </summary>
+    public Point GetPortCanvasPosition(int portIndex, bool isLeftSide)
+    {
+        var localPos = GetPortPosition(portIndex, isLeftSide);
+        if (!localPos.HasValue)
+            return default;
+
+        // Transform to canvas coordinates - find parent DragCanvas
+        Visual? parent = this.GetVisualParent();
+        while (parent != null)
+        {
+            if (parent is DragCanvas canvas)
+            {
+                return this.TranslatePoint(localPos.Value, canvas) ?? localPos.Value;
+            }
+            parent = parent.GetVisualParent();
+        }
+
+        return localPos.Value;
+    }
+
+    /// <summary>
+    /// Gets the currently hovered port information
+    /// </summary>
+    public (int index, bool isLeftSide)? GetHoveredPort()
+    {
+        if (!_hoveredPortIndex.HasValue || !_hoveredPortSide.HasValue)
+            return null;
+
+        return (_hoveredPortIndex.Value, _hoveredPortSide.Value == PortSide.Left);
+    }
+
+    /// <summary>
+    /// Manually sets the hover state for a specific port (used during connection dragging)
+    /// </summary>
+    public void SetPortHover(int portIndex, bool isLeftSide)
+    {
+        _hoveredPortIndex = portIndex;
+        _hoveredPortSide = isLeftSide ? PortSide.Left : PortSide.Right;
+        InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Clears the port hover state
+    /// </summary>
+    public void ClearPortHover()
+    {
+        if (_hoveredPortIndex.HasValue)
+        {
+            _hoveredPortIndex = null;
+            _hoveredPortSide = null;
+            InvalidateVisual();
+        }
+    }
+
+    public bool IsPortDragInProgress => _isPortDragInProgress;
+
     private static double Distance(Point p1, Point p2)
     {
         var dx = p1.X - p2.X;
@@ -264,4 +386,29 @@ public class DragCanvasNode : ContentControl
         Left,
         Right
     }
+}
+
+/// <summary>
+/// Event arguments for port click events
+/// </summary>
+public class PortClickedEventArgs : RoutedEventArgs
+{
+    public PortClickedEventArgs(
+        RoutedEvent routedEvent,
+        DragCanvasNode node,
+        int portIndex,
+        bool isLeftSide,
+        Point canvasPosition)
+        : base(routedEvent)
+    {
+        Node = node;
+        PortIndex = portIndex;
+        IsLeftSide = isLeftSide;
+        CanvasPosition = canvasPosition;
+    }
+
+    public DragCanvasNode Node { get; }
+    public int PortIndex { get; }
+    public bool IsLeftSide { get; }
+    public Point CanvasPosition { get; }
 }
