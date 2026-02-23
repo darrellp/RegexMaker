@@ -15,6 +15,8 @@ internal abstract class RgxNode : IRgxNode
     public RgxNodeType NodeType { get; }
     public IList<IRgxNode> Parameters { get; private set; }
 
+    // Default implementation of Name property takes name from the enum type of the NodeType.
+    // Can be overridden by derived classes if needed.
     public virtual string Name => NameFromType();
 
     private string? _cachedResult;
@@ -24,12 +26,14 @@ internal abstract class RgxNode : IRgxNode
     static RgxNode()
     {
         _idCounter = 0;
+
+        // Get all non-abstract classes that derive from RgxNode in the current assembly - i.e., our node types.
         var derivedTypes = Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(RgxNode)))
             .ToList();
 
-        Exemplars = new List<RgxNode>();
+        Exemplars = [];
 
         // Create instances (assumes parameterless constructor or handle constructor parameters)
         foreach (var type in derivedTypes)
@@ -43,7 +47,9 @@ internal abstract class RgxNode : IRgxNode
 
             try
             {
-                Exemplars.Add((RgxNode)Activator.CreateInstance(type));
+                RgxNode? node = (RgxNode?)Activator.CreateInstance(type);
+                Debug.Assert(node is not null, $"Failed to create exemplar for {type.Name}");
+                Exemplars.Add(node);
             }
             catch (Exception ex)
             {
