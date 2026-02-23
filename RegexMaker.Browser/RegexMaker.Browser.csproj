@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Avalonia.DragCanvas\Avalonia.DragCanvas.csproj" />
     <ProjectReference Include="..\RegexMaker\RegexMaker.csproj" />
   </ItemGroup>
 </Project>
