@@ -232,6 +232,10 @@ public class DragCanvasNode : ContentControl
     {
         base.OnPointerMoved(e);
 
+        // Don't update hover state if we're currently dragging a port connection
+        if (_isPortDragInProgress)
+            return;
+
         _lastPointerPosition = e.GetPosition(this);
         UpdateHoveredPort(_lastPointerPosition);
     }

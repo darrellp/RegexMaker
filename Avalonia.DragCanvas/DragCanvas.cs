@@ -176,6 +176,7 @@ public class DragCanvas : Canvas
         var hoveredNode = FindNodeNearPosition(canvasPosition);
         (int index, bool isLeftSide)? hoveredPort = null;
 
+        // Only consider nodes that are NOT the source node
         if (hoveredNode != null && hoveredNode != _connectionSourceNode)
         {
             hoveredPort = FindPortAtPosition(hoveredNode, canvasPosition);
@@ -194,8 +195,6 @@ public class DragCanvas : Canvas
         }
 
         // Check if hover state changed
-        bool changed = false;
-
         if (hoveredNode != _lastHoveredNodeDuringConnection || hoveredPort != _lastHoveredPortDuringConnection)
         {
             // Clear old hover
