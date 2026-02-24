@@ -9,7 +9,6 @@ namespace Avalonia.DragCanvas;
 public class DragCanvasConnection : Control
 {
     private const double StrokeThickness = 2.0;
-    private const double HitTestPadding = 5.0;
 
     public static readonly StyledProperty<Point> StartPointProperty =
         AvaloniaProperty.Register<DragCanvasConnection, Point>(nameof(StartPoint));

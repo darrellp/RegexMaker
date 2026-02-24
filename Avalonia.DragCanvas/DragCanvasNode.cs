@@ -341,6 +341,12 @@ public class DragCanvasNode : ContentControl
         return localPos.Value;
     }
 
+    internal virtual bool AllowConnection(int portIndex, bool isLeftSide, DragCanvasNode? otherNode, int otherPortIndex, bool otherIsLeftSide)
+    {
+        // Only allow outputs to input connections
+        return isLeftSide != otherIsLeftSide;
+    }
+
     /// <summary>
     /// Gets the currently hovered port information
     /// </summary>

@@ -233,8 +233,8 @@ public class DragCanvas : Canvas
                 {
                     var (targetPortIndex, targetIsLeftSide) = hoveredPort.Value;
 
-                    // Validate: ports must be on opposite sides
-                    if (_connectionSourceIsLeftSide != targetIsLeftSide)
+                    // Validate: Has to be a valid connection according to the node's rules
+                    if (hoveredNode.AllowConnection(targetPortIndex, targetIsLeftSide, _connectionSourceNode, _connectionSourcePortIndex, _connectionSourceIsLeftSide))
                     {
                         // Determine which is source (right) and which is target (left)
                         DragCanvasNode sourceNode, targetNode;
