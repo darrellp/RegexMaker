@@ -1,5 +1,5 @@
-﻿using System;
-using RegexStringLibrary;
+﻿using RegexStringLibrary;
+using System;
 
 namespace RegexMaker.Nodes;
 internal class RangeNode : RgxNode
@@ -10,7 +10,7 @@ internal class RangeNode : RgxNode
     // Nodes created with the parameterless constructor are only exemplars and will never calculate
     public RangeNode()
         : base(RgxNodeType.Range)
-    {   
+    {
         CharStart = "a";
         CharEnd = "z";
     }

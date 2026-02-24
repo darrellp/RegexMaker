@@ -174,7 +174,7 @@ public class ConcatenateNodeTests
         var node1 = new StringSearchNode("A");
         var node2 = new StringSearchNode("B");
         var innerConcat = new ConcatenateNode(node1, node2);
-        
+
         var node3 = new StringSearchNode("C");
         var outerConcat = new ConcatenateNode(innerConcat, node3);
 

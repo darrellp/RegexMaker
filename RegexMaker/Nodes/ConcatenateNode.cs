@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using RegexStringLibrary;
+﻿using RegexStringLibrary;
+using System.Linq;
 
 namespace RegexMaker.Nodes;
 internal class ConcatenateNode : RgxNode

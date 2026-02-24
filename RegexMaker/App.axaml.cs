@@ -1,11 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
-using System.Linq;
 using Avalonia.Markup.Xaml;
 using RegexMaker.ViewModels;
 using RegexMaker.Views;
+using System.Linq;
 
 namespace RegexMaker;
 

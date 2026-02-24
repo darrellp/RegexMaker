@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace RegexMaker.Nodes;
+﻿namespace RegexMaker.Nodes;
 internal class StringSearchNode : RgxNode
 {
     private string _searchString;

@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Avalonia.DragCanvas;
 
@@ -15,7 +14,7 @@ public class DragCanvas : Canvas
     private Point origCursorLocation;
     private double origHorizOffset, origVertOffset;
     private bool modifyLeftOffset, modifyTopOffset;
-    
+
     // Connection management
     private DragCanvasConnection? _temporaryConnection;
     private DragCanvasNode? _connectionSourceNode;
@@ -36,19 +35,19 @@ public class DragCanvas : Canvas
     // Attached property for CanBeDragged
     public static readonly AttachedProperty<bool> CanBeDraggedProperty =
         AvaloniaProperty.RegisterAttached<DragCanvas, Control, bool>(
-            "CanBeDragged", 
+            "CanBeDragged",
             defaultValue: true);
 
-    public static bool GetCanBeDragged(Control element) => 
+    public static bool GetCanBeDragged(Control element) =>
         element.GetValue(CanBeDraggedProperty);
 
-    public static void SetCanBeDragged(Control element, bool value) => 
+    public static void SetCanBeDragged(Control element, bool value) =>
         element.SetValue(CanBeDraggedProperty, value);
 
     // StyledProperty for AllowDragging
     public static readonly StyledProperty<bool> AllowDraggingProperty =
         AvaloniaProperty.Register<DragCanvas, bool>(
-            nameof(AllowDragging), 
+            nameof(AllowDragging),
             defaultValue: true);
 
     public bool AllowDragging
@@ -86,7 +85,7 @@ public class DragCanvas : Canvas
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        
+
         // Check if a node is starting a port connection
         if (e.Source is DragCanvasNode node && node.IsPortDragInProgress)
         {
@@ -100,7 +99,7 @@ public class DragCanvas : Canvas
         if (!point.Properties.IsLeftButtonPressed) return;
 
         origCursorLocation = point.Position;
-        
+
         // Find canvas child
         if (e.Source is Visual visual)
         {
@@ -137,12 +136,12 @@ public class DragCanvas : Canvas
         if (_temporaryConnection != null)
         {
             _temporaryConnection.EndPoint = cursorLocation;
-            
+
             // Update hover state for connection target
             UpdateConnectionHoverFeedback(cursorLocation);
             return;
         }
-        
+
         if (elementBeingDragged == null || !IsDragInProgress) return;
 
         double newHorizontalOffset = modifyLeftOffset
@@ -174,11 +173,11 @@ public class DragCanvas : Canvas
     {
         var hoveredNode = FindNodeNearPosition(canvasPosition);
         (int index, bool isLeftSide)? hoveredPort = null;
-        
+
         if (hoveredNode != null && hoveredNode != _connectionSourceNode)
         {
             hoveredPort = FindPortAtPosition(hoveredNode, canvasPosition);
-            
+
             // Only consider valid ports (opposite side from source)
             if (hoveredPort.HasValue)
             {
@@ -190,10 +189,10 @@ public class DragCanvas : Canvas
                 }
             }
         }
-        
+
         // Check if hover state changed
         bool changed = false;
-        
+
         if (hoveredNode != _lastHoveredNodeDuringConnection || hoveredPort != _lastHoveredPortDuringConnection)
         {
             // Clear old hover
@@ -201,14 +200,14 @@ public class DragCanvas : Canvas
             {
                 _lastHoveredNodeDuringConnection.ClearPortHover();
             }
-            
+
             // Set new hover
             if (hoveredNode != null && hoveredPort.HasValue)
             {
                 var (index, isLeftSide) = hoveredPort.Value;
                 hoveredNode.SetPortHover(index, isLeftSide);
             }
-            
+
             _lastHoveredNodeDuringConnection = hoveredNode;
             _lastHoveredPortDuringConnection = hoveredPort;
         }
@@ -225,7 +224,7 @@ public class DragCanvas : Canvas
 
             // Find if we're over a node (check ports first, they might be outside node bounds)
             var hoveredNode = FindNodeNearPosition(releasePosition);
-            
+
             if (hoveredNode != null && hoveredNode != _connectionSourceNode)
             {
                 var hoveredPort = FindPortAtPosition(hoveredNode, releasePosition);
@@ -261,7 +260,7 @@ public class DragCanvas : Canvas
                         // Get the actual port positions now
                         var sourcePortPos = sourceNode.GetPortCanvasPosition(sourcePortIndex, false);
                         var targetPortPos = targetNode.GetPortCanvasPosition(targetPortIndex2, true);
-                        
+
                         // Create permanent connection with explicit positions
                         var connection = new DragCanvasConnection
                         {
@@ -315,7 +314,7 @@ public class DragCanvas : Canvas
     private DragCanvasNode? FindNodeNearPosition(Point canvasPosition)
     {
         const double portDetectionRadius = 20.0; // Extra margin for ports outside bounds
-        
+
         // Check all nodes - prioritize port proximity over bounds
         foreach (var child in Children)
         {
@@ -327,7 +326,7 @@ public class DragCanvas : Canvas
                 {
                     return node;
                 }
-                
+
                 // Then check expanded bounds (to account for ports at edges)
                 var nodePos = node.TranslatePoint(new Point(0, 0), this);
                 if (nodePos.HasValue)
@@ -395,7 +394,7 @@ public class DragCanvas : Canvas
         {
             if (visual is Control control && Children.Contains(control))
                 return control;
-            
+
             visual = visual.GetVisualParent();
         }
         return null;

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using RegexStringLibrary;
+using System.Collections.Generic;
 using System.Linq;
-using RegexStringLibrary;
 
 namespace RegexMaker.Nodes;
 internal class AnyCharFromNode : RgxNode

@@ -1,12 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Avalonia.DragCanvas;
 
@@ -16,7 +15,7 @@ public class DragCanvasNode : ContentControl
     private const double PortRadiusHover = 7.0;
     private const double PortSpacing = 20.0;
     private const double PortPadding = 10.0;
-    
+
     private readonly List<PortInfo> _leftPorts = new();
     private readonly List<PortInfo> _rightPorts = new();
     private int? _hoveredPortIndex;
@@ -28,7 +27,7 @@ public class DragCanvasNode : ContentControl
     // Routed event for port clicked
     public static readonly RoutedEvent<PortClickedEventArgs> PortClickedEvent =
         RoutedEvent.Register<DragCanvasNode, PortClickedEventArgs>(
-            "PortClicked", 
+            "PortClicked",
             RoutingStrategies.Bubble);
 
     // Styled properties for port counts
@@ -66,7 +65,7 @@ public class DragCanvasNode : ContentControl
     {
         // Don't clip - we want to see the ports even if they extend slightly beyond bounds
         ClipToBounds = false;
-        
+
         // Make sure we can receive pointer events
         Background = Background ?? Brushes.Transparent;
     }
@@ -84,15 +83,15 @@ public class DragCanvasNode : ContentControl
     protected override Size MeasureOverride(Size availableSize)
     {
         var contentSize = base.MeasureOverride(availableSize);
-        
+
         // Calculate minimum height needed for ports
         var maxPorts = Math.Max(PortCtLeft, PortCtRight);
         var minHeightForPorts = CalculateMinHeightForPorts(maxPorts);
-        
+
         // Ensure we have enough height for the ports
         var finalHeight = Math.Max(contentSize.Height, minHeightForPorts);
         var finalWidth = Math.Max(contentSize.Width, 60); // Minimum width for ports
-        
+
         return new Size(finalWidth, finalHeight);
     }
 
@@ -105,7 +104,7 @@ public class DragCanvasNode : ContentControl
     private double CalculateMinHeightForPorts(int portCount)
     {
         if (portCount == 0) return 0;
-        
+
         // Calculate height needed for ports with fixed spacing
         // Top padding + (portCount * spacing) + bottom padding
         return 2 * PortPadding + (portCount - 1) * PortSpacing;
@@ -118,7 +117,7 @@ public class DragCanvasNode : ContentControl
 
         var width = _lastArrangedSize.Width;
         var height = _lastArrangedSize.Height;
-        
+
         if (width <= 0 || height <= 0)
             return;
 
@@ -135,7 +134,7 @@ public class DragCanvasNode : ContentControl
 
         // Calculate total height needed for all ports with fixed spacing
         var totalPortsHeight = (count - 1) * PortSpacing;
-        
+
         // Center the ports vertically
         var startY = (height - totalPortsHeight) / 2;
 
@@ -168,11 +167,11 @@ public class DragCanvasNode : ContentControl
         foreach (var port in ports)
         {
             // Check if this port is hovered by comparing index and side
-            var isHovered = _hoveredPortIndex.HasValue && 
+            var isHovered = _hoveredPortIndex.HasValue &&
                            _hoveredPortSide.HasValue &&
-                           port.Index == _hoveredPortIndex.Value && 
+                           port.Index == _hoveredPortIndex.Value &&
                            port.Side == _hoveredPortSide.Value;
-            
+
             var radius = isHovered ? PortRadiusHover : PortRadiusNormal;
             var brush = isHovered ? Brushes.Blue : Brushes.Black;
 
@@ -189,17 +188,17 @@ public class DragCanvasNode : ContentControl
             if (point.Properties.IsLeftButtonPressed)
             {
                 _isPortDragInProgress = true;
-                
+
                 // Get port position in canvas coordinates
                 var portPosition = GetPortCanvasPosition(_hoveredPortIndex.Value, _hoveredPortSide.Value == PortSide.Left);
-                
+
                 var args = new PortClickedEventArgs(
                     PortClickedEvent,
                     this,
                     _hoveredPortIndex.Value,
                     _hoveredPortSide.Value == PortSide.Left,
                     portPosition);
-                
+
                 RaiseEvent(args);
                 e.Handled = true;
                 return;
@@ -249,7 +248,7 @@ public class DragCanvasNode : ContentControl
         }
 
         // If our x position isn't near the left or right side there's no need to check further.
-        if (pointerPosition.X > hoverDistance/2 && pointerPosition.X < _lastArrangedSize.Width - hoverDistance/2) 
+        if (pointerPosition.X > hoverDistance/2 && pointerPosition.X < _lastArrangedSize.Width - hoverDistance/2)
         {
             {
                 _hoveredPortIndex = null;
@@ -312,7 +311,7 @@ public class DragCanvasNode : ContentControl
         }
 
         var portList = isLeftSide ? _leftPorts : _rightPorts;
-        
+
         if (portIndex < 0 || portIndex >= portList.Count)
             return null;
 

@@ -100,7 +100,7 @@ public class DragCanvasConnection : Control
         base.Render(context);
 
         var pen = new Pen(Stroke, StrokeThickness);
-        
+
         // Draw dashed line for temporary connections
         if (IsTemporary)
         {
@@ -128,7 +128,7 @@ public class DragCanvasConnection : Control
             // Get canvas coordinates
             var sourceCanvas = SourceNode.GetPortCanvasPosition(SourcePortIndex, false);
             var targetCanvas = TargetNode.GetPortCanvasPosition(TargetPortIndex, true);
-            
+
             StartPoint = sourceCanvas;
             EndPoint = targetCanvas;
         }
