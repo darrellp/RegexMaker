@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
+using System;
+using System.Diagnostics;
 
 namespace Avalonia.DragCanvas;
 
@@ -130,6 +132,46 @@ public class DragCanvasConnection : Control
 
             StartPoint = sourceCanvas;
             EndPoint = targetCanvas;
+        }
+    }
+
+    public ConnectionInfo GetConnectionInfo()
+    {
+        if (SourceNode == null || TargetNode == null)
+        {
+            throw new InvalidOperationException("Both SourceNode and TargetNode must be set to get connection info.");
+        }
+        return new ConnectionInfo(SourceNode, TargetNode, SourcePortIndex, TargetPortIndex);
+    }
+}
+
+public class ConnectionInfo
+{
+    public DragCanvasNode SourceNode { get; }
+    public DragCanvasNode TargetNode { get; }
+    public int SourcePortIndex { get; }
+    public int TargetPortIndex { get; }
+    public ConnectionInfo(DragCanvasNode sourceNode, DragCanvasNode targetNode, int sourcePortIndex, int targetPortIndex)
+    {
+        SourceNode = sourceNode;
+        TargetNode = targetNode;
+        SourcePortIndex = sourcePortIndex;
+        TargetPortIndex = targetPortIndex;
+    }
+
+    public (DragCanvasNode otherNode, int otherPortIndex) GetOtherEnd(DragCanvasNode node)
+    {
+        if (node == SourceNode)
+        {
+            return (TargetNode, TargetPortIndex);
+        }
+        else if (node == TargetNode)
+        {
+            return (SourceNode, SourcePortIndex);
+        }
+        else
+        {
+            throw new ArgumentException("The provided node and port index do not match either end of the connection.");
         }
     }
 }

@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.VisualTree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Avalonia.DragCanvas;
@@ -18,6 +19,13 @@ public class DragCanvasNode : ContentControl
 
     private readonly List<PortInfo> _leftPorts = new();
     private readonly List<PortInfo> _rightPorts = new();
+
+    // _leftConnections[i] is the list of connections for the port at index i on the left side.
+    // Similarly for _rightConnections.
+    private bool _connectionsInitialized = false;
+    private readonly List<List<DragCanvasConnection>> _leftConnections = new();
+    private readonly List<List<DragCanvasConnection>> _rightConnections = new();
+
     private int? _hoveredPortIndex;
     private PortSide? _hoveredPortSide;
     private Point _lastPointerPosition;
@@ -112,6 +120,7 @@ public class DragCanvasNode : ContentControl
 
     private void UpdatePorts()
     {
+        // We need to be more careful about if there were already connections on these ports
         _leftPorts.Clear();
         _rightPorts.Clear();
 
@@ -122,13 +131,14 @@ public class DragCanvasNode : ContentControl
             return;
 
         // Create left ports
-        CreatePorts(_leftPorts, PortCtLeft, 0, height, PortSide.Left);
+        CreatePorts(_leftPorts, _leftConnections, PortCtLeft, 0, height, PortSide.Left);
 
         // Create right ports
-        CreatePorts(_rightPorts, PortCtRight, width, height, PortSide.Right);
+        CreatePorts(_rightPorts, _rightConnections, PortCtRight, width, height, PortSide.Right);
+        _connectionsInitialized = true;
     }
 
-    private static void CreatePorts(List<PortInfo> portList, int count, double x, double height, PortSide side)
+    private void CreatePorts(List<PortInfo> portList, List<List<DragCanvasConnection>> portConnections, int count, double x, double height, PortSide side)
     {
         if (count == 0) return;
 
@@ -147,6 +157,10 @@ public class DragCanvasNode : ContentControl
                 Index = i,
                 Side = side
             });
+            if (!_connectionsInitialized)
+            {
+                portConnections.Add(new List<DragCanvasConnection>());
+            }
         }
     }
 
@@ -343,8 +357,28 @@ public class DragCanvasNode : ContentControl
 
     internal virtual bool AllowConnection(int portIndex, bool isLeftSide, DragCanvasNode? otherNode, int otherPortIndex, bool otherIsLeftSide)
     {
+        if (isLeftSide)
+        {
+            if (_leftConnections[portIndex] != null && _leftConnections[portIndex].Count > 0)
+            {
+                // By default we only allow one connection per left port
+                return false;
+            }
+        }
         // Only allow outputs to input connections
         return isLeftSide != otherIsLeftSide;
+    }
+
+    // Called by DragCanvas when a new connection is made to update internal state
+    internal virtual void OnConnectionMade(DragCanvasConnection connection, int iPort, PortSide thisSide)
+    {
+        var count = thisSide == PortSide.Left ? PortCtLeft : PortCtRight;
+        Debug.Assert(iPort >= 0 && iPort < count, "Port index should be valid when making a connection.");
+
+        var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
+        Debug.Assert(connectionsList[iPort] != null, "Connections list for the port should have been initialized by UpdatePorts.");
+        //connectionsList[iPort] ??= new();
+        connectionsList[iPort].Add(connection);
     }
 
     /// <summary>
@@ -397,7 +431,7 @@ public class DragCanvasNode : ContentControl
         public PortSide Side { get; set; }
     }
 
-    private enum PortSide
+    public enum PortSide
     {
         Left,
         Right

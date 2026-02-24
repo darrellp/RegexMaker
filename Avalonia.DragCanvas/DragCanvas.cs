@@ -4,7 +4,9 @@ using Avalonia.Interactivity;
 using Avalonia.VisualTree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using static Avalonia.DragCanvas.DragCanvasNode;
 
 namespace Avalonia.DragCanvas;
 
@@ -182,7 +184,8 @@ public class DragCanvas : Canvas
             if (hoveredPort.HasValue)
             {
                 var (_, isLeftSide) = hoveredPort.Value;
-                if (isLeftSide == _connectionSourceIsLeftSide)
+                if (!hoveredNode.AllowConnection(hoveredPort.Value.index, isLeftSide, _connectionSourceNode!, _connectionSourcePortIndex, _connectionSourceIsLeftSide) ||
+                    !_connectionSourceNode!.AllowConnection(_connectionSourcePortIndex, _connectionSourceIsLeftSide, hoveredNode, hoveredPort.Value.index, isLeftSide))
                 {
                     // Same side - not valid
                     hoveredPort = null;
@@ -233,8 +236,10 @@ public class DragCanvas : Canvas
                 {
                     var (targetPortIndex, targetIsLeftSide) = hoveredPort.Value;
 
+                    Debug.Assert(_connectionSourceNode != null, "Source node should not be null when making a connection");
                     // Validate: Has to be a valid connection according to the node's rules
-                    if (hoveredNode.AllowConnection(targetPortIndex, targetIsLeftSide, _connectionSourceNode, _connectionSourcePortIndex, _connectionSourceIsLeftSide))
+                    if (hoveredNode.AllowConnection(targetPortIndex, targetIsLeftSide, _connectionSourceNode, _connectionSourcePortIndex, _connectionSourceIsLeftSide) &&
+                        _connectionSourceNode.AllowConnection(_connectionSourcePortIndex, _connectionSourceIsLeftSide, hoveredNode, targetPortIndex, targetIsLeftSide))
                     {
                         // Determine which is source (right) and which is target (left)
                         DragCanvasNode sourceNode, targetNode;
@@ -287,6 +292,8 @@ public class DragCanvas : Canvas
                             SourcePortPosition = sourcePortPos,
                             TargetPortPosition = targetPortPos
                         };
+                        sourceNode.OnConnectionMade(connection, sourcePortIndex, PortSide.Right);
+                        targetNode.OnConnectionMade(connection, targetPortIndex2, PortSide.Left);
 
                         RaiseEvent(eventArgs);
                     }
