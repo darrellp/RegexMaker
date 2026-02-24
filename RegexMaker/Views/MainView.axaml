@@ -18,7 +18,72 @@
         <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
         <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox">
         </StackPanel>
-        <Rectangle Grid.Row="1" Grid.Column="2" Fill="Green" />
+        <Carousel Grid.Row="1" Grid.Column="2" Name="CarParameters">
+            <!-- StringSearch - Index 0 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="String Search" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Value:"/>
+                    <TextBox Name="TxtStringSearchValue" Watermark="Enter search text"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Concatenate - Index 1 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Concatenate" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Repeat - Index 2 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Repeat" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Minimum:"/>
+                    <NumericUpDown Name="NumRepeatLeast" Minimum="0" Value="0"/>
+                    <TextBlock Text="Maximum:"/>
+                    <NumericUpDown Name="NumRepeatMost" Minimum="-1" Value="-1"/>
+                    <CheckBox Name="ChkRepeatIsLazy" Content="Is Lazy"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- PatternStart - Index 3 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Pattern Start" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- PatternEnd - Index 4 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Pattern End" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- AnyCharFrom - Index 5 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Any Char From" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
+                    <TextBlock Text="(Uses parameter nodes)" FontSize="10" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- Range - Index 6 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Start Character:"/>
+                    <TextBox Name="TxtRangeCharStart" MaxLength="1" Watermark="a"/>
+                    <TextBlock Text="End Character:"/>
+                    <TextBox Name="TxtRangeCharEnd" MaxLength="1" Watermark="z"/>
+                </StackPanel>
+            </Border>
+        </Carousel>
         <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
         <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue">
             <nodes:RgxNodeControl NodeName="Concatenate"
