@@ -23,4 +23,9 @@ internal class ConcatenateNode : RgxNode
         // Concatenate the random matches of all parameter nodes.
         return string.Concat(Parameters.Select(p => p.RandomMatch()));
     }
+
+    public override IRgxNode Default()
+    {
+        return new ConcatenateNode();
+    }
 }

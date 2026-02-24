@@ -30,5 +30,10 @@ internal class StringSearchNode : RgxNode
         return _searchString;
     }
 
+    public override IRgxNode Default()
+    {
+        return new StringSearchNode();
+    }
+
     public override string Name => "Literal";
 }

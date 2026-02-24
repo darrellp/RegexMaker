@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 namespace RegexMaker.Nodes;
 internal abstract class RgxNode : IRgxNode
 {
-    public static System.Random random = new Random();
+    public static Random random = new();
 
     private static int _idCounter = 0;
     public int ID { get; private set; }
@@ -96,4 +96,6 @@ internal abstract class RgxNode : IRgxNode
     {
         throw new System.NotImplementedException();
     }
+
+    public abstract IRgxNode Default();
 }

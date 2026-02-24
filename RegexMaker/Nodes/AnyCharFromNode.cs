@@ -26,4 +26,9 @@ internal class AnyCharFromNode : RgxNode
         var chars = Parameters.Select(p => p.RandomMatch()).ToArray();
         return chars[random.Next(chars.Length)];
     }
+
+    public override IRgxNode Default()
+    {
+        return new AnyCharFromNode();
+    }
 }

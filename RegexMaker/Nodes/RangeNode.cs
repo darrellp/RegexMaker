@@ -42,5 +42,10 @@ internal class RangeNode : RgxNode
         char randomChar = (char)(start + random.Next(rangeSize));
         return randomChar.ToString();
     }
+
+    public override IRgxNode Default()
+    {
+        return new RangeNode();
+    }
 }
 

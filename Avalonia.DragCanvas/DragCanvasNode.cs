@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -238,9 +237,9 @@ public class DragCanvasNode : ContentControl
     private void UpdateHoveredPort(Point pointerPosition)
     {
         const double hoverDistance = 20.0; // Distance within which port is considered hovered
-        
+
         PortInfo? newHoveredPort = null;
-        double minDistance = hoverDistance;
+        double minDistanceSq = hoverDistance * hoverDistance;
 
         // Ensure ports are up to date
         if (_leftPorts.Count == 0 && _rightPorts.Count == 0)
@@ -248,20 +247,31 @@ public class DragCanvasNode : ContentControl
             UpdatePorts();
         }
 
+        // If our x position isn't near the left or right side there's no need to check further.
+        if (pointerPosition.X > hoverDistance/2 && pointerPosition.X < _lastArrangedSize.Width - hoverDistance/2) 
+        {
+            {
+                _hoveredPortIndex = null;
+                _hoveredPortSide = null;
+                InvalidateVisual();
+            }
+            return;
+        }
+
         // Check all ports
         foreach (var port in _leftPorts.Concat(_rightPorts))
         {
-            var distance = Distance(pointerPosition, port.Center);
-            if (distance < minDistance)
+            var distanceSq = DistanceSq(pointerPosition, port.Center);
+            if (distanceSq < minDistanceSq)
             {
-                minDistance = distance;
+                minDistanceSq = distanceSq;
                 newHoveredPort = port;
             }
         }
 
         // Check if hover state changed
         bool hasChanged = false;
-        
+
         if (newHoveredPort == null)
         {
             if (_hoveredPortIndex.HasValue)
@@ -273,7 +283,7 @@ public class DragCanvasNode : ContentControl
         }
         else
         {
-            if (!_hoveredPortIndex.HasValue || 
+            if (!_hoveredPortIndex.HasValue ||
                 _hoveredPortIndex.Value != newHoveredPort.Index ||
                 _hoveredPortSide != newHoveredPort.Side)
             {
@@ -367,11 +377,11 @@ public class DragCanvasNode : ContentControl
 
     public bool IsPortDragInProgress => _isPortDragInProgress;
 
-    private static double Distance(Point p1, Point p2)
+    private static double DistanceSq(Point p1, Point p2)
     {
         var dx = p1.X - p2.X;
         var dy = p1.Y - p2.Y;
-        return Math.Sqrt(dx * dx + dy * dy);
+        return dx * dx + dy * dy;
     }
 
     private class PortInfo

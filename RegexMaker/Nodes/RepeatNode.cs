@@ -52,4 +52,9 @@ internal class RepeatNode : RgxNode
         // return string.Concat(Enumerable.Repeat(Parameters[0].RandomMatch(), repeatCount));
         return string.Concat(Enumerable.Repeat(0, repeatCount).Select(i => Parameters[0].RandomMatch()));
     }
+
+    public override IRgxNode Default()
+    {
+        return new RepeatNode();
+    }
 }

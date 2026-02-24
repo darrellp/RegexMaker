@@ -33,6 +33,11 @@ public class IRgxNodeTests
         {
         }
 
+        public override IRgxNode Default()
+        {
+            throw new NotImplementedException();
+        }
+
         internal override string CalculateResult()
         {
             return ".*";

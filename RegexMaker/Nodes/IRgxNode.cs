@@ -24,4 +24,5 @@ internal interface IRgxNode
     // This method is responsible for producing the result of the node based on its type and parameters.
     public string ProduceResult();
     public string RandomMatch();
+    public IRgxNode Default();
 }
