@@ -16,6 +16,7 @@ public class DragCanvasNode : ContentControl
     private const double PortRadiusHover = 7.0;
     private const double PortSpacing = 20.0;
     private const double PortPadding = 10.0;
+    private const double SelectionBorderThickness = 2.0;
 
     private readonly List<PortInfo> _leftPorts = new();
     private readonly List<PortInfo> _rightPorts = new();
@@ -51,6 +52,17 @@ public class DragCanvasNode : ContentControl
             defaultValue: 0,
             validate: value => value >= 0);
 
+    // Styled properties for selection
+    public static readonly StyledProperty<bool> IsSelectedProperty =
+        AvaloniaProperty.Register<DragCanvasNode, bool>(
+            nameof(IsSelected),
+            defaultValue: false);
+
+    public static readonly StyledProperty<IBrush?> SelectionBrushProperty =
+        AvaloniaProperty.Register<DragCanvasNode, IBrush?>(
+            nameof(SelectionBrush),
+            defaultValue: Brushes.Blue);
+
     public int PortCtLeft
     {
         get => GetValue(PortCtLeftProperty);
@@ -63,9 +75,21 @@ public class DragCanvasNode : ContentControl
         set => SetValue(PortCtRightProperty, value);
     }
 
+    public bool IsSelected
+    {
+        get => GetValue(IsSelectedProperty);
+        internal set => SetValue(IsSelectedProperty, value);
+    }
+
+    public IBrush? SelectionBrush
+    {
+        get => GetValue(SelectionBrushProperty);
+        internal set => SetValue(SelectionBrushProperty, value);
+    }
+
     static DragCanvasNode()
     {
-        AffectsRender<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty);
+        AffectsRender<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty, IsSelectedProperty, SelectionBrushProperty);
         AffectsMeasure<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty);
     }
 
@@ -170,6 +194,15 @@ public class DragCanvasNode : ContentControl
 
         // Update ports before rendering to ensure correct positioning
         UpdatePorts();
+
+        // Render selection border if selected
+        if (IsSelected && SelectionBrush != null)
+        {
+            var radius = CornerRadius.TopLeft + 12; // Assuming uniform corner radius for simplicity
+            var rect = new Rect(0, 0, _lastArrangedSize.Width, _lastArrangedSize.Height);
+            var pen = new Pen(SelectionBrush, SelectionBorderThickness);
+            context.DrawRectangle(null, pen, rect);
+        }
 
         // Render all ports
         RenderPorts(context, _leftPorts);

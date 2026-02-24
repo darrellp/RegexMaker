@@ -16,6 +16,7 @@ public class DragCanvas : Canvas
     private Point origCursorLocation;
     private double origHorizOffset, origVertOffset;
     private bool modifyLeftOffset, modifyTopOffset;
+    private bool hasMovedBeyondThreshold;
 
     // Connection management
     private DragCanvasConnection? _temporaryConnection;
@@ -26,12 +27,21 @@ public class DragCanvas : Canvas
     private DragCanvasNode? _lastHoveredNodeDuringConnection;
     private (int index, bool isLeftSide)? _lastHoveredPortDuringConnection;
 
+    // Selection management
+    private DragCanvasNode? _selectedNode;
+
     public bool IsDragInProgress { get; private set; }
 
     // Routed event for connections created
     public static readonly RoutedEvent<ConnectionEventArgs> ConnectionCreatedEvent =
         RoutedEvent.Register<DragCanvas, ConnectionEventArgs>(
             "ConnectionCreated",
+            RoutingStrategies.Bubble);
+
+    // Routed event for node selection
+    public static readonly RoutedEvent<NodeSelectedEventArgs> NodeSelectedEvent =
+        RoutedEvent.Register<DragCanvas, NodeSelectedEventArgs>(
+            "NodeSelected",
             RoutingStrategies.Bubble);
 
     // Attached property for CanBeDragged
@@ -56,6 +66,48 @@ public class DragCanvas : Canvas
     {
         get => GetValue(AllowDraggingProperty);
         set => SetValue(AllowDraggingProperty, value);
+    }
+
+    // StyledProperty for SelectColor
+    public static readonly StyledProperty<Media.IBrush?> SelectColorProperty =
+        AvaloniaProperty.Register<DragCanvas, Media.IBrush?>(
+            nameof(SelectColor),
+            defaultValue: Media.Brushes.Blue);
+
+    public Media.IBrush? SelectColor
+    {
+        get => GetValue(SelectColorProperty);
+        set => SetValue(SelectColorProperty, value);
+    }
+
+    // Property for SelectedNode
+    public DragCanvasNode? SelectedNode
+    {
+        get => _selectedNode;
+        private set
+        {
+            if (_selectedNode != value)
+            {
+                // Clear previous selection
+                if (_selectedNode != null)
+                {
+                    _selectedNode.IsSelected = false;
+                }
+
+                _selectedNode = value;
+
+                // Set new selection
+                if (_selectedNode != null)
+                {
+                    _selectedNode.IsSelected = true;
+                    _selectedNode.SelectionBrush = SelectColor;
+
+                    // Raise selection event
+                    var eventArgs = new NodeSelectedEventArgs(NodeSelectedEvent, _selectedNode);
+                    RaiseEvent(eventArgs);
+                }
+            }
+        }
     }
 
     public DragCanvas()
@@ -101,6 +153,7 @@ public class DragCanvas : Canvas
         if (!point.Properties.IsLeftButtonPressed) return;
 
         origCursorLocation = point.Position;
+        hasMovedBeyondThreshold = false;
 
         // Find canvas child
         if (e.Source is Visual visual)
@@ -145,6 +198,23 @@ public class DragCanvas : Canvas
         }
 
         if (elementBeingDragged == null || !IsDragInProgress) return;
+
+        // Check if we've moved beyond the threshold (taxicab distance > 5)
+        if (!hasMovedBeyondThreshold)
+        {
+            double taxicabDistance = Math.Abs(cursorLocation.X - origCursorLocation.X) +
+                                    Math.Abs(cursorLocation.Y - origCursorLocation.Y);
+
+            if (taxicabDistance > 5)
+            {
+                hasMovedBeyondThreshold = true;
+            }
+            else
+            {
+                // Not ready to drag yet
+                return;
+            }
+        }
 
         double newHorizontalOffset = modifyLeftOffset
             ? origHorizOffset + (cursorLocation.X - origCursorLocation.X)
@@ -312,9 +382,15 @@ public class DragCanvas : Canvas
             _temporaryConnection = null;
             _connectionSourceNode = null;
         }
+        else if (elementBeingDragged is DragCanvasNode nodeClicked && !hasMovedBeyondThreshold)
+        {
+            // This was a click (not a drag) - select the node
+            SelectedNode = nodeClicked;
+        }
 
         elementBeingDragged = null;
         IsDragInProgress = false;
+        hasMovedBeyondThreshold = false;
     }
 
     private DragCanvasNode? FindNodeNearPosition(Point canvasPosition)
