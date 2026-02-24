@@ -80,6 +80,13 @@ public class RgxNodeControl : DragCanvasNode
 
     private void UpdateTextBlock()
     {
-        _textBlock.Text = _rgxNode?.Name ?? "No Node";
+        if (_rgxNode is StringSearchNode literal)
+        {
+            _textBlock.Text = $"\"{literal.SearchString}\"";
+        }
+        else
+        {
+            _textBlock.Text = _rgxNode?.Name ?? "No Node";
+        }
     }
 }

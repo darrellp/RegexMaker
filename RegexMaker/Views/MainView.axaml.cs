@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 
@@ -20,8 +21,15 @@ public partial class MainView : UserControl
                 Tag = RgxNode,
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
-            SpToolBox.Children.Add(btn);
-            btn.IsVisible = true;
+            var text = new TextBlock
+            {
+                Text = RgxNode.Name,
+                FontSize = 12,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            SpToolBox.Children.Add(text);
+            text.IsVisible = true;
         }
 
     }
