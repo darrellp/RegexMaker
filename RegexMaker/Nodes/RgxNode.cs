@@ -13,7 +13,7 @@ internal abstract class RgxNode : IRgxNode
     private static int _idCounter = 0;
     public int ID { get; private set; }
     public RgxNodeType NodeType { get; }
-    public IList<IRgxNode> Parameters { get; private set; }
+    public IList<IRgxNode?> Parameters { get; set; }
 
     // Default implementation of Name property takes name from the enum type of the NodeType.
     // Can be overridden by derived classes if needed.
@@ -95,6 +95,18 @@ internal abstract class RgxNode : IRgxNode
     public virtual string RandomMatch()
     {
         throw new System.NotImplementedException();
+    }
+
+    public static RgxNode NameToNode(string name)
+    {
+        // Find the exemplar with the matching name.
+        var exemplar = Exemplars.FirstOrDefault(e => e.Name == name);
+        var ret = exemplar?.Default() as RgxNode;
+        if (ret is null)
+        {
+            throw new ArgumentException($"No node type found with name: {name}");
+        }
+        return ret;
     }
 
     public abstract IRgxNode Default();

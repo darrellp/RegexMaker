@@ -15,7 +15,7 @@ internal class ConcatenateNode : RgxNode
     internal override string CalculateResult()
     {
         // Concatenate the results of all parameter nodes.
-        return Stex.Cat(Parameters.Select(p => p.ProduceResult()).ToArray());
+        return Stex.Cat(Parameters.Select(p => p == null ? string.Empty : p.ProduceResult()).ToArray());
     }
 
     override public string RandomMatch()
@@ -26,6 +26,8 @@ internal class ConcatenateNode : RgxNode
 
     public override IRgxNode Default()
     {
-        return new ConcatenateNode();
+        var ret = new ConcatenateNode();
+        ret.Parameters = [null, null];
+        return ret;
     }
 }

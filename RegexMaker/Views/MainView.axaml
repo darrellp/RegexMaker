@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:dragCanvas="clr-namespace:Avalonia.DragCanvas;assembly=Avalonia.DragCanvas"
+             xmlns:nodes="clr-namespace:RegexMaker.Controls;assembly=RegexMaker"
              xmlns:vm="using:RegexMaker.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="RegexMaker.Views.MainView"
@@ -20,7 +21,13 @@
         <Rectangle Grid.Row="1" Grid.Column="2" Fill="Green" />
         <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
         <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue">
-            <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="3"
+            <nodes:RgxNodeControl NodeName="Concatenate"
+                                  Canvas.Left="150" Canvas.Top="50"/>
+            <nodes:RgxNodeControl NodeName="Literal"
+                                  Canvas.Left="20" Canvas.Top="20"/>
+            <nodes:RgxNodeControl NodeName="Literal"
+                                  Canvas.Left="20" Canvas.Top="80"/>
+<!--            <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="3"
                                   Background="LightGray"
                                   Padding="10"
                                   CornerRadius="5"
@@ -29,17 +36,7 @@
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"/>
             </dragCanvas:DragCanvasNode>
-            <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="3"
-                                  Background="LightGray"
-                                  Padding="10"
-                                  CornerRadius="5"
-                                  Canvas.Left="20
-                                  " Canvas.Top="100">
-                <TextBlock Text="String Search Node"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"/>
-            </dragCanvas:DragCanvasNode>
-
+-->
         </dragCanvas:DragCanvas>
     </Grid>
 </UserControl>
