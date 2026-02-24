@@ -1,6 +1,7 @@
+using Avalonia.Controls;
 using Avalonia.Media;
 
-namespace Avalonia.Controls;
+namespace Avalonia.DragCanvas;
 
 /// <summary>
 /// Represents a visual connection line between two DragCanvasNode ports

@@ -1,3 +1,4 @@
+using Avalonia.DragCanvas;
 using Avalonia.Interactivity;
 
 namespace Avalonia.Controls;

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 
-namespace Avalonia.Controls;
+namespace Avalonia.DragCanvas;
 
 public class DragCanvasNode : ContentControl
 {
@@ -107,7 +108,7 @@ public class DragCanvasNode : ContentControl
         
         // Calculate height needed for ports with fixed spacing
         // Top padding + (portCount * spacing) + bottom padding
-        return (2 * PortPadding) + ((portCount - 1) * PortSpacing);
+        return 2 * PortPadding + (portCount - 1) * PortSpacing;
     }
 
     private void UpdatePorts()
@@ -140,7 +141,7 @@ public class DragCanvasNode : ContentControl
 
         for (int i = 0; i < count; i++)
         {
-            var y = startY + (i * PortSpacing);
+            var y = startY + i * PortSpacing;
             portList.Add(new PortInfo
             {
                 Center = new Point(x, y),
