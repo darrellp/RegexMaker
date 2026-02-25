@@ -4,15 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:dragCanvas="clr-namespace:Avalonia.DragCanvas;assembly=Avalonia.DragCanvas"
              xmlns:nodes="clr-namespace:RegexMaker.Controls;assembly=RegexMaker"
-             xmlns:vm="using:RegexMaker.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="RegexMaker.Views.MainView"
-             x:DataType="vm:MainViewModel">
-    <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainViewModel />
-    </Design.DataContext>
+             x:Class="RegexMaker.Views.MainView">
 
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
         <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
@@ -32,7 +25,9 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Literal" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Value:"/>
-                    <TextBox Name="TxtStringSearchValue" Watermark="Enter search text" PropertyChanged="OnStringSearchValueChanged"/>
+                    <TextBox x:Name="TxtStringSearchValue" 
+                             Text="{ReflectionBinding SearchString}" 
+                             Watermark="Enter search string"/>
                 </StackPanel>
             </Border>
             
@@ -49,10 +44,16 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Repeat" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Minimum:"/>
-                    <NumericUpDown Name="NumRepeatLeast" Minimum="0" Value="0" ValueChanged="OnRepeatNumericValueChanged"/>
+                    <NumericUpDown x:Name="NumRepeatLeast" 
+                                   Value="{ReflectionBinding Least}" 
+                                   Minimum="0"/>
                     <TextBlock Text="Maximum:"/>
-                    <NumericUpDown Name="NumRepeatMost" Minimum="-1" Value="-1" ValueChanged="OnRepeatNumericValueChanged"/>
-                    <CheckBox Name="ChkRepeatIsLazy" Content="Is Lazy" Click="OnRepeatCheckBoxChanged"/>
+                    <NumericUpDown x:Name="NumRepeatMost" 
+                                   Value="{ReflectionBinding Most}" 
+                                   Minimum="-1"/>
+                    <CheckBox x:Name="ChkRepeatIsLazy" 
+                              IsChecked="{ReflectionBinding IsLazy}" 
+                              Content="Lazy"/>
                 </StackPanel>
             </Border>
             
@@ -86,9 +87,11 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Start Character:"/>
-                    <TextBox Name="TxtRangeCharStart" MaxLength="1" Watermark="a" PropertyChanged="OnRangeValueChanged"/>
+                    <TextBox x:Name="TxtRangeCharStart" 
+                             Text="{ReflectionBinding CharStart}"/>
                     <TextBlock Text="End Character:"/>
-                    <TextBox Name="TxtRangeCharEnd" MaxLength="1" Watermark="z" PropertyChanged="OnRangeValueChanged"/>
+                    <TextBox x:Name="TxtRangeCharEnd" 
+                             Text="{ReflectionBinding CharEnd}"/>
                 </StackPanel>
             </Border>
         </Carousel>

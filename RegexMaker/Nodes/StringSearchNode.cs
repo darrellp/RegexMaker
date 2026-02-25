@@ -1,5 +1,5 @@
 ﻿namespace RegexMaker.Nodes;
-internal class StringSearchNode : RgxNode
+public class StringSearchNode : RgxNode
 {
     private string _searchString;
     public string SearchString { get => _searchString; set => _searchString=value; }

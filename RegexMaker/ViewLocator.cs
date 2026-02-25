@@ -32,6 +32,10 @@ public class ViewLocator : IDataTemplate
 
     public bool Match(object? data)
     {
-        return data is ViewModelBase;
+        // Match is not implemented because Avalonia's ContentControl will call Build for every view 
+        // model and we don't want to exclude any view models from being processed. If Build returns 
+        // null, the ContentControl will just display nothing, which is the desired behavior for view 
+        // models that don't have corresponding views.
+        throw new NotImplementedException("Match is not implemented");
     }
 }

@@ -1,17 +1,16 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.DragCanvas;
-using Avalonia.Interactivity;
 using Avalonia.Layout;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
+using RegexMaker.ViewModels;
 
 namespace RegexMaker.Views;
 
 public partial class MainView : UserControl
 {
     private RgxNode? _currentlySelectedNode;
-    private bool _isUpdatingFromNode;
+    private object? _currentViewModel;
 
     public MainView()
     {
@@ -53,39 +52,42 @@ public partial class MainView : UserControl
         if (node == null)
         {
             _currentlySelectedNode = null;
+            _currentViewModel = null;
             return;
         }
 
         _currentlySelectedNode = node;
-        _isUpdatingFromNode = true;
 
         // Set carousel to the appropriate page
         CarParameters.SelectedIndex = (int)node.NodeType;
 
-        // Load current values from the node into the UI
+        // Create ViewModel and set up bindings based on node type
         switch (node.NodeType)
         {
             case RgxNodeType.StringSearch:
                 if (node is StringSearchNode stringSearchNode)
                 {
-                    TxtStringSearchValue.Text = stringSearchNode.SearchString;
+                    _currentViewModel = new StringSearchNodeViewModel(stringSearchNode, UpdateNodeDisplay);
+                    TxtStringSearchValue.DataContext = _currentViewModel;
                 }
                 break;
 
             case RgxNodeType.Repeat:
                 if (node is RepeatNode repeatNode)
                 {
-                    NumRepeatLeast.Value = repeatNode.Least;
-                    NumRepeatMost.Value = repeatNode.Most;
-                    ChkRepeatIsLazy.IsChecked = repeatNode.IsLazy;
+                    _currentViewModel = new RepeatNodeViewModel(repeatNode);
+                    NumRepeatLeast.DataContext = _currentViewModel;
+                    NumRepeatMost.DataContext = _currentViewModel;
+                    ChkRepeatIsLazy.DataContext = _currentViewModel;
                 }
                 break;
 
             case RgxNodeType.Range:
                 if (node is RangeNode rangeNode)
                 {
-                    TxtRangeCharStart.Text = rangeNode.CharStart.ToString();
-                    TxtRangeCharEnd.Text = rangeNode.CharEnd.ToString();
+                    _currentViewModel = new RangeNodeViewModel(rangeNode);
+                    TxtRangeCharStart.DataContext = _currentViewModel;
+                    TxtRangeCharEnd.DataContext = _currentViewModel;
                 }
                 break;
 
@@ -94,86 +96,13 @@ public partial class MainView : UserControl
             case RgxNodeType.PatternEnd:
             case RgxNodeType.AnyCharFrom:
                 // These node types have no editable parameters
+                _currentViewModel = null;
                 break;
         }
-
-        _isUpdatingFromNode = false;
     }
 
     /// <summary>
-    /// Handles changes to the StringSearch value
-    /// </summary>
-    private void OnStringSearchValueChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        if (_isUpdatingFromNode || _currentlySelectedNode == null)
-            return;
-
-        if (e.Property.Name == nameof(TextBox.Text) && _currentlySelectedNode is StringSearchNode stringSearchNode)
-        {
-            stringSearchNode.SearchString = TxtStringSearchValue.Text ?? string.Empty;
-            _currentlySelectedNode.MakeDirty();
-            UpdateNodeDisplay();
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the Repeat NumericUpDown values
-    /// </summary>
-    private void OnRepeatNumericValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
-    {
-        UpdateRepeatNode();
-    }
-
-    /// <summary>
-    /// Handles changes to the Repeat CheckBox value
-    /// </summary>
-    private void OnRepeatCheckBoxChanged(object? sender, RoutedEventArgs e)
-    {
-        UpdateRepeatNode();
-    }
-
-    /// <summary>
-    /// Updates the RepeatNode with current UI values
-    /// </summary>
-    private void UpdateRepeatNode()
-    {
-        if (_isUpdatingFromNode || _currentlySelectedNode == null)
-            return;
-
-        if (_currentlySelectedNode is RepeatNode repeatNode)
-        {
-            repeatNode.Least = (int)(NumRepeatLeast.Value ?? 0);
-            repeatNode.Most = (int)(NumRepeatMost.Value ?? -1);
-            repeatNode.IsLazy = ChkRepeatIsLazy.IsChecked ?? false;
-            _currentlySelectedNode.MakeDirty();
-        }
-    }
-
-    /// <summary>
-    /// Handles changes to the Range node values
-    /// </summary>
-    private void OnRangeValueChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        if (_isUpdatingFromNode || _currentlySelectedNode == null)
-            return;
-
-        if (e.Property.Name == nameof(TextBox.Text) && _currentlySelectedNode is RangeNode rangeNode)
-        {
-            var startText = TxtRangeCharStart.Text;
-            var endText = TxtRangeCharEnd.Text;
-
-            if (!string.IsNullOrEmpty(startText))
-                rangeNode.CharStart = startText;
-
-            if (!string.IsNullOrEmpty(endText))
-                rangeNode.CharEnd = endText;
-
-            _currentlySelectedNode.MakeDirty();
-        }
-    }
-
-    /// <summary>
-    /// Updates the visual display of the selected node (if it's a StringSearchNode)
+    /// Updates the visual display of the selected node
     /// </summary>
     private void UpdateNodeDisplay()
     {
@@ -198,63 +127,5 @@ public partial class MainView : UserControl
     internal void ShowNodeParameters(RgxNodeType nodeType)
     {
         CarParameters.SelectedIndex = (int)nodeType;
-    }
-
-    /// <summary>
-    /// Gets parameter values from the carousel for StringSearch node
-    /// </summary>
-    public string GetStringSearchValue()
-    {
-        return TxtStringSearchValue.Text ?? string.Empty;
-    }
-
-    /// <summary>
-    /// Sets parameter values in the carousel for StringSearch node
-    /// </summary>
-    public void SetStringSearchValue(string value)
-    {
-        TxtStringSearchValue.Text = value;
-    }
-
-    /// <summary>
-    /// Gets parameter values from the carousel for Repeat node
-    /// </summary>
-    public (int Least, int Most, bool IsLazy) GetRepeatValues()
-    {
-        return (
-            (int)(NumRepeatLeast.Value ?? 0),
-            (int)(NumRepeatMost.Value ?? -1),
-            ChkRepeatIsLazy.IsChecked ?? false
-        );
-    }
-
-    /// <summary>
-    /// Sets parameter values in the carousel for Repeat node
-    /// </summary>
-    public void SetRepeatValues(int least, int most, bool isLazy)
-    {
-        NumRepeatLeast.Value = least;
-        NumRepeatMost.Value = most;
-        ChkRepeatIsLazy.IsChecked = isLazy;
-    }
-
-    /// <summary>
-    /// Gets parameter values from the carousel for Range node
-    /// </summary>
-    public (string CharStart, string CharEnd) GetRangeValues()
-    {
-        return (
-            TxtRangeCharStart.Text ?? "a",
-            TxtRangeCharEnd.Text ?? "z"
-        );
-    }
-
-    /// <summary>
-    /// Sets parameter values in the carousel for Range node
-    /// </summary>
-    public void SetRangeValues(string charStart, string charEnd)
-    {
-        TxtRangeCharStart.Text = charStart;
-        TxtRangeCharEnd.Text = charEnd;
     }
 }

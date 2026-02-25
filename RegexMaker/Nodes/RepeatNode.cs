@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace RegexMaker.Nodes;
-internal class RepeatNode : RgxNode
+public class RepeatNode : RgxNode
 {
     public int Least { get; set; }
     public int Most { get; set; }

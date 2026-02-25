@@ -2,7 +2,7 @@
 using System;
 
 namespace RegexMaker.Nodes;
-internal class RangeNode : RgxNode
+public class RangeNode : RgxNode
 {
     public string CharStart { get; set; }
     public string CharEnd { get; set; }
