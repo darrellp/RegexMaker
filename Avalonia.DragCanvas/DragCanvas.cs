@@ -44,6 +44,13 @@ public class DragCanvas : Canvas
             "NodeSelected",
             RoutingStrategies.Bubble);
 
+    // CLR event wrapper for XAML binding
+    public event EventHandler<NodeSelectedEventArgs>? NodeSelected
+    {
+        add => AddHandler(NodeSelectedEvent, value);
+        remove => RemoveHandler(NodeSelectedEvent, value);
+    }
+
     // Attached property for CanBeDragged
     public static readonly AttachedProperty<bool> CanBeDraggedProperty =
         AvaloniaProperty.RegisterAttached<DragCanvas, Control, bool>(

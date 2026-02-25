@@ -6,9 +6,9 @@ using System.Linq;
 namespace RegexMaker.Nodes;
 internal class RepeatNode : RgxNode
 {
-    public int Least { get; private set; }
-    public int Most { get; private set; }
-    public bool IsLazy { get; private set; }
+    public int Least { get; set; }
+    public int Most { get; set; }
+    public bool IsLazy { get; set; }
 
     // Nodes created with the parameterless constructor are only exemplars and will never calculate
     public RepeatNode()

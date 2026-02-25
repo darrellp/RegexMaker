@@ -32,7 +32,7 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Literal" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Value:"/>
-                    <TextBox Name="TxtStringSearchValue" Watermark="Enter search text"/>
+                    <TextBox Name="TxtStringSearchValue" Watermark="Enter search text" PropertyChanged="OnStringSearchValueChanged"/>
                 </StackPanel>
             </Border>
             
@@ -49,10 +49,10 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Repeat" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Minimum:"/>
-                    <NumericUpDown Name="NumRepeatLeast" Minimum="0" Value="0"/>
+                    <NumericUpDown Name="NumRepeatLeast" Minimum="0" Value="0" ValueChanged="OnRepeatNumericValueChanged"/>
                     <TextBlock Text="Maximum:"/>
-                    <NumericUpDown Name="NumRepeatMost" Minimum="-1" Value="-1"/>
-                    <CheckBox Name="ChkRepeatIsLazy" Content="Is Lazy"/>
+                    <NumericUpDown Name="NumRepeatMost" Minimum="-1" Value="-1" ValueChanged="OnRepeatNumericValueChanged"/>
+                    <CheckBox Name="ChkRepeatIsLazy" Content="Is Lazy" Click="OnRepeatCheckBoxChanged"/>
                 </StackPanel>
             </Border>
             
@@ -86,15 +86,15 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Start Character:"/>
-                    <TextBox Name="TxtRangeCharStart" MaxLength="1" Watermark="a"/>
+                    <TextBox Name="TxtRangeCharStart" MaxLength="1" Watermark="a" PropertyChanged="OnRangeValueChanged"/>
                     <TextBlock Text="End Character:"/>
-                    <TextBox Name="TxtRangeCharEnd" MaxLength="1" Watermark="z"/>
+                    <TextBox Name="TxtRangeCharEnd" MaxLength="1" Watermark="z" PropertyChanged="OnRangeValueChanged"/>
                 </StackPanel>
             </Border>
         </Carousel>
 
         <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
-        <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue">
+        <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue" Name="DragCanvasMain" NodeSelected="OnNodeSelected">
             <nodes:RgxNodeControl NodeName="Concatenate"
                                   Canvas.Left="150" Canvas.Top="50"/>
             <nodes:RgxNodeControl NodeName="Literal"

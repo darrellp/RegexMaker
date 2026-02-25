@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace RegexMaker.Nodes;
-internal abstract class RgxNode : IRgxNode
+public abstract class RgxNode : IRgxNode
 {
     public static Random random = new();
 

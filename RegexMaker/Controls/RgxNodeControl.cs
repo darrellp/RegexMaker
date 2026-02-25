@@ -22,7 +22,7 @@ public class RgxNodeControl : DragCanvasNode
         set => SetValue(NodeNameProperty, value);
     }
 
-    internal RgxNode? RgxNode
+    public RgxNode? RgxNode
     {
         get => _rgxNode;
         private set

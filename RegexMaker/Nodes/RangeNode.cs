@@ -4,8 +4,8 @@ using System;
 namespace RegexMaker.Nodes;
 internal class RangeNode : RgxNode
 {
-    public string CharStart { get; private set; }
-    public string CharEnd { get; private set; }
+    public string CharStart { get; set; }
+    public string CharEnd { get; set; }
 
     // Nodes created with the parameterless constructor are only exemplars and will never calculate
     public RangeNode()

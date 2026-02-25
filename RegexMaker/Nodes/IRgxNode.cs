@@ -2,7 +2,7 @@
 
 namespace RegexMaker.Nodes;
 
-internal enum RgxNodeType
+public enum RgxNodeType
 {
     StringSearch,
     Concatenate,
@@ -14,7 +14,7 @@ internal enum RgxNodeType
     Range
 };
 
-internal interface IRgxNode
+public interface IRgxNode
 {
     public int ID { get; }
     public RgxNodeType NodeType { get; }
