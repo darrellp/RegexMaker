@@ -14,15 +14,23 @@
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,100">
+    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
         <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
         <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox">
         </StackPanel>
-        <Carousel Grid.Row="1" Grid.Column="2" Name="CarParameters">
+        <!-- 
+        The Carousel control is used to display the parameters for the currently selected node type.
+        Each item in the Carousel corresponds to a different node type, and the content of each item 
+        is a set of controls that allow the user to edit the parameters for that node type. The 
+        SelectedIndex property of the Carousel is bound to a property in the ViewModel that tracks 
+        the currently selected node type, so when the user selects a different node type, 
+        the Carousel will automatically update to show the appropriate parameters. 
+        -->
+        <Carousel Grid.Row="1" Grid.Column="2" SelectedIndex="0" Name="CarParameters" FontSize="12">            
             <!-- StringSearch - Index 0 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5">
-                    <TextBlock Text="String Search" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Literal" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Value:"/>
                     <TextBox Name="TxtStringSearchValue" Watermark="Enter search text"/>
                 </StackPanel>
@@ -69,7 +77,7 @@
                 <StackPanel Spacing="5">
                     <TextBlock Text="Any Char From" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
-                    <TextBlock Text="(Uses parameter nodes)" FontSize="10" HorizontalAlignment="Center"/>
+                    <TextBlock Text="(Uses parameter nodes)" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Border>
             
@@ -84,6 +92,7 @@
                 </StackPanel>
             </Border>
         </Carousel>
+
         <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
         <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue">
             <nodes:RgxNodeControl NodeName="Concatenate"
