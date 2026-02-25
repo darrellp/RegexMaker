@@ -33,7 +33,7 @@ public class RepeatNode : RgxNode
     {
         // Concatenate the results of all parameter nodes.
         // NOTE: We'd normally have to use Stex.Cat here but in Polyglot all the static methods are just available as top-level functions so we can call Cat directly.
-        return Parameters[0].ProduceResult().Rep(Least, Most, IsLazy);
+        return Parameters[0] == null ? "" : Parameters[0].ProduceResult().Rep(Least, Most, IsLazy);
     }
 
     override public string RandomMatch()
@@ -55,6 +55,8 @@ public class RepeatNode : RgxNode
 
     public override IRgxNode Default()
     {
-        return new RepeatNode();
+        var ret = new RepeatNode();
+        ret.Parameters.Add(null);
+        return ret;
     }
 }
