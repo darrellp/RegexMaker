@@ -22,12 +22,6 @@ public partial class MainView : UserControl
         // for each of them in the UI.
         foreach (var RgxNode in Nodes.RgxNode.Exemplars)
         {
-            var btn = new Button
-            {
-                Content = RgxNode.Name,
-                Tag = RgxNode,
-                HorizontalAlignment = HorizontalAlignment.Stretch
-            };
             var text = new TextBlock
             {
                 Text = RgxNode.Name,
