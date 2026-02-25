@@ -78,7 +78,7 @@ public class RgxNodeControl : DragCanvasNode
         }
     }
 
-    private void UpdateTextBlock()
+    public void UpdateTextBlock()
     {
         if (_rgxNode is StringSearchNode literal)
         {

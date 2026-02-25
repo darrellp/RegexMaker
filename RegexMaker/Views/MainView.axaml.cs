@@ -191,7 +191,7 @@ public partial class MainView : UserControl
                 if (child is RgxNodeControl control && control.RgxNode == _currentlySelectedNode)
                 {
                     // Trigger a refresh of the node's text display
-                    control.InvalidateVisual();
+                    control.UpdateTextBlock();
                     break;
                 }
             }
