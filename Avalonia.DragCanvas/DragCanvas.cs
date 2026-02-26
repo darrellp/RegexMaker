@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Collections.Specialized;
 using static Avalonia.DragCanvas.DragCanvasNode;
 
 namespace Avalonia.DragCanvas;
@@ -129,6 +130,44 @@ public class DragCanvas : Canvas
     {
         // Subscribe to port clicked events
         AddHandler(DragCanvasNode.PortClickedEvent, OnPortClicked);
+    }
+
+    protected override void ChildrenChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        base.ChildrenChanged(sender, e);
+
+        // Subscribe to layout updates for newly added nodes
+        if (e.NewItems != null)
+        {
+            foreach (var item in e.NewItems)
+            {
+                if (item is DragCanvasNode node)
+                {
+                    node.LayoutUpdated += OnNodeLayoutUpdated;
+                }
+            }
+        }
+
+        // Unsubscribe from layout updates for removed nodes
+        if (e.OldItems != null)
+        {
+            foreach (var item in e.OldItems)
+            {
+                if (item is DragCanvasNode node)
+                {
+                    node.LayoutUpdated -= OnNodeLayoutUpdated;
+                }
+            }
+        }
+    }
+
+    private void OnNodeLayoutUpdated(object? sender, EventArgs e)
+    {
+        if (sender is DragCanvasNode node)
+        {
+            // Update all connections involving this node when its layout changes
+            UpdateConnectionsForNode(node);
+        }
     }
 
     private void OnPortClicked(object? sender, PortClickedEventArgs e)
