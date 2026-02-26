@@ -127,6 +127,7 @@ public partial class MainView : UserControl
                     _currentViewModel = new RepeatNodeViewModel(repeatNode, UpdateNodeDisplay);
                     NumRepeatLeast.DataContext = _currentViewModel;
                     NumRepeatMost.DataContext = _currentViewModel;
+                    ChkRepeatIsInfinity.DataContext = _currentViewModel;
                     ChkRepeatIsLazy.DataContext = _currentViewModel;
                 }
                 break;

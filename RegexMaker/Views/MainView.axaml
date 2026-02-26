@@ -67,7 +67,13 @@
                                    FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding Most}" 
                                    Minimum="{ReflectionBinding Least}"
-                                   Maximum="999999"/>
+                                   Maximum="999999"
+                                   IsEnabled="{ReflectionBinding IsMostEnabled}"/>
+
+                    <CheckBox x:Name="ChkRepeatIsInfinity" 
+                              IsChecked="{ReflectionBinding IsInfinity}" 
+                              Content="Set Maximum to Infinity"/>
+
                     <CheckBox x:Name="ChkRepeatIsLazy" 
                               IsChecked="{ReflectionBinding IsLazy}" 
                               Content="Lazy"/>
