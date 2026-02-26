@@ -9,6 +9,7 @@ internal class AnyCharFromNode : RgxNode
     public AnyCharFromNode()
         : base(RgxNodeType.AnyCharFrom)
     {
+        Parameters = [null];
     }
 
     public AnyCharFromNode(IList<IRgxNode> parameters) : base(RgxNodeType.AnyCharFrom, parameters.ToArray())
