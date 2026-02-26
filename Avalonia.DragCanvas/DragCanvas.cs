@@ -540,4 +540,29 @@ public class DragCanvas : Canvas
         }
         _connections.Clear();
     }
+
+    /// <summary>
+    /// Initiates a drag operation on the specified element programmatically.
+    /// </summary>
+    /// <param name="element">The element to drag</param>
+    /// <param name="startPosition">The starting position relative to the canvas</param>
+    public void BeginDrag(Control element, Point startPosition)
+    {
+        if (!AllowDragging) return;
+        if (!Children.Contains(element)) return;
+
+        elementBeingDragged = element;
+        origCursorLocation = startPosition;
+        hasMovedBeyondThreshold = false;
+
+        double left = GetLeft(elementBeingDragged);
+        double right = GetRight(elementBeingDragged);
+        double top = GetTop(elementBeingDragged);
+        double bottom = GetBottom(elementBeingDragged);
+
+        origHorizOffset = ResolveOffset(left, right, out modifyLeftOffset);
+        origVertOffset = ResolveOffset(top, bottom, out modifyTopOffset);
+
+        IsDragInProgress = true;
+    }
 }

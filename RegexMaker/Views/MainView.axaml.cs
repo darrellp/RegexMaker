@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.DragCanvas;
 using Avalonia.Layout;
@@ -6,6 +7,8 @@ using RegexMaker.Controls;
 using RegexMaker.Nodes;
 using RegexMaker.ViewModels;
 using System.Diagnostics;
+using Avalonia.Input;
+using System;
 
 namespace RegexMaker.Views;
 
@@ -28,11 +31,172 @@ public partial class MainView : UserControl
             {
                 Text = RgxNode.Name,
                 FontSize = 12,
-                HorizontalAlignment = HorizontalAlignment.Center
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Tag = RgxNode.Name // Store node name for later retrieval
             };
+
+            // Enable drag-drop for toolbox items
+            text.PointerPressed += OnToolboxItemPointerPressed;
+            text.PointerMoved += OnToolboxItemPointerMoved;
+            text.PointerReleased += OnToolboxItemPointerReleased;
 
             SpToolBox.Children.Add(text);
             text.IsVisible = true;
+        }
+
+        // Set up drop handling on DragCanvas
+        DragCanvasMain.AddHandler(DragDrop.DropEvent, OnDragCanvasDrop);
+        DragCanvasMain.AddHandler(DragDrop.DragOverEvent, OnDragCanvasDragOver);
+    }
+
+    private Point? _toolboxDragStartPoint;
+    private const double DragThreshold = 5.0;
+    private RgxNodeControl? _nodeBeingCreated;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles pointer pressed on toolbox items. </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Pointer event information. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnToolboxItemPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is TextBlock textBlock && e.GetCurrentPoint(textBlock).Properties.IsLeftButtonPressed)
+        {
+            _toolboxDragStartPoint = e.GetPosition(textBlock);
+            e.Handled = true;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles pointer moved on toolbox items to initiate drag. </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Pointer event information. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private async void OnToolboxItemPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_toolboxDragStartPoint.HasValue && sender is TextBlock textBlock)
+        {
+            var currentPoint = e.GetPosition(textBlock);
+            var diff = _toolboxDragStartPoint.Value - currentPoint;
+
+            // Check if we've moved beyond the threshold
+            if (Math.Abs(diff.X) > DragThreshold || Math.Abs(diff.Y) > DragThreshold)
+            {
+                var nodeName = textBlock.Tag as string;
+                if (!string.IsNullOrEmpty(nodeName))
+                {
+                    // Get position relative to canvas
+                    var canvasPosition = e.GetPosition(DragCanvasMain);
+
+                    // Create new node control at cursor position
+                    _nodeBeingCreated = new RgxNodeControl
+                    {
+                        NodeName = nodeName
+                    };
+
+                    // Set position on canvas
+                    Canvas.SetLeft(_nodeBeingCreated, canvasPosition.X - 50);
+                    Canvas.SetTop(_nodeBeingCreated, canvasPosition.Y - 15);
+
+                    // Add to canvas
+                    DragCanvasMain.Children.Add(_nodeBeingCreated);
+
+                    // Force layout pass so the control is properly positioned
+                    DragCanvasMain.UpdateLayout();
+
+                    // Capture the pointer on the canvas so subsequent events go there
+                    e.Pointer.Capture(DragCanvasMain);
+
+                    // Directly initiate the drag operation
+                    DragCanvasMain.BeginDrag(_nodeBeingCreated, canvasPosition);
+
+                    // Mark the event as handled
+                    e.Handled = true;
+                }
+
+                _toolboxDragStartPoint = null;
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles pointer released on toolbox items. </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Pointer event information. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnToolboxItemPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _toolboxDragStartPoint = null;
+        _nodeBeingCreated = null;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles drag over event on the canvas. </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Drag event information. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnDragCanvasDragOver(object? sender, DragEventArgs e)
+    {
+        // Allow drop if we have a NodeName in the data
+        if (e.Data.Contains("NodeName"))
+        {
+            e.DragEffects = DragDropEffects.Copy;
+        }
+        else
+        {
+            e.DragEffects = DragDropEffects.None;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles drop event on the canvas. </summary>
+    ///
+    /// <remarks>   Creates a new RgxNodeControl at the drop location.
+    ///             Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Drag event information. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnDragCanvasDrop(object? sender, DragEventArgs e)
+    {
+        if (e.Data.Contains("NodeName"))
+        {
+            var nodeName = e.Data.Get("NodeName") as string;
+            if (!string.IsNullOrEmpty(nodeName))
+            {
+                // Get drop position relative to the canvas
+                var dropPosition = e.GetPosition(DragCanvasMain);
+
+                // Create new node control
+                var nodeControl = new RgxNodeControl
+                {
+                    NodeName = nodeName
+                };
+
+                // Set position on canvas
+                Canvas.SetLeft(nodeControl, dropPosition.X - 50); // Offset to center under cursor
+                Canvas.SetTop(nodeControl, dropPosition.Y - 15);
+
+                // Add to canvas
+                DragCanvasMain.Children.Add(nodeControl);
+            }
         }
     }
 
