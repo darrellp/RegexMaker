@@ -128,15 +128,6 @@
         
         <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue" 
                                Name="DragCanvasMain" NodeSelected="OnNodeSelected" ConnectionCreated="OnConnectionCreated">
-            <nodes:RgxNodeControl NodeName="Concatenate"
-                                  Canvas.Left="150" Canvas.Top="50"/>
-            <nodes:RgxNodeControl NodeName="Literal"
-                                  Canvas.Left="20" Canvas.Top="20"/>
-            <nodes:RgxNodeControl NodeName="Literal"
-                                  Canvas.Left="20" Canvas.Top="80"/>
-            <nodes:RgxNodeControl NodeName="Repeat"
-                                  Canvas.Left="200" Canvas.Top="120"/>
-
 <!--            
             <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="3"
                                   Background="LightGray"
