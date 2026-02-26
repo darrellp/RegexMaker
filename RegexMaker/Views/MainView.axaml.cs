@@ -150,18 +150,9 @@ public partial class MainView : UserControl
 
     private void UpdateNodeDisplay()
     {
-        // Find the RgxNodeControl that contains the current node and refresh its display
         if (_currentlySelectedNode != null)
         {
-            foreach (var child in DragCanvasMain.Children)
-            {
-                if (child is RgxNodeControl control && control.RgxNode == _currentlySelectedNode)
-                {
-                    // Trigger a refresh of the node's text display
-                    control.UpdateTextBlock();
-                    break;
-                }
-            }
+            TxtRegex.Text = _currentlySelectedNode.ProduceResult();
         }
     }
 

@@ -60,12 +60,14 @@
                     <NumericUpDown x:Name="NumRepeatLeast" 
                                    FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding Least}" 
-                                   Minimum="0"/>
+                                   Minimum="0"
+                                   Maximum="{ReflectionBinding MaximumForLeast}"/>
                     <TextBlock Text="Maximum:"/>
                     <NumericUpDown x:Name="NumRepeatMost" 
                                    FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding Most}" 
-                                   Minimum="-1"/>
+                                   Minimum="{ReflectionBinding Least}"
+                                   Maximum="999999"/>
                     <CheckBox x:Name="ChkRepeatIsLazy" 
                               IsChecked="{ReflectionBinding IsLazy}" 
                               Content="Lazy"/>

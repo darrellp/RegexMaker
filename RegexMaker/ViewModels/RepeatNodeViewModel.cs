@@ -16,6 +16,8 @@ public partial class RepeatNodeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLazy;
 
+    public int MaximumForLeast => Most == -1 ? int.MaxValue : Most;
+
     public RepeatNodeViewModel(RepeatNode node)
     {
         _node = node;
@@ -34,6 +36,7 @@ public partial class RepeatNodeViewModel : ObservableObject
     {
         _node.Most = value;
         _node.MakeDirty();
+        OnPropertyChanged(nameof(MaximumForLeast));
     }
 
     partial void OnIsLazyChanged(bool value)
