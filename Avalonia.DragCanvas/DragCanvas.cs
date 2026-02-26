@@ -38,6 +38,14 @@ public class DragCanvas : Canvas
             "ConnectionCreated",
             RoutingStrategies.Bubble);
 
+    // CLR event wrapper for XAML binding
+    public event EventHandler<ConnectionEventArgs>? ConnectionCreated
+    {
+        add => AddHandler(ConnectionCreatedEvent, value);
+        remove => RemoveHandler(ConnectionCreatedEvent, value);
+    }
+
+
     // Routed event for node selection
     public static readonly RoutedEvent<NodeSelectedEventArgs> NodeSelectedEvent =
         RoutedEvent.Register<DragCanvas, NodeSelectedEventArgs>(

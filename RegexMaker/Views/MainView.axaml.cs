@@ -17,7 +17,7 @@ public partial class MainView : UserControl
         InitializeComponent();
 
         // Exemplars are set up in the static constructor of RgxNode using reflection to find all derived types
-        // from RgxNode and create instances of them. We can just loop through those exemplars and create buttons
+        // from RgxNode and create instances of them. We can just loop through those exemplars and create TextBlocks
         // for each of them in the UI.
         foreach (var RgxNode in Nodes.RgxNode.Exemplars)
         {
@@ -33,9 +33,15 @@ public partial class MainView : UserControl
         }
     }
 
-    /// <summary>
-    /// Handles node selection events from the DragCanvas
-    /// </summary>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles node selection events from the DragCanvas. </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Event information to send to registered event handlers. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
     private void OnNodeSelected(object? sender, NodeSelectedEventArgs e)
     {
         if (e.SelectedNode is RgxNodeControl rgxNodeControl)
@@ -44,9 +50,40 @@ public partial class MainView : UserControl
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Handles the connection event. </summary>
+    ///
+    /// <remarks>   Connect the RgxNodes in the underlying data model based on the connection created in the UI
+    ///             Darrell Plank, 2/25/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Event information to send to registered event handlers. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnConnectionCreated(object? sender, ConnectionEventArgs e)
+    {
+        var rgxNodeControlSource = e.SourceNode as RgxNodeControl;
+        var rgxNodeControlTarget = e.TargetNode as RgxNodeControl;
+        var rgxNodeSource = rgxNodeControlSource?.RgxNode;
+        var rgxNodeTarget = rgxNodeControlTarget?.RgxNode;
+        if (rgxNodeSource != null && rgxNodeTarget != null)
+        {
+            var targetNodeIndex = e.TargetPortIndex;
+            rgxNodeTarget.Parameters[targetNodeIndex] = rgxNodeSource;
+            UpdateNodeDisplay();
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Called when a node is selected - updates the carousel and sets up data binding
+    /// Called when a node is selected - updates the carousel and sets up data binding.
     /// </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
+    ///
+    /// <param name="node"> The node. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
     private void NodeSwitched(RgxNode? node)
     {
         if (node == null)
@@ -101,9 +138,12 @@ public partial class MainView : UserControl
         }
     }
 
-    /// <summary>
-    /// Updates the visual display of the selected node
-    /// </summary>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>   Updates the visual display of the selected node. </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
     private void UpdateNodeDisplay()
     {
         // Find the RgxNodeControl that contains the current node and refresh its display
@@ -121,9 +161,16 @@ public partial class MainView : UserControl
         }
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Shows the parameter page in the carousel corresponding to the given RgxNodeType
+    /// Shows the parameter page in the carousel corresponding to the given RgxNodeType.
     /// </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
+    ///
+    /// <param name="nodeType"> Type of the node. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
     internal void ShowNodeParameters(RgxNodeType nodeType)
     {
         CarParameters.SelectedIndex = (int)nodeType;

@@ -9,8 +9,15 @@
 
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
         <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
-        <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox">
-        </StackPanel>
+        <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
+
+        <!-- 
+        The StackPanel on the left is intended to serve as a toolbox for users to 
+        drag and drop different node types onto the DragCanvas. It is set up at
+        runtime in RegexMaker.Views.MainView().
+        -->
+        <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox"/>
+
         <!-- 
         The Carousel control is used to display the parameters for the currently selected node type.
         Each item in the Carousel corresponds to a different node type, and the content of each item 
@@ -98,8 +105,9 @@
             </Border>
         </Carousel>
 
-        <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
-        <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue" Name="DragCanvasMain" NodeSelected="OnNodeSelected">
+        
+        <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue" 
+                               Name="DragCanvasMain" NodeSelected="OnNodeSelected" ConnectionCreated="OnConnectionCreated">
             <nodes:RgxNodeControl NodeName="Concatenate"
                                   Canvas.Left="150" Canvas.Top="50"/>
             <nodes:RgxNodeControl NodeName="Literal"
