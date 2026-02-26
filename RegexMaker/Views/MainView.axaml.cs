@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.DragCanvas;
 using Avalonia.Layout;
+using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
 using RegexMaker.ViewModels;
@@ -95,11 +96,15 @@ public partial class MainView : UserControl
         if (node == null)
         {
             _currentlySelectedNode = null;
+            UnsubscribeFromViewModel();
             _currentViewModel = null;
             return;
         }
 
         _currentlySelectedNode = node;
+
+        // Unsubscribe from previous ViewModel
+        UnsubscribeFromViewModel();
 
         // Set carousel to the appropriate page
         CarParameters.SelectedIndex = (int)node.NodeType;
@@ -138,10 +143,28 @@ public partial class MainView : UserControl
             case RgxNodeType.PatternStart:
             case RgxNodeType.PatternEnd:
             case RgxNodeType.AnyCharFrom:
-                // These node types have no editable parameters
                 _currentViewModel = null;
                 break;
         }
+
+        // Subscribe to new ViewModel's property changes
+        if (_currentViewModel is ObservableObject observableObject)
+        {
+            observableObject.PropertyChanged += OnViewModelPropertyChanged;
+        }
+    }
+
+    private void UnsubscribeFromViewModel()
+    {
+        if (_currentViewModel is ObservableObject observableObject)
+        {
+            observableObject.PropertyChanged -= OnViewModelPropertyChanged;
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        UpdateNodeDisplay();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
