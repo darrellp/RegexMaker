@@ -9,7 +9,13 @@
 
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
         <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
-        <Rectangle Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Purple" />
+
+        <!--
+                This Border at the bottom is intended to display the generated regex pattern.
+        -->
+        <Border Background="LightGray" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" >
+            <TextBlock Height="30" Name="TxtRegex" />
+        </Border>
 
         <!-- 
         The StackPanel on the left is intended to serve as a toolbox for users to 

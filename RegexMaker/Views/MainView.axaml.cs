@@ -4,6 +4,7 @@ using Avalonia.Layout;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
 using RegexMaker.ViewModels;
+using System.Diagnostics;
 
 namespace RegexMaker.Views;
 
@@ -46,7 +47,9 @@ public partial class MainView : UserControl
     {
         if (e.SelectedNode is RgxNodeControl rgxNodeControl)
         {
+            Debug.Assert(rgxNodeControl.RgxNode != null, "Selected RgxNodeControl has a null RgxNode");
             NodeSwitched(rgxNodeControl.RgxNode);
+            TxtRegex.Text = rgxNodeControl.RgxNode.ProduceResult();
         }
     }
 
@@ -70,6 +73,7 @@ public partial class MainView : UserControl
         {
             var targetNodeIndex = e.TargetPortIndex;
             rgxNodeTarget.Parameters[targetNodeIndex] = rgxNodeSource;
+            rgxNodeSource.Parents.Add(rgxNodeTarget);
             UpdateNodeDisplay();
         }
     }

@@ -14,6 +14,7 @@ public abstract class RgxNode : IRgxNode
     public int ID { get; private set; }
     public RgxNodeType NodeType { get; }
     public IList<IRgxNode?> Parameters { get; set; }
+    public IList<IRgxNode> Parents { get; set; } = [];
 
     // Default implementation of Name property takes name from the enum type of the NodeType.
     // Can be overridden by derived classes if needed.
@@ -82,6 +83,7 @@ public abstract class RgxNode : IRgxNode
     public void MakeDirty()
     {
         _cachedResult = null;
+        Parents.ToList().ForEach(p => (p as RgxNode)?.MakeDirty());
     }
 
     public bool Matches(string input)
