@@ -305,10 +305,17 @@ public partial class MainView : UserControl
                 }
                 break;
 
+            case RgxNodeType.AnyCharFrom:
+                if (node is AnyCharFromNode anyCharFromNode)
+                {
+                    _currentViewModel = new AnyCharFromNodeViewModel(anyCharFromNode, UpdateNodeDisplay);
+                    TxtAnyCharFromChars.DataContext = _currentViewModel;
+                }
+                break;
+
             case RgxNodeType.Concatenate:
             case RgxNodeType.PatternStart:
             case RgxNodeType.PatternEnd:
-            case RgxNodeType.AnyCharFrom:
                 _currentViewModel = null;
                 break;
         }

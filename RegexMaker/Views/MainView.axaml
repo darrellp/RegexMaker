@@ -100,8 +100,14 @@
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5">
                     <TextBlock Text="Any Char From" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
-                    <TextBlock Text="(Uses parameter nodes)" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Default Characters:"/>
+                    <TextBox x:Name="TxtAnyCharFromChars" 
+                             Text="{ReflectionBinding Chars}" 
+                             Watermark="A-Za-z0-9"/>
+                    <TextBlock Text="(Also uses parameter nodes)" 
+                               FontStyle="Italic" 
+                               HorizontalAlignment="Center"
+                               FontSize="10"/>
                 </StackPanel>
             </Border>
             

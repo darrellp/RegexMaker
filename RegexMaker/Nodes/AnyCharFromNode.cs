@@ -3,22 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace RegexMaker.Nodes;
-internal class AnyCharFromNode : RgxNode
+public class AnyCharFromNode : RgxNode
 {
+    public string Chars { get; set; }
+
     // Nodes created with the parameterless constructor are only exemplars and will never calculate
     public AnyCharFromNode()
         : base(RgxNodeType.AnyCharFrom)
     {
         Parameters = [null];
+        Chars = "A-Za-z0-9";
     }
 
     public AnyCharFromNode(IList<IRgxNode> parameters) : base(RgxNodeType.AnyCharFrom, parameters.ToArray())
     {
+        Chars = "A-Za-z0-9";
     }
 
     internal override string CalculateResult()
     {
-        return Stex.AnyCharFrom(Parameters.Select(p => p.ProduceResult()).ToArray());
+        return Stex.AnyCharFrom(Parameters.Select(p => p == null ? Chars : p.ProduceResult()).ToArray());
     }
 
     override public string RandomMatch()
