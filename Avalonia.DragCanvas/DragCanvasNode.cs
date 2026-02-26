@@ -418,6 +418,17 @@ public class DragCanvasNode : ContentControl
         connectionsList[iPort].Add(connection);
     }
 
+    // Called by DragCanvas when a connection is removed to update internal state
+    internal virtual void OnConnectionRemoved(DragCanvasConnection connection, int iPort, PortSide thisSide)
+    {
+        var count = thisSide == PortSide.Left ? PortCtLeft : PortCtRight;
+        Debug.Assert(iPort >= 0 && iPort < count, "Port index should be valid when removing a connection.");
+
+        var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
+        Debug.Assert(connectionsList[iPort] != null, "Connections list for the port should exist.");
+        connectionsList[iPort].Remove(connection);
+    }
+
     /// <summary>
     /// Gets the currently hovered port information
     /// </summary>

@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Input;
 using System;
 using System.Diagnostics;
 
@@ -11,6 +12,7 @@ namespace Avalonia.DragCanvas;
 public class DragCanvasConnection : Control
 {
     private const double StrokeThickness = 2.0;
+    private const double HitTestThickness = 10.0; // Wider area for easier clicking
 
     public static readonly StyledProperty<Point> StartPointProperty =
         AvaloniaProperty.Register<DragCanvasConnection, Point>(nameof(StartPoint));
@@ -35,6 +37,8 @@ public class DragCanvasConnection : Control
 
     public static readonly StyledProperty<bool> IsTemporaryProperty =
         AvaloniaProperty.Register<DragCanvasConnection, bool>(nameof(IsTemporary), false);
+
+    private bool _isHovered;
 
     static DragCanvasConnection()
     {
@@ -92,23 +96,100 @@ public class DragCanvasConnection : Control
     public DragCanvasConnection()
     {
         ClipToBounds = false;
-        // Make the connection non-hittable so it doesn't block pointer events to nodes
-        IsHitTestVisible = false;
+        // Make connections hit-testable for Alt-click deletion
+        IsHitTestVisible = true;
+        Cursor = new Cursor(StandardCursorType.Hand);
+    }
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+        base.OnPointerEntered(e);
+        _isHovered = true;
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        _isHovered = false;
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+
+        var point = e.GetCurrentPoint(this);
+        
+        // Check for Alt+Click
+        if (point.Properties.IsLeftButtonPressed && 
+            e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+        {
+            // Find parent DragCanvas and request deletion
+            var parent = FindAncestorOfType<DragCanvas>();
+            parent?.DeleteConnection(this);
+            e.Handled = true;
+        }
     }
 
     public override void Render(DrawingContext context)
     {
         base.Render(context);
 
-        var pen = new Pen(Stroke, StrokeThickness);
+        var strokeBrush = _isHovered ? Brushes.Red : Stroke;
+        var pen = new Pen(strokeBrush, StrokeThickness);
 
         // Draw dashed line for temporary connections
         if (IsTemporary)
         {
-            pen = new Pen(Stroke, StrokeThickness, new DashStyle(new[] { 4.0, 2.0 }, 0));
+            pen = new Pen(strokeBrush, StrokeThickness, new DashStyle(new[] { 4.0, 2.0 }, 0));
         }
 
         context.DrawLine(pen, StartPoint, EndPoint);
+    }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        // Return bounds that encompass the line
+        var minX = Math.Min(StartPoint.X, EndPoint.X);
+        var maxX = Math.Max(StartPoint.X, EndPoint.X);
+        var minY = Math.Min(StartPoint.Y, EndPoint.Y);
+        var maxY = Math.Max(StartPoint.Y, EndPoint.Y);
+
+        return new Size(maxX - minX + HitTestThickness * 2, maxY - minY + HitTestThickness * 2);
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        return finalSize;
+    }
+
+    protected Geometry? GetHitTestGeometry()
+    {
+        // Create a wider hit test area for easier clicking
+        var geometry = new StreamGeometry();
+        using (var context = geometry.Open())
+        {
+            // Calculate perpendicular vector for thickness
+            var dx = EndPoint.X - StartPoint.X;
+            var dy = EndPoint.Y - StartPoint.Y;
+            var length = Math.Sqrt(dx * dx + dy * dy);
+            
+            if (length > 0)
+            {
+                var perpX = -dy / length * HitTestThickness / 2;
+                var perpY = dx / length * HitTestThickness / 2;
+
+                // Create a rectangle along the line
+                context.BeginFigure(new Point(StartPoint.X + perpX, StartPoint.Y + perpY), true);
+                context.LineTo(new Point(EndPoint.X + perpX, EndPoint.Y + perpY));
+                context.LineTo(new Point(EndPoint.X - perpX, EndPoint.Y - perpY));
+                context.LineTo(new Point(StartPoint.X - perpX, StartPoint.Y - perpY));
+                context.EndFigure(true);
+            }
+        }
+        
+        return geometry;
     }
 
     /// <summary>
@@ -143,6 +224,18 @@ public class DragCanvasConnection : Control
         }
         return new ConnectionInfo(SourceNode, TargetNode, SourcePortIndex, TargetPortIndex);
     }
+
+    private T? FindAncestorOfType<T>() where T : class
+    {
+        var current = this.Parent;
+        while (current != null)
+        {
+            if (current is T t)
+                return t;
+            current = (current as Visual)?.Parent;
+        }
+        return null;
+    }
 }
 
 public class ConnectionInfo
@@ -151,6 +244,7 @@ public class ConnectionInfo
     public DragCanvasNode TargetNode { get; }
     public int SourcePortIndex { get; }
     public int TargetPortIndex { get; }
+
     public ConnectionInfo(DragCanvasNode sourceNode, DragCanvasNode targetNode, int sourcePortIndex, int targetPortIndex)
     {
         SourceNode = sourceNode;

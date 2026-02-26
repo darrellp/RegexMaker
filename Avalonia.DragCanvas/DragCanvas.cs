@@ -60,6 +60,19 @@ public class DragCanvas : Canvas
         remove => RemoveHandler(NodeSelectedEvent, value);
     }
 
+    // Routed event for connection deletion
+    public static readonly RoutedEvent<ConnectionEventArgs> ConnectionDeletedEvent =
+        RoutedEvent.Register<DragCanvas, ConnectionEventArgs>(
+            "ConnectionDeleted",
+            RoutingStrategies.Bubble);
+
+    // CLR event wrapper for XAML binding
+    public event EventHandler<ConnectionEventArgs>? ConnectionDeleted
+    {
+        add => AddHandler(ConnectionDeletedEvent, value);
+        remove => RemoveHandler(ConnectionDeletedEvent, value);
+    }
+
     // Attached property for CanBeDragged
     public static readonly AttachedProperty<bool> CanBeDraggedProperty =
         AvaloniaProperty.RegisterAttached<DragCanvas, Control, bool>(
@@ -603,5 +616,31 @@ public class DragCanvas : Canvas
         origVertOffset = ResolveOffset(top, bottom, out modifyTopOffset);
 
         IsDragInProgress = true;
+    }
+
+    /// <summary>
+    /// Deletes a connection from the canvas
+    /// </summary>
+    public void DeleteConnection(DragCanvasConnection connection)
+    {
+        if (connection.SourceNode == null || connection.TargetNode == null)
+            return;
+
+        // Raise deletion event before removing
+        var eventArgs = new ConnectionEventArgs(
+            ConnectionDeletedEvent,
+            connection.SourceNode,
+            connection.TargetNode,
+            connection.SourcePortIndex,
+            connection.TargetPortIndex);
+
+        RaiseEvent(eventArgs);
+
+        // Remove from internal tracking
+        RemoveConnection(connection);
+
+        // Remove from nodes' connection lists
+        connection.SourceNode.OnConnectionRemoved(connection, connection.SourcePortIndex, DragCanvasNode.PortSide.Right);
+        connection.TargetNode.OnConnectionRemoved(connection, connection.TargetPortIndex, DragCanvasNode.PortSide.Left);
     }
 }

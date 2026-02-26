@@ -47,6 +47,9 @@ public partial class MainView : UserControl
         // Set up drop handling on DragCanvas
         DragCanvasMain.AddHandler(DragDrop.DropEvent, OnDragCanvasDrop);
         DragCanvasMain.AddHandler(DragDrop.DragOverEvent, OnDragCanvasDragOver);
+        
+        // Set up connection deletion handling
+        DragCanvasMain.ConnectionDeleted += OnConnectionDeleted;
     }
 
     private Point? _toolboxDragStartPoint;
@@ -372,5 +375,35 @@ public partial class MainView : UserControl
     internal void ShowNodeParameters(RgxNodeType nodeType)
     {
         CarParameters.SelectedIndex = (int)nodeType;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Handles the connection deleted event from the DragCanvas.
+    /// </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Event information to send to registered event handlers. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnConnectionDeleted(object? sender, ConnectionEventArgs e)
+    {
+        var rgxNodeControlSource = e.SourceNode as RgxNodeControl;
+        var rgxNodeControlTarget = e.TargetNode as RgxNodeControl;
+        var rgxNodeSource = rgxNodeControlSource?.RgxNode;
+        var rgxNodeTarget = rgxNodeControlTarget?.RgxNode;
+        if (rgxNodeSource != null && rgxNodeTarget != null)
+        {
+            var targetNodeIndex = e.TargetPortIndex;
+            if (targetNodeIndex >= 0 && targetNodeIndex < rgxNodeTarget.Parameters.Count)
+            {
+                rgxNodeTarget.Parameters[targetNodeIndex] = null;
+            }
+            rgxNodeSource.Parents.Remove(rgxNodeTarget);
+            rgxNodeTarget.MakeDirty();
+            UpdateNodeDisplay();
+        }
     }
 }
