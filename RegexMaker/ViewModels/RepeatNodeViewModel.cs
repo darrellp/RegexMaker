@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
+using System;
 
 namespace RegexMaker.ViewModels;
 
 public partial class RepeatNodeViewModel : ObservableObject
 {
     private readonly RepeatNode _node;
+    private readonly Action _onChanged;
 
     [ObservableProperty]
     private int _least;
@@ -18,9 +20,10 @@ public partial class RepeatNodeViewModel : ObservableObject
 
     public int MaximumForLeast => Most == -1 ? int.MaxValue : Most;
 
-    public RepeatNodeViewModel(RepeatNode node)
+    public RepeatNodeViewModel(RepeatNode node, Action onChanged)
     {
         _node = node;
+        _onChanged = onChanged;
         _least = node.Least;
         _most = node.Most;
         _isLazy = node.IsLazy;
@@ -30,6 +33,7 @@ public partial class RepeatNodeViewModel : ObservableObject
     {
         _node.Least = value;
         _node.MakeDirty();
+        _onChanged();
     }
 
     partial void OnMostChanged(int value)
@@ -37,11 +41,13 @@ public partial class RepeatNodeViewModel : ObservableObject
         _node.Most = value;
         _node.MakeDirty();
         OnPropertyChanged(nameof(MaximumForLeast));
+        _onChanged();
     }
 
     partial void OnIsLazyChanged(bool value)
     {
         _node.IsLazy = value;
         _node.MakeDirty();
+        _onChanged();
     }
 }

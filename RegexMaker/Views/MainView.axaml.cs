@@ -118,7 +118,7 @@ public partial class MainView : UserControl
             case RgxNodeType.Repeat:
                 if (node is RepeatNode repeatNode)
                 {
-                    _currentViewModel = new RepeatNodeViewModel(repeatNode);
+                    _currentViewModel = new RepeatNodeViewModel(repeatNode, UpdateNodeDisplay);
                     NumRepeatLeast.DataContext = _currentViewModel;
                     NumRepeatMost.DataContext = _currentViewModel;
                     ChkRepeatIsLazy.DataContext = _currentViewModel;
@@ -128,7 +128,7 @@ public partial class MainView : UserControl
             case RgxNodeType.Range:
                 if (node is RangeNode rangeNode)
                 {
-                    _currentViewModel = new RangeNodeViewModel(rangeNode);
+                    _currentViewModel = new RangeNodeViewModel(rangeNode, UpdateNodeDisplay);
                     TxtRangeCharStart.DataContext = _currentViewModel;
                     TxtRangeCharEnd.DataContext = _currentViewModel;
                 }
