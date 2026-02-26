@@ -11,6 +11,7 @@ namespace RegexMaker.Views;
 public partial class MainView : UserControl
 {
     private RgxNode? _currentlySelectedNode;
+    private RgxNodeControl? _currentlySelectedNodeControl;
     private object? _currentViewModel;
 
     public MainView()
@@ -48,6 +49,7 @@ public partial class MainView : UserControl
         if (e.SelectedNode is RgxNodeControl rgxNodeControl)
         {
             Debug.Assert(rgxNodeControl.RgxNode != null, "Selected RgxNodeControl has a null RgxNode");
+            _currentlySelectedNodeControl = rgxNodeControl;
             NodeSwitched(rgxNodeControl.RgxNode);
             TxtRegex.Text = rgxNodeControl.RgxNode.ProduceResult();
         }
@@ -153,6 +155,11 @@ public partial class MainView : UserControl
         if (_currentlySelectedNode != null)
         {
             TxtRegex.Text = _currentlySelectedNode.ProduceResult();
+        }
+
+        if (_currentlySelectedNodeControl != null)
+        {
+            _currentlySelectedNodeControl.UpdateTextBlock();
         }
     }
 
