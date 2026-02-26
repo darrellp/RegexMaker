@@ -4,7 +4,7 @@ using System;
 
 namespace RegexMaker.ViewModels;
 
-public partial class RangeNodeViewModel : ObservableObject
+public partial class RangeNodeViewModel : ViewModelBase
 {
     private readonly RangeNode _node;
     private readonly Action _onChanged;

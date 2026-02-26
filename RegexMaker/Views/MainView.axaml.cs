@@ -77,6 +77,7 @@ public partial class MainView : UserControl
             var targetNodeIndex = e.TargetPortIndex;
             rgxNodeTarget.Parameters[targetNodeIndex] = rgxNodeSource;
             rgxNodeSource.Parents.Add(rgxNodeTarget);
+            rgxNodeTarget.MakeDirty();
             UpdateNodeDisplay();
         }
     }

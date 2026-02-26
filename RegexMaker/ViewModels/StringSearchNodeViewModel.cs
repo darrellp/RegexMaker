@@ -4,7 +4,7 @@ using System;
 
 namespace RegexMaker.ViewModels;
 
-public partial class StringSearchNodeViewModel : ObservableObject
+public partial class StringSearchNodeViewModel : ViewModelBase
 {
     private readonly StringSearchNode _node;
     private readonly Action _onChanged;

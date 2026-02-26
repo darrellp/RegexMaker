@@ -1,5 +1,6 @@
 ﻿namespace RegexMaker.ViewModels;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-public class ViewModelBase
+public class ViewModelBase : ObservableObject
 {
 }
