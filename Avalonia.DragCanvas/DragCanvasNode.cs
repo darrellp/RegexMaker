@@ -115,9 +115,45 @@ public class DragCanvasNode : ContentControl
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == PortCtLeftProperty || change.Property == PortCtRightProperty)
+        if (change.Property == PortCtLeftProperty)
         {
+            SynchronizeConnectionList(_leftConnections, (int)change.NewValue!);
             InvalidateVisual();
+        }
+        else if (change.Property == PortCtRightProperty)
+        {
+            SynchronizeConnectionList(_rightConnections, (int)change.NewValue!);
+            InvalidateVisual();
+        }
+    }
+
+    /// <summary>
+    /// Ensures the connection list matches the port count
+    /// </summary>
+    private void SynchronizeConnectionList(List<List<DragCanvasConnection>> connectionsList, int newPortCount)
+    {
+        // If we need more connection lists, add them
+        while (connectionsList.Count < newPortCount)
+        {
+            connectionsList.Add(new List<DragCanvasConnection>());
+        }
+        
+        // If we have too many, we need to handle the extra connections
+        // This is important - we should notify that connections are being removed
+        while (connectionsList.Count > newPortCount)
+        {
+            var lastIndex = connectionsList.Count - 1;
+            var connectionsToRemove = connectionsList[lastIndex];
+            
+            // Remove any connections on the port being removed
+            foreach (var connection in connectionsToRemove.ToList())
+            {
+                // Find parent canvas to delete the connection
+                var parent = FindAncestorOfType<DragCanvas>();
+                parent?.DeleteConnection(connection);
+            }
+            
+            connectionsList.RemoveAt(lastIndex);
         }
     }
 

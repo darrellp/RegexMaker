@@ -1,11 +1,11 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl x:Class="RegexMaker.Views.MainView"
+             xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:dragCanvas="clr-namespace:Avalonia.DragCanvas;assembly=Avalonia.DragCanvas"
              xmlns:nodes="clr-namespace:RegexMaker.Controls;assembly=RegexMaker"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="RegexMaker.Views.MainView">
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450">
 
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
         <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
@@ -53,7 +53,7 @@
                                    FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding PortCount}" 
                                    Minimum="2"
-                                   Maximum="10"/>
+                                   Maximum="16"/>
                 </StackPanel>
             </Border>
             

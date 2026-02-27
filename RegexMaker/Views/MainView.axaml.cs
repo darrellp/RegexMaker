@@ -319,6 +319,13 @@ public partial class MainView : UserControl
                 break;
 
             case RgxNodeType.Concatenate:
+                if (node is ConcatenateNode concatenateNode)
+                {
+                    _currentViewModel = new ConcatenateNodeViewModel(concatenateNode, newCount => OnConcatenatePortCountChanged(concatenateNode, newCount));
+                    NumConcatenatePortCount.DataContext = _currentViewModel;
+                }
+                break;
+
             case RgxNodeType.PatternStart:
             case RgxNodeType.PatternEnd:
                 _currentViewModel = null;
@@ -330,6 +337,58 @@ public partial class MainView : UserControl
         {
             observableObject.PropertyChanged += OnViewModelPropertyChanged;
         }
+    }
+
+    private void OnConcatenatePortCountChanged(ConcatenateNode node, int newCount)
+    {
+        var nodeControl = FindNodeControlForRgxNode(node);
+        if (nodeControl == null)
+            return;
+
+        int currentCount = node.Parameters.Count;
+        
+        if (newCount > currentCount)
+        {
+            // Add ports at the bottom
+            int portsToAdd = newCount - currentCount;
+            for (int i = 0; i < portsToAdd; i++)
+            {
+                node.Parameters.Add(null);
+            }
+            nodeControl.PortCtLeft = newCount;
+        }
+        else if (newCount < currentCount)
+        {
+            // Remove ports from the bottom
+            // First, remove connections to the ports being deleted
+            for (int i = newCount; i < currentCount; i++)
+            {
+                // Find and remove connections to this port
+                var connectionsToRemove = DragCanvasMain.Connections
+                    .Where(c => c.TargetNode == nodeControl && c.TargetPortIndex == i)
+                    .ToList();
+
+                foreach (var connection in connectionsToRemove)
+                {
+                    DragCanvasMain.DeleteConnection(connection);
+                }
+
+                // Clear the parameter
+                node.Parameters[i] = null;
+            }
+
+            // Now remove the extra parameters
+            int portsToRemove = currentCount - newCount;
+            for (int i = 0; i < portsToRemove; i++)
+            {
+                node.Parameters.RemoveAt(node.Parameters.Count - 1);
+            }
+
+            nodeControl.PortCtLeft = newCount;
+        }
+
+        node.MakeDirty();
+        UpdateNodeDisplay();
     }
 
     private void UnsubscribeFromViewModel()

@@ -2,7 +2,7 @@
 using System.Linq;
 
 namespace RegexMaker.Nodes;
-internal class ConcatenateNode : RgxNode
+public class ConcatenateNode : RgxNode
 {
 
     // Nodes created with the parameterless constructor are only exemplars and will never calculate

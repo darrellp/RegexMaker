@@ -3,6 +3,7 @@ using Avalonia.DragCanvas;
 using RegexMaker.Nodes;
 using Avalonia;
 using Avalonia.Media;
+using System;
 
 namespace RegexMaker.Controls;
 
@@ -10,6 +11,7 @@ public class RgxNodeControl : DragCanvasNode
 {
     private RgxNode? _rgxNode;
     private readonly TextBlock _textBlock;
+    private IDisposable? _portCtLeftSubscription;
 
     public static readonly StyledProperty<string?> NodeNameProperty =
         AvaloniaProperty.Register<RgxNodeControl, string?>(
@@ -51,6 +53,16 @@ public class RgxNodeControl : DragCanvasNode
         };
 
         Content = border;
+        
+        // Subscribe to PortCtLeft changes to handle dynamic port updates
+        _portCtLeftSubscription = this.GetObservable(PortCtLeftProperty).Subscribe(new PortCtLeftObserver(this));
+    }
+
+    private void OnPortCtLeftChanged(int newPortCount)
+    {
+        // Trigger layout update to recalculate port positions
+        InvalidateArrange();
+        InvalidateVisual();
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -87,6 +99,31 @@ public class RgxNodeControl : DragCanvasNode
         else
         {
             _textBlock.Text = _rgxNode?.Name ?? "No Node";
+        }
+    }
+
+    private class PortCtLeftObserver : IObserver<int>
+    {
+        private readonly RgxNodeControl _control;
+
+        public PortCtLeftObserver(RgxNodeControl control)
+        {
+            _control = control;
+        }
+
+        public void OnNext(int value)
+        {
+            _control.OnPortCtLeftChanged(value);
+        }
+
+        public void OnError(Exception error)
+        {
+            // Handle error if needed
+        }
+
+        public void OnCompleted()
+        {
+            // Handle completion if needed
         }
     }
 }
