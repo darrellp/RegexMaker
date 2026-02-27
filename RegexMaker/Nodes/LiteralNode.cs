@@ -1,4 +1,9 @@
-﻿namespace RegexMaker.Nodes;
+﻿using System.Text.Json.Serialization;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text.Json;
+
+namespace RegexMaker.Nodes;
 public class LiteralNode : RgxNode
 {
     private string _searchString;
@@ -37,4 +42,19 @@ public class LiteralNode : RgxNode
 
     public override string Name => "Literal";
     public override string DisplayName => $"\"{_searchString}\"";
+
+    protected override void AddSerializationData(Dictionary<string, object?> data)
+    {
+        base.AddSerializationData(data);
+        data["SearchString"] = SearchString;
+    }
+
+    protected override void RestoreSerializationData(Dictionary<string, JsonElement> data)
+    {
+        base.RestoreSerializationData(data);
+        if (data.TryGetValue("SearchString", out var searchStringElement))
+        {
+            SearchString = searchStringElement.GetString() ?? string.Empty;
+        }
+    }
 }

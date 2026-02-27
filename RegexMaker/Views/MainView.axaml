@@ -8,7 +8,11 @@
              x:Class="RegexMaker.Views.MainView">
 
     <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
-        <Rectangle Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Height="30" Fill="Yellow" />
+        <!-- Top panel with buttons -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Background="Yellow" Height="30">
+            <Button Name="BtnSave" Content="Save" Margin="5,2" Padding="10,2" />
+            <Button Name="BtnLoad" Content="Load" Margin="5,2" Padding="10,2" />
+        </StackPanel>
 
         <!--
         This Border at the bottom is intended to display the generated regex pattern.

@@ -1,5 +1,6 @@
 ﻿using RegexStringLibrary;
 using System;
+using System.Collections.Generic;
 
 namespace RegexMaker.Nodes;
 public class RangeNode : RgxNode
@@ -46,6 +47,26 @@ public class RangeNode : RgxNode
     public override IRgxNode Default()
     {
         return new RangeNode();
+    }
+
+    protected override void AddSerializationData(Dictionary<string, object?> data)
+    {
+        base.AddSerializationData(data);
+        data["CharStart"] = CharStart;
+        data["CharEnd"] = CharEnd;
+    }
+
+    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    {
+        base.RestoreSerializationData(data);
+        if (data.TryGetValue("CharStart", out var charStartElement))
+        {
+            CharStart = charStartElement.GetString() ?? "a";
+        }
+        if (data.TryGetValue("CharEnd", out var charEndElement))
+        {
+            CharEnd = charEndElement.GetString() ?? "z";
+        }
     }
 }
 

@@ -38,4 +38,19 @@ public class AnyCharFromNode : RgxNode
     {
         return new AnyCharFromNode();
     }
+
+    protected override void AddSerializationData(Dictionary<string, object?> data)
+    {
+        base.AddSerializationData(data);
+        data["Chars"] = Chars;
+    }
+
+    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    {
+        base.RestoreSerializationData(data);
+        if (data.TryGetValue("Chars", out var charsElement))
+        {
+            Chars = charsElement.GetString() ?? "A-Za-z0-9";
+        }
+    }
 }

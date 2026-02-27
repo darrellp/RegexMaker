@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Collections.Specialized;
 using static Avalonia.DragCanvas.DragCanvasNode;
+using System.Text.Json;
 
 namespace Avalonia.DragCanvas;
 
@@ -694,5 +695,153 @@ public class DragCanvas : Canvas
         // Raise node deleted event for application-level handling
         var eventArgs = new NodeDeletedEventArgs(NodeDeletedEvent, node);
         RaiseEvent(eventArgs);
+    }
+
+    /// <summary>
+    /// Serializes the current canvas state to a CanvasSerializationData object
+    /// </summary>
+    public CanvasSerializationData SerializeCanvas()
+    {
+        var data = new CanvasSerializationData();
+        var nodeIdMap = new Dictionary<DragCanvasNode, int>();
+        int nextId = 0;
+
+        // Serialize nodes
+        foreach (var child in Children)
+        {
+            if (child is DragCanvasNode node)
+            {
+                var nodeId = nextId++;
+                nodeIdMap[node] = nodeId;
+
+                var nodeData = new NodeSerializationData
+                {
+                    NodeId = nodeId,
+                    X = GetLeft(node),
+                    Y = GetTop(node),
+                    PortCtLeft = node.PortCtLeft,
+                    PortCtRight = node.PortCtRight
+                };
+
+                // If node implements ISerializableNode, get application data
+                if (node is ISerializableNode serializableNode)
+                {
+                    nodeData.ApplicationData = serializableNode.SerializeApplicationData();
+                    nodeData.NodeTypeName = serializableNode.GetNodeTypeName();
+                }
+
+                data.Nodes.Add(nodeData);
+            }
+        }
+
+        // Serialize connections
+        foreach (var connection in _connections)
+        {
+            if (connection.SourceNode != null && connection.TargetNode != null &&
+                nodeIdMap.TryGetValue(connection.SourceNode, out int sourceId) &&
+                nodeIdMap.TryGetValue(connection.TargetNode, out int targetId))
+            {
+                data.Connections.Add(new ConnectionSerializationData
+                {
+                    SourceNodeId = sourceId,
+                    TargetNodeId = targetId,
+                    SourcePortIndex = connection.SourcePortIndex,
+                    TargetPortIndex = connection.TargetPortIndex
+                });
+            }
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Deserializes canvas state from a CanvasSerializationData object
+    /// </summary>
+    /// <param name="data">The serialization data</param>
+    /// <param name="nodeFactory">Factory function to create nodes from type names</param>
+    public void DeserializeCanvas(CanvasSerializationData data, System.Func<string?, DragCanvasNode?> nodeFactory)
+    {
+        // Clear existing canvas
+        ClearConnections();
+        Children.Clear();
+        _selectedNode = null;
+
+        var nodeMap = new Dictionary<int, DragCanvasNode>();
+
+        // Recreate nodes
+        foreach (var nodeData in data.Nodes)
+        {
+            var node = nodeFactory(nodeData.NodeTypeName);
+            if (node == null)
+                continue;
+
+            // Set position
+            SetLeft(node, nodeData.X);
+            SetTop(node, nodeData.Y);
+
+            // Restore application data FIRST (before setting port counts)
+            // This allows the application to set up its internal data structures
+            if (node is ISerializableNode serializableNode && nodeData.ApplicationData != null)
+            {
+                serializableNode.DeserializeApplicationData(nodeData.ApplicationData);
+            }
+
+            // Set port counts AFTER restoring application data
+            // This ensures the node's Parameters collection is properly sized
+            node.PortCtLeft = nodeData.PortCtLeft;
+            node.PortCtRight = nodeData.PortCtRight;
+
+            // Add to canvas
+            Children.Add(node);
+            nodeMap[nodeData.NodeId] = node;
+
+            // Force layout update
+            node.UpdateLayout();
+        }
+
+        // Recreate connections
+        foreach (var connData in data.Connections)
+        {
+            if (nodeMap.TryGetValue(connData.SourceNodeId, out var sourceNode) &&
+                nodeMap.TryGetValue(connData.TargetNodeId, out var targetNode))
+            {
+                // Get port positions
+                var sourcePos = sourceNode.GetPortCanvasPosition(connData.SourcePortIndex, false);
+                var targetPos = targetNode.GetPortCanvasPosition(connData.TargetPortIndex, true);
+
+                // Create connection
+                var connection = new DragCanvasConnection
+                {
+                    SourceNode = sourceNode,
+                    SourcePortIndex = connData.SourcePortIndex,
+                    TargetNode = targetNode,
+                    TargetPortIndex = connData.TargetPortIndex,
+                    Stroke = Media.Brushes.Black,
+                    StartPoint = sourcePos,
+                    EndPoint = targetPos
+                };
+
+                _connections.Add(connection);
+                Children.Insert(0, connection);
+
+                // Update node connection tracking
+                sourceNode.OnConnectionMade(connection, connData.SourcePortIndex, DragCanvasNode.PortSide.Right);
+                targetNode.OnConnectionMade(connection, connData.TargetPortIndex, DragCanvasNode.PortSide.Left);
+
+                // Raise connection created event
+                var eventArgs = new ConnectionEventArgs(
+                    ConnectionCreatedEvent,
+                    sourceNode,
+                    targetNode,
+                    connData.SourcePortIndex,
+                    connData.TargetPortIndex)
+                {
+                    SourcePortPosition = sourcePos,
+                    TargetPortPosition = targetPos
+                };
+
+                RaiseEvent(eventArgs);
+            }
+        }
     }
 }

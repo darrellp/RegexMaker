@@ -76,4 +76,29 @@ public class RepeatNode : RgxNode
             return rep;
         }
     }
+
+    protected override void AddSerializationData(Dictionary<string, object?> data)
+    {
+        base.AddSerializationData(data);
+        data["Least"] = Least;
+        data["Most"] = Most;
+        data["IsLazy"] = IsLazy;
+    }
+
+    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    {
+        base.RestoreSerializationData(data);
+        if (data.TryGetValue("Least", out var leastElement))
+        {
+            Least = leastElement.GetInt32();
+        }
+        if (data.TryGetValue("Most", out var mostElement))
+        {
+            Most = mostElement.GetInt32();
+        }
+        if (data.TryGetValue("IsLazy", out var isLazyElement))
+        {
+            IsLazy = isLazyElement.GetBoolean();
+        }
+    }
 }

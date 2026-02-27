@@ -10,6 +10,10 @@ using System.Diagnostics;
 using Avalonia.Input;
 using System;
 using System.Linq;
+using System.IO;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
 
 namespace RegexMaker.Views;
 
@@ -32,7 +36,7 @@ public partial class MainView : UserControl
             {
                 Text = RgxNode.Name,
                 FontSize = 12,
-                HorizontalAlignment = HorizontalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Left,
                 Tag = RgxNode.Name // Store node name for later retrieval
             };
 
@@ -605,6 +609,114 @@ public partial class MainView : UserControl
             }
         }
 
+        return null;
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Wire up button events
+        BtnSave.Click += OnSaveClicked;
+        BtnLoad.Click += OnLoadClicked;
+    }
+
+    private async void OnSaveClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        try
+        {
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Save Regex Network",
+                DefaultExtension = "json",
+                SuggestedFileName = "regex_network.json",
+                FileTypeChoices = new[]
+                {
+                    new FilePickerFileType("JSON Files") { Patterns = new[] { "*.json" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*" } }
+                }
+            });
+
+            if (file != null)
+            {
+                // Serialize the canvas
+                var canvasData = DragCanvasMain.SerializeCanvas();
+                var json = JsonSerializer.Serialize(canvasData, new JsonSerializerOptions 
+                { 
+                    WriteIndented = true 
+                });
+
+                // Write to file
+                await using var stream = await file.OpenWriteAsync();
+                await using var writer = new StreamWriter(stream);
+                await writer.WriteAsync(json);
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error saving file: {ex.Message}");
+            // TODO: Show error dialog to user
+        }
+    }
+
+    private async void OnLoadClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        try
+        {
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Load Regex Network",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new FilePickerFileType("JSON Files") { Patterns = new[] { "*.json" } },
+                    new FilePickerFileType("All Files") { Patterns = new[] { "*" } }
+                }
+            });
+
+            if (files.Count > 0)
+            {
+                var file = files[0];
+                
+                // Read file content
+                await using var stream = await file.OpenReadAsync();
+                using var reader = new StreamReader(stream);
+                var json = await reader.ReadToEndAsync();
+
+                // Deserialize
+                var canvasData = JsonSerializer.Deserialize<CanvasSerializationData>(json);
+                if (canvasData != null)
+                {
+                    // Clear current selection
+                    NodeSwitched(null);
+                    
+                    // Deserialize the canvas with a factory function
+                    DragCanvasMain.DeserializeCanvas(canvasData, CreateNodeFromTypeName);
+                    
+                    // Update display
+                    UpdateNodeDisplay();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error loading file: {ex.Message}");
+            // TODO: Show error dialog to user
+        }
+    }
+
+    private RgxNodeControl? CreateNodeFromTypeName(string? typeName)
+    {
+        if (typeName == "RgxNodeControl")
+        {
+            return new RgxNodeControl();
+        }
         return null;
     }
 }

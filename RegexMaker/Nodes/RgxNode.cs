@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace RegexMaker.Nodes;
 public abstract class RgxNode : IRgxNode
@@ -113,4 +115,56 @@ public abstract class RgxNode : IRgxNode
     }
 
     public abstract IRgxNode Default();
+
+    /// <summary>
+    /// Serializes the node's state to JSON
+    /// </summary>
+    public virtual string SerializeToJson()
+    {
+        var data = new Dictionary<string, object?>
+        {
+            ["NodeType"] = NodeType.ToString(),
+            ["ID"] = ID
+        };
+        
+        // Add any additional state specific to derived types
+        AddSerializationData(data);
+        
+        return JsonSerializer.Serialize(data);
+    }
+
+    /// <summary>
+    /// Override this in derived classes to add custom serialization data
+    /// </summary>
+    protected virtual void AddSerializationData(Dictionary<string, object?> data)
+    {
+        // Base implementation does nothing - override in derived classes
+    }
+
+    /// <summary>
+    /// Deserializes the node's state from JSON
+    /// </summary>
+    public virtual void DeserializeFromJson(string json)
+    {
+        try
+        {
+            var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+            if (data != null)
+            {
+                RestoreSerializationData(data);
+            }
+        }
+        catch
+        {
+            // Handle deserialization errors gracefully
+        }
+    }
+
+    /// <summary>
+    /// Override this in derived classes to restore custom serialization data
+    /// </summary>
+    protected virtual void RestoreSerializationData(Dictionary<string, JsonElement> data)
+    {
+        // Base implementation does nothing - override in derived classes
+    }
 }
