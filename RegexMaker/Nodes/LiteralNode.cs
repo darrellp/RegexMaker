@@ -36,4 +36,5 @@ public class LiteralNode : RgxNode
     }
 
     public override string Name => "Literal";
+    public override string DisplayName => $"\"{_searchString}\"";
 }

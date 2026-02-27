@@ -60,4 +60,20 @@ public class RepeatNode : RgxNode
         ret.Parameters.Add(null);
         return ret;
     }
+    public override string DisplayName
+    {
+        get
+        {
+            var rep = (Least, Most) switch 
+            {
+                (0, 1) => "Opt",
+                (0, -1) => "*",
+                (1, -1) => "+",
+                (var least, -1) => $"Rep({least},)",
+                (var least, var most) when least == most => $"Rep({least})",
+                (var least, var most)  => $"Rep({least}, {most})"
+            };
+            return rep;
+        }
+    }
 }

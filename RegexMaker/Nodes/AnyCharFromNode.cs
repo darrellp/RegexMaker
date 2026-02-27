@@ -32,6 +32,8 @@ public class AnyCharFromNode : RgxNode
         return chars[random.Next(chars.Length)];
     }
 
+    public override string DisplayName => $"[{Chars}]";
+
     public override IRgxNode Default()
     {
         return new AnyCharFromNode();

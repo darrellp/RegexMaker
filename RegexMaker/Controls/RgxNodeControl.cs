@@ -4,6 +4,7 @@ using RegexMaker.Nodes;
 using Avalonia;
 using Avalonia.Media;
 using System;
+using System.Diagnostics;
 
 namespace RegexMaker.Controls;
 
@@ -92,14 +93,8 @@ public class RgxNodeControl : DragCanvasNode
 
     public void UpdateTextBlock()
     {
-        if (_rgxNode is LiteralNode literal)
-        {
-            _textBlock.Text = $"\"{literal.SearchString}\"";
-        }
-        else
-        {
-            _textBlock.Text = _rgxNode?.Name ?? "No Node";
-        }
+        Debug.Assert(_rgxNode != null);
+        _textBlock.Text = _rgxNode.DisplayName;
     }
 
     private class PortCtLeftObserver : IObserver<int>

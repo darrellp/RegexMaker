@@ -19,6 +19,7 @@ public abstract class RgxNode : IRgxNode
     // Default implementation of Name property takes name from the enum type of the NodeType.
     // Can be overridden by derived classes if needed.
     public virtual string Name => NameFromType();
+    public virtual string DisplayName => Name ?? "No Node";
 
     private string? _cachedResult;
 
