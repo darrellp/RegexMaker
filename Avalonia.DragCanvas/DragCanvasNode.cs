@@ -17,12 +17,14 @@ public class DragCanvasNode : ContentControl
     private const double PortSpacing = 20.0;
     private const double PortPadding = 10.0;
     private const double SelectionBorderThickness = 2.0;
+    private const double DeletionBorderThickness = 3.0;
 
     private readonly List<PortInfo> _leftPorts = new();
     private readonly List<PortInfo> _rightPorts = new();
 
     // _leftConnections[i] is the list of connections for the port at index i on the left side.
     // Similarly for _rightConnections.
+    // This allows for multiple connections per port (though specific implementations may restrict this)
     private bool _connectionsInitialized = false;
     private readonly List<List<DragCanvasConnection>> _leftConnections = new();
     private readonly List<List<DragCanvasConnection>> _rightConnections = new();
@@ -32,11 +34,18 @@ public class DragCanvasNode : ContentControl
     private Point _lastPointerPosition;
     private Size _lastArrangedSize;
     private bool _isPortDragInProgress;
+    private bool _isAltHovered;
 
     // Routed event for port clicked
     public static readonly RoutedEvent<PortClickedEventArgs> PortClickedEvent =
         RoutedEvent.Register<DragCanvasNode, PortClickedEventArgs>(
             "PortClicked",
+            RoutingStrategies.Bubble);
+
+    // Routed event for node deletion
+    public static readonly RoutedEvent<NodeDeletedEventArgs> NodeDeletedEvent =
+        RoutedEvent.Register<DragCanvasNode, NodeDeletedEventArgs>(
+            "NodeDeleted",
             RoutingStrategies.Bubble);
 
     // Styled properties for port counts
@@ -144,7 +153,7 @@ public class DragCanvasNode : ContentControl
 
     private void UpdatePorts()
     {
-        // We need to be more careful about if there were already connections on these ports
+        // Clear port visual information but preserve connection lists
         _leftPorts.Clear();
         _rightPorts.Clear();
 
@@ -181,6 +190,8 @@ public class DragCanvasNode : ContentControl
                 Index = i,
                 Side = side
             });
+            
+            // Initialize connection list for this port if not already done
             if (!_connectionsInitialized)
             {
                 portConnections.Add(new List<DragCanvasConnection>());
@@ -195,8 +206,16 @@ public class DragCanvasNode : ContentControl
         // Update ports before rendering to ensure correct positioning
         UpdatePorts();
 
+        // Render deletion border if Alt key is held while hovering (takes priority)
+        if (_isAltHovered)
+        {
+            var radius = CornerRadius.TopLeft + 12;
+            var rect = new Rect(0, 0, _lastArrangedSize.Width, _lastArrangedSize.Height);
+            var pen = new Pen(Brushes.Red, DeletionBorderThickness);
+            context.DrawRectangle(null, pen, rect);
+        }
         // Render selection border if selected
-        if (IsSelected && SelectionBrush != null)
+        else if (IsSelected && SelectionBrush != null)
         {
             var radius = CornerRadius.TopLeft + 12; // Assuming uniform corner radius for simplicity
             var rect = new Rect(0, 0, _lastArrangedSize.Width, _lastArrangedSize.Height);
@@ -228,10 +247,26 @@ public class DragCanvasNode : ContentControl
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        var point = e.GetCurrentPoint(this);
+        
+        // Check for Alt+Click on node body (not on port) to delete the node
+        if (point.Properties.IsLeftButtonPressed && 
+            e.KeyModifiers.HasFlag(KeyModifiers.Alt) &&
+            !_hoveredPortIndex.HasValue)
+        {
+            var parent = FindAncestorOfType<DragCanvas>();
+            if (parent != null)
+            {
+                var args = new NodeDeletedEventArgs(NodeDeletedEvent, this);
+                RaiseEvent(args);
+                e.Handled = true;
+                return;
+            }
+        }
+
         // Check if clicking on a port
         if (_hoveredPortIndex.HasValue && _hoveredPortSide.HasValue)
         {
-            var point = e.GetCurrentPoint(this);
             if (point.Properties.IsLeftButtonPressed)
             {
                 _isPortDragInProgress = true;
@@ -270,6 +305,16 @@ public class DragCanvasNode : ContentControl
             return;
 
         _lastPointerPosition = e.GetPosition(this);
+        
+        // Update Alt hover state
+        bool wasAltHovered = _isAltHovered;
+        _isAltHovered = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        
+        if (wasAltHovered != _isAltHovered)
+        {
+            InvalidateVisual();
+        }
+
         UpdateHoveredPort(_lastPointerPosition);
     }
 
@@ -281,6 +326,12 @@ public class DragCanvasNode : ContentControl
         {
             _hoveredPortIndex = null;
             _hoveredPortSide = null;
+            InvalidateVisual();
+        }
+
+        if (_isAltHovered)
+        {
+            _isAltHovered = false;
             InvalidateVisual();
         }
     }
@@ -413,8 +464,14 @@ public class DragCanvasNode : ContentControl
         Debug.Assert(iPort >= 0 && iPort < count, "Port index should be valid when making a connection.");
 
         var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
-        Debug.Assert(connectionsList[iPort] != null, "Connections list for the port should have been initialized by UpdatePorts.");
-        //connectionsList[iPort] ??= new();
+        
+        // Ensure the connection list is initialized for this port
+        while (connectionsList.Count <= iPort)
+        {
+            connectionsList.Add(new List<DragCanvasConnection>());
+        }
+        
+        Debug.Assert(connectionsList[iPort] != null, "Connections list for the port should have been initialized.");
         connectionsList[iPort].Add(connection);
     }
 
@@ -425,8 +482,77 @@ public class DragCanvasNode : ContentControl
         Debug.Assert(iPort >= 0 && iPort < count, "Port index should be valid when removing a connection.");
 
         var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
-        Debug.Assert(connectionsList[iPort] != null, "Connections list for the port should exist.");
-        connectionsList[iPort].Remove(connection);
+        
+        if (iPort < connectionsList.Count && connectionsList[iPort] != null)
+        {
+            connectionsList[iPort].Remove(connection);
+        }
+    }
+
+    /// <summary>
+    /// Gets all connections for a specific port
+    /// </summary>
+    /// <param name="portIndex">The port index</param>
+    /// <param name="isLeftSide">True for left (input) ports, false for right (output) ports</param>
+    /// <returns>Read-only collection of connections for the specified port</returns>
+    public IReadOnlyList<DragCanvasConnection> GetConnectionsForPort(int portIndex, bool isLeftSide)
+    {
+        var connectionsList = isLeftSide ? _leftConnections : _rightConnections;
+        
+        if (portIndex < 0 || portIndex >= connectionsList.Count)
+            return Array.Empty<DragCanvasConnection>();
+        
+        return connectionsList[portIndex].AsReadOnly();
+    }
+
+    /// <summary>
+    /// Gets all connections for this node (both incoming and outgoing)
+    /// </summary>
+    public IEnumerable<DragCanvasConnection> GetAllConnections()
+    {
+        foreach (var connectionList in _leftConnections)
+        {
+            foreach (var connection in connectionList)
+            {
+                yield return connection;
+            }
+        }
+
+        foreach (var connectionList in _rightConnections)
+        {
+            foreach (var connection in connectionList)
+            {
+                yield return connection;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all incoming connections (left side ports)
+    /// </summary>
+    public IEnumerable<DragCanvasConnection> GetIncomingConnections()
+    {
+        foreach (var connectionList in _leftConnections)
+        {
+            foreach (var connection in connectionList)
+            {
+                yield return connection;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all outgoing connections (right side ports)
+    /// </summary>
+    public IEnumerable<DragCanvasConnection> GetOutgoingConnections()
+    {
+        foreach (var connectionList in _rightConnections)
+        {
+            foreach (var connection in connectionList)
+            {
+                yield return connection;
+            }
+        }
     }
 
     /// <summary>
@@ -472,6 +598,18 @@ public class DragCanvasNode : ContentControl
         return dx * dx + dy * dy;
     }
 
+    private T? FindAncestorOfType<T>() where T : class
+    {
+        Visual? current = this.GetVisualParent();
+        while (current != null)
+        {
+            if (current is T ancestor)
+                return ancestor;
+            current = current.GetVisualParent();
+        }
+        return null;
+    }
+
     private class PortInfo
     {
         public Point Center { get; set; }
@@ -509,4 +647,18 @@ public class PortClickedEventArgs : RoutedEventArgs
     public int PortIndex { get; }
     public bool IsLeftSide { get; }
     public Point CanvasPosition { get; }
+}
+
+/// <summary>
+/// Event arguments for node deletion events
+/// </summary>
+public class NodeDeletedEventArgs : RoutedEventArgs
+{
+    public NodeDeletedEventArgs(RoutedEvent routedEvent, DragCanvasNode node)
+        : base(routedEvent)
+    {
+        Node = node;
+    }
+
+    public DragCanvasNode Node { get; }
 }

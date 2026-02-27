@@ -73,6 +73,19 @@ public class DragCanvas : Canvas
         remove => RemoveHandler(ConnectionDeletedEvent, value);
     }
 
+    // Routed event for node deletion
+    public static readonly RoutedEvent<NodeDeletedEventArgs> NodeDeletedEvent =
+        RoutedEvent.Register<DragCanvas, NodeDeletedEventArgs>(
+            "NodeDeleted",
+            RoutingStrategies.Bubble);
+
+    // CLR event wrapper for XAML binding
+    public event EventHandler<NodeDeletedEventArgs>? NodeDeleted
+    {
+        add => AddHandler(NodeDeletedEvent, value);
+        remove => RemoveHandler(NodeDeletedEvent, value);
+    }
+
     // Attached property for CanBeDragged
     public static readonly AttachedProperty<bool> CanBeDraggedProperty =
         AvaloniaProperty.RegisterAttached<DragCanvas, Control, bool>(
@@ -143,6 +156,9 @@ public class DragCanvas : Canvas
     {
         // Subscribe to port clicked events
         AddHandler(DragCanvasNode.PortClickedEvent, OnPortClicked);
+        
+        // Subscribe to node deletion events
+        AddHandler(DragCanvasNode.NodeDeletedEvent, OnNodeDeleteRequested);
     }
 
     protected override void ChildrenChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -201,6 +217,12 @@ public class DragCanvas : Canvas
 
         Children.Add(_temporaryConnection);
         e.Handled = true;
+    }
+
+    private void OnNodeDeleteRequested(object? sender, NodeDeletedEventArgs e)
+    {
+        // Handle the node deletion request
+        DeleteNode(e.Node);
     }
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -417,6 +439,10 @@ public class DragCanvas : Canvas
                         _connections.Add(connection);
                         Children.Insert(0, connection); // Add at beginning so it's behind nodes
 
+                        // Update node connection tracking
+                        sourceNode.OnConnectionMade(connection, sourcePortIndex, PortSide.Right);
+                        targetNode.OnConnectionMade(connection, targetPortIndex2, PortSide.Left);
+
                         // Raise connection created event
                         var eventArgs = new ConnectionEventArgs(
                             ConnectionCreatedEvent,
@@ -428,8 +454,6 @@ public class DragCanvas : Canvas
                             SourcePortPosition = sourcePortPos,
                             TargetPortPosition = targetPortPos
                         };
-                        sourceNode.OnConnectionMade(connection, sourcePortIndex, PortSide.Right);
-                        targetNode.OnConnectionMade(connection, targetPortIndex2, PortSide.Left);
 
                         RaiseEvent(eventArgs);
                     }
@@ -626,7 +650,11 @@ public class DragCanvas : Canvas
         if (connection.SourceNode == null || connection.TargetNode == null)
             return;
 
-        // Raise deletion event before removing
+        // Update node connection tracking first
+        connection.SourceNode.OnConnectionRemoved(connection, connection.SourcePortIndex, DragCanvasNode.PortSide.Right);
+        connection.TargetNode.OnConnectionRemoved(connection, connection.TargetPortIndex, DragCanvasNode.PortSide.Left);
+
+        // Raise deletion event
         var eventArgs = new ConnectionEventArgs(
             ConnectionDeletedEvent,
             connection.SourceNode,
@@ -638,9 +666,33 @@ public class DragCanvas : Canvas
 
         // Remove from internal tracking
         RemoveConnection(connection);
+    }
 
-        // Remove from nodes' connection lists
-        connection.SourceNode.OnConnectionRemoved(connection, connection.SourcePortIndex, DragCanvasNode.PortSide.Right);
-        connection.TargetNode.OnConnectionRemoved(connection, connection.TargetPortIndex, DragCanvasNode.PortSide.Left);
+    /// <summary>
+    /// Deletes a node from the canvas and removes all its connections
+    /// </summary>
+    public void DeleteNode(DragCanvasNode node)
+    {
+        // Get all connections using the node's built-in tracking
+        var allConnections = node.GetAllConnections().ToList();
+
+        // Delete all connections to/from this node
+        foreach (var connection in allConnections)
+        {
+            DeleteConnection(connection);
+        }
+
+        // Remove the node from canvas
+        Children.Remove(node);
+
+        // Clear selection if this was the selected node
+        if (_selectedNode == node)
+        {
+            _selectedNode = null;
+        }
+
+        // Raise node deleted event for application-level handling
+        var eventArgs = new NodeDeletedEventArgs(NodeDeletedEvent, node);
+        RaiseEvent(eventArgs);
     }
 }

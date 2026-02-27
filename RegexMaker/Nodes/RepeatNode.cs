@@ -14,7 +14,8 @@ public class RepeatNode : RgxNode
     public RepeatNode()
         : base(RgxNodeType.Repeat)
     {
-        Least = Most = 0;
+        Least = 0;
+        Most = 1;
         IsLazy = false;
     }
 
@@ -33,7 +34,7 @@ public class RepeatNode : RgxNode
     {
         // Concatenate the results of all parameter nodes.
         // NOTE: We'd normally have to use Stex.Cat here but in Polyglot all the static methods are just available as top-level functions so we can call Cat directly.
-        return Parameters[0] == null ? "" : Parameters[0].ProduceResult().Rep(Least, Most, IsLazy);
+        return (Parameters[0] == null ? "repeat Value" : Parameters[0].ProduceResult()).Rep(Least, Most, IsLazy);
     }
 
     override public string RandomMatch()

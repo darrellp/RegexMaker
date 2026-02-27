@@ -9,6 +9,7 @@ using RegexMaker.ViewModels;
 using System.Diagnostics;
 using Avalonia.Input;
 using System;
+using System.Linq;
 
 namespace RegexMaker.Views;
 
@@ -48,8 +49,9 @@ public partial class MainView : UserControl
         DragCanvasMain.AddHandler(DragDrop.DropEvent, OnDragCanvasDrop);
         DragCanvasMain.AddHandler(DragDrop.DragOverEvent, OnDragCanvasDragOver);
         
-        // Set up connection deletion handling
+        // Set up connection and node event handling
         DragCanvasMain.ConnectionDeleted += OnConnectionDeleted;
+        DragCanvasMain.NodeDeleted += OnNodeDeleted;
     }
 
     private Point? _toolboxDragStartPoint;
@@ -405,5 +407,85 @@ public partial class MainView : UserControl
             rgxNodeTarget.MakeDirty();
             UpdateNodeDisplay();
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Handles the node deleted event from the DragCanvas.
+    /// Updates the underlying RgxNode data model to reflect the deletion.
+    /// The node has already been removed from the canvas at this point.
+    /// </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Event information to send to registered event handlers. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    private void OnNodeDeleted(object? sender, NodeDeletedEventArgs e)
+    {
+        if (e.Node is RgxNodeControl rgxNodeControl && rgxNodeControl.RgxNode != null)
+        {
+            var rgxNode = rgxNodeControl.RgxNode;
+
+            // Clear selection if this is the selected node
+            if (_currentlySelectedNode == rgxNode)
+            {
+                NodeSwitched(null);
+            }
+
+            // Remove the node from parent references in all its parents
+            foreach (var parent in rgxNode.Parents.ToList())
+            {
+                if (parent is RgxNode parentRgxNode)
+                {
+                    // Find all parameters that reference this node and set them to null
+                    for (int i = 0; i < parentRgxNode.Parameters.Count; i++)
+                    {
+                        if (parentRgxNode.Parameters[i] == rgxNode)
+                        {
+                            parentRgxNode.Parameters[i] = null;
+                        }
+                    }
+                    parentRgxNode.MakeDirty();
+                }
+            }
+
+            // Clear this node's parent list
+            rgxNode.Parents.Clear();
+
+            // Clear this node's parameters (disconnect from children)
+            for (int i = 0; i < rgxNode.Parameters.Count; i++)
+            {
+                if (rgxNode.Parameters[i] is RgxNode childNode)
+                {
+                    childNode.Parents.Remove(rgxNode);
+                    childNode.MakeDirty();
+                }
+                rgxNode.Parameters[i] = null;
+            }
+
+            // NOTE: Do NOT call DragCanvas.DeleteNode() here!
+            // The node has already been removed from the canvas by the time this event is raised.
+            // This handler only needs to update the application-level data model.
+            
+            UpdateNodeDisplay();
+        }
+    }
+
+    private RgxNodeControl? FindNodeControlForRgxNode(RgxNode? rgxNode)
+    {
+        if (rgxNode == null)
+            return null;
+
+        foreach (var child in DragCanvasMain.Children)
+        {
+            if (child is RgxNodeControl nodeControl && nodeControl.RgxNode == rgxNode)
+            {
+                return nodeControl;
+            }
+        }
+
+        return null;
     }
 }
