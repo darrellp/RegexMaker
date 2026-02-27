@@ -11,6 +11,10 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="Nodes\Template.txt" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Avalonia.DragCanvas\Avalonia.DragCanvas.csproj" />

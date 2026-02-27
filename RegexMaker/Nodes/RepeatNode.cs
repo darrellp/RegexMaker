@@ -1,4 +1,5 @@
-﻿using RegexStringLibrary;
+﻿using Avalonia;
+using RegexStringLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,7 @@ public class RepeatNode : RgxNode
         Least = 0;
         Most = 1;
         IsLazy = false;
+        Parameters.Add(null);
     }
 
     public RepeatNode(IList<IRgxNode> parameters, int least, int most = -1, bool isLazy = false) : base(RgxNodeType.Repeat, parameters.ToArray())
@@ -56,22 +58,20 @@ public class RepeatNode : RgxNode
 
     public override IRgxNode Default()
     {
-        var ret = new RepeatNode();
-        ret.Parameters.Add(null);
-        return ret;
+        return new RepeatNode();
     }
     public override string DisplayName
     {
         get
         {
-            var rep = (Least, Most) switch 
+            var rep = (Least, Most) switch
             {
                 (0, 1) => "Opt",
                 (0, -1) => "*",
                 (1, -1) => "+",
                 (var least, -1) => $"Rep({least},)",
                 (var least, var most) when least == most => $"Rep({least})",
-                (var least, var most)  => $"Rep({least}, {most})"
+                (var least, var most) => $"Rep({least}, {most})"
             };
             return rep;
         }

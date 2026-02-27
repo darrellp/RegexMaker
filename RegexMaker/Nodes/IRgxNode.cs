@@ -10,6 +10,7 @@ public enum RgxNodeType
     PatternStart,
     PatternEnd,
     AnyCharFrom,
+    AnyOf,
 
     Range
 };

@@ -115,8 +115,23 @@
                                FontSize="10"/>
                 </StackPanel>
             </Border>
+
+            <!-- AnyOf - Index 6 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Any Of" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Port Count:"/>
+                    <NumericUpDown x:Name="NumAnyOfPortCount" 
+                                   FormatString="N0" ParsingNumberStyle="Integer"
+                                   Value="{ReflectionBinding PortCount}" 
+                                   Minimum="2"
+                                   Maximum="10"/>
+                </StackPanel>
+            </Border>
             
-            <!-- Range - Index 6 -->
+
+            
+            <!-- Range - Index 7 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5">
                     <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center"/>

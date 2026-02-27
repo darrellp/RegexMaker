@@ -1,0 +1,109 @@
+﻿#if false
+
+Steps to produce a new RgxNode type:
+1. Make a new RgxNode enum value for the new node type in IRgxNode.cs.  This is just an enum value that will be used to identify the node type.
+2. Produce the new node class in the Nodes folder, deriving from RgxNode.  This is a template for that file.
+3. Create a viewModel for the RgxNode type.  This will be bound to the UI and will handle any properties that need to be set on the node. 
+4. Create a Dialog to handle the parameters for the node in MainView.axaml under the CarParameters carousel.
+5. Add a case for the new node type in NodeSwitched (MainView.axaml.cs) to handle the visibility of the parameter dialog when the node is selected.
+6. Add any further handlers you need for your dialog in MainView.axaml.cs.  For example, if you have a TextBox for a string parameter,
+    you would add a TextChanged handler to update the node's properties when the text changes.
+
+There are no special controls for different node types.  The RgxNodeControl handles them all - it just depends on what it has as an RgxNode.
+
+>>>>>>>>>>>   CUT HERE!!!!!!!!!!!  <<<<<<<<<<<<<
+using RegexStringLibrary;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace RegexMaker.Nodes;
+
+// DERIVE FROM RgxNode
+public class TemplateNode : RgxNode
+{
+    // Declare any properties specific to this node type here. For example:
+    public int Least { get; set; }
+    public int Most { get; set; }
+    public bool IsLazy { get; set; }
+
+
+    // Must have a parameterless constructor for exemplar creation. This constructor should set default values for properties and parameters.
+    // Pass the appropriate RgxNodeType to the base constructor.
+    public RepeatNode() : base(RgxNodeType.Repeat)
+    {
+        // Set default values for properties and parameters. For example:
+        Least = 0;
+        Most = 1;
+        IsLazy = false;
+    }
+
+    // Constructor that takes parameters for the node. The parameters should be passed to the base constructor as an array.  This constructor
+    // is used for testing only and is not necessary for the normal program flow since nodes will typically be created with the parameterless 
+    // constructor and then have their properties and parameters set individually.
+    public RepeatNode(IList<IRgxNode> parameters, int least, int most = -1, bool isLazy = false) : base(RgxNodeType.Repeat, parameters.ToArray())
+    {
+        if (parameters.Count != 1)
+        {
+            throw new ArgumentException("RepeatNode must have exactly one parameter node.");
+        }
+        Least = least;
+        Most = most;
+        IsLazy = isLazy;
+
+        // We can set Parameters to null in order to generate a port for them.
+        ret.Parameters.Add(null);
+
+    }
+
+    // This should just calculate.  Caching is done by 
+    internal override string CalculateResult()
+    {
+        // Concatenate the results of all parameter nodes.
+        // NOTE: We'd normally have to use Stex.Cat here but in Polyglot all the static methods are just available as top-level functions so we can call Cat directly.
+        return (Parameters[0] == null ? "repeat Value" : Parameters[0].ProduceResult()).Rep(Least, Most, IsLazy);
+    }
+
+    // This should generate a random string that will match this pattern.  It should use the static random variable from the base class for any random 
+    // number generation to ensure that all nodes use the same source of randomness.
+    override public string RandomMatch()
+    {
+        int repeatCount;
+        if (Most == -1)
+        {
+            // If Most is -1, we can repeat any number of times greater than or equal to Least. For random generation, we can choose a reasonable upper limit.
+            // TODO: We might want to make this upper limit configurable or based on the length of the pattern being repeated.
+            repeatCount = Least + random.Next(10); // Arbitrary upper limit of 10 for random generation.
+        }
+        else
+        {
+            repeatCount = random.Next(Least, Most + 1);
+        }
+        // return string.Concat(Enumerable.Repeat(Parameters[0].RandomMatch(), repeatCount));
+        return string.Concat(Enumerable.Repeat(0, repeatCount).Select(i => Parameters[0].RandomMatch()));
+    }
+
+    public override IRgxNode Default()
+    {
+        return new RepeatNode();
+    }
+
+    // This is the string that will be displayed on the node control in the UI.
+    public override string DisplayName
+    {
+        get
+        {
+            var rep = (Least, Most) switch
+            {
+                (0, 1) => "Opt",
+                (0, -1) => "*",
+                (1, -1) => "+",
+                (var least, -1) => $"Rep({least},)",
+                (var least, var most) when least == most => $"Rep({least})",
+                (var least, var most) => $"Rep({least}, {most})"
+            };
+            return rep;
+        }
+    }
+}
+#endif
