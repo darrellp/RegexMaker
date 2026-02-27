@@ -61,8 +61,8 @@ public class RgxNodeTests
     }
 
     // Helper method to create a concrete test implementation
-    private StringSearchNode CreateTestNode(string val)
+    private LiteralNode CreateTestNode(string val)
     {
-        return new StringSearchNode(val);
+        return new LiteralNode(val);
     }
 }

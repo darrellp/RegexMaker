@@ -8,7 +8,7 @@ public class AnyCharFromNodeTests
     [Fact]
     public void AnyCharFromNode_NameShouldBeAnyCharFrom()
     {
-        var node1 = new StringSearchNode("abc");
+        var node1 = new LiteralNode("abc");
         Assert.Equal("AnyCharFrom", new AnyCharFromNode([node1]).Name);
     }
 
@@ -16,7 +16,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldCreateCharacterClass()
     {
         // Arrange
-        var node1 = new StringSearchNode("abc");
+        var node1 = new LiteralNode("abc");
         var anyCharFromNode = new AnyCharFromNode([node1]);
 
         // Act
@@ -30,8 +30,8 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldCombineMultipleParameters()
     {
         // Arrange
-        var node1 = new StringSearchNode("abc");
-        var node2 = new StringSearchNode("123");
+        var node1 = new LiteralNode("abc");
+        var node2 = new LiteralNode("123");
         var anyCharFromNode = new AnyCharFromNode([node1, node2]);
 
         // Act
@@ -45,7 +45,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleSingleCharacter()
     {
         // Arrange
-        var node = new StringSearchNode("x");
+        var node = new LiteralNode("x");
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -59,7 +59,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleRanges()
     {
         // Arrange
-        var node = new StringSearchNode(Stex.Range("a", "z"));
+        var node = new LiteralNode(Stex.Range("a", "z"));
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -73,8 +73,8 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleMultipleRanges()
     {
         // Arrange
-        var node1 = new StringSearchNode(Stex.Range("a", "z"));
-        var node2 = new StringSearchNode(Stex.Range("A", "Z"));
+        var node1 = new LiteralNode(Stex.Range("a", "z"));
+        var node2 = new LiteralNode(Stex.Range("A", "Z"));
         var anyCharFromNode = new AnyCharFromNode([node1, node2]);
 
         // Act
@@ -101,8 +101,8 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleMixedRangesAndCharacters()
     {
         // Arrange
-        var node1 = new StringSearchNode(Stex.Range("0", "9"));
-        var node2 = new StringSearchNode("._-");
+        var node1 = new LiteralNode(Stex.Range("0", "9"));
+        var node2 = new LiteralNode("._-");
         var anyCharFromNode = new AnyCharFromNode([node1, node2]);
 
         // Act
@@ -116,7 +116,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHaveCorrectNodeType()
     {
         // Arrange
-        var node = new StringSearchNode("test");
+        var node = new LiteralNode("test");
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -130,7 +130,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldCacheResult()
     {
         // Arrange
-        var node = new StringSearchNode("abc");
+        var node = new LiteralNode("abc");
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -145,7 +145,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldInvalidateCacheWhenDirty()
     {
         // Arrange
-        var node = new StringSearchNode("xyz");
+        var node = new LiteralNode("xyz");
         var anyCharFromNode = new AnyCharFromNode([node]);
         var firstResult = anyCharFromNode.ProduceResult();
 
@@ -161,7 +161,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldMatchAnyCharacterInSet()
     {
         // Arrange
-        var node = new StringSearchNode("abc");
+        var node = new LiteralNode("abc");
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act & Assert
@@ -176,7 +176,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldMatchDigitRange()
     {
         // Arrange
-        var node = new StringSearchNode(Stex.Range("0", "9"));
+        var node = new LiteralNode(Stex.Range("0", "9"));
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act & Assert
@@ -191,7 +191,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleSpecialRegexCharacters()
     {
         // Arrange
-        var node = new StringSearchNode(@".\+*");
+        var node = new LiteralNode(@".\+*");
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -205,8 +205,8 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleBuiltInCharacterClasses()
     {
         // Arrange
-        var node1 = new StringSearchNode(Stex.Digit);
-        var node2 = new StringSearchNode("abc");
+        var node1 = new LiteralNode(Stex.Digit);
+        var node2 = new LiteralNode("abc");
         var anyCharFromNode = new AnyCharFromNode([node1, node2]);
 
         // Act
@@ -224,7 +224,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleVariousInputs(string input, string expected)
     {
         // Arrange
-        var node = new StringSearchNode(input);
+        var node = new LiteralNode(input);
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -238,8 +238,8 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleNestedNodes()
     {
         // Arrange
-        var node1 = new StringSearchNode("a");
-        var node2 = new StringSearchNode("b");
+        var node1 = new LiteralNode("a");
+        var node2 = new LiteralNode("b");
         var concatenateNode = new ConcatenateNode(node1, node2);
         var anyCharFromNode = new AnyCharFromNode([concatenateNode]);
 
@@ -254,9 +254,9 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleAlphanumericRange()
     {
         // Arrange
-        var node1 = new StringSearchNode(Stex.Range("a", "z"));
-        var node2 = new StringSearchNode(Stex.Range("A", "Z"));
-        var node3 = new StringSearchNode(Stex.Range("0", "9"));
+        var node1 = new LiteralNode(Stex.Range("a", "z"));
+        var node2 = new LiteralNode(Stex.Range("A", "Z"));
+        var node3 = new LiteralNode(Stex.Range("0", "9"));
         var anyCharFromNode = new AnyCharFromNode([node1, node2, node3]);
 
         // Act
@@ -275,7 +275,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleWhitespaceCharacters()
     {
         // Arrange
-        var node = new StringSearchNode(" \t\n");
+        var node = new LiteralNode(" \t\n");
         var anyCharFromNode = new AnyCharFromNode([node]);
         var repNode = new RepeatNode([anyCharFromNode], 1);
 
@@ -290,11 +290,11 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleManyParameters()
     {
         // Arrange
-        var node1 = new StringSearchNode("a");
-        var node2 = new StringSearchNode("b");
-        var node3 = new StringSearchNode("c");
-        var node4 = new StringSearchNode("d");
-        var node5 = new StringSearchNode("e");
+        var node1 = new LiteralNode("a");
+        var node2 = new LiteralNode("b");
+        var node3 = new LiteralNode("c");
+        var node4 = new LiteralNode("d");
+        var node5 = new LiteralNode("e");
         var anyCharFromNode = new AnyCharFromNode([node1, node2, node3, node4, node5]);
         var repNode = new RepeatNode([anyCharFromNode], 1);
 
@@ -307,7 +307,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleHyphenInCharacterClass()
     {
         // Arrange
-        var node = new StringSearchNode("-_.");
+        var node = new LiteralNode("-_.");
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -321,8 +321,8 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleVowels()
     {
         // Arrange
-        var lowercase = new StringSearchNode("aeiou");
-        var uppercase = new StringSearchNode("AEIOU");
+        var lowercase = new LiteralNode("aeiou");
+        var uppercase = new LiteralNode("AEIOU");
         var anyCharFromNode = new AnyCharFromNode([lowercase, uppercase]);
 
         // Act

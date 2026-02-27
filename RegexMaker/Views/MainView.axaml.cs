@@ -283,7 +283,7 @@ public partial class MainView : UserControl
         switch (node.NodeType)
         {
             case RgxNodeType.StringSearch:
-                if (node is StringSearchNode stringSearchNode)
+                if (node is LiteralNode stringSearchNode)
                 {
                     _currentViewModel = new StringSearchNodeViewModel(stringSearchNode, UpdateNodeDisplay);
                     TxtStringSearchValue.DataContext = _currentViewModel;

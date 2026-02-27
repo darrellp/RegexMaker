@@ -15,8 +15,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldConcatenateTwoStrings()
     {
         // Arrange
-        var node1 = new StringSearchNode("Hello");
-        var node2 = new StringSearchNode("World");
+        var node1 = new LiteralNode("Hello");
+        var node2 = new LiteralNode("World");
         var concatenateNode = new ConcatenateNode(node1, node2);
 
         // Act
@@ -30,10 +30,10 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldConcatenateMultipleStrings()
     {
         // Arrange
-        var node1 = new StringSearchNode("A");
-        var node2 = new StringSearchNode("B");
-        var node3 = new StringSearchNode("C");
-        var node4 = new StringSearchNode("D");
+        var node1 = new LiteralNode("A");
+        var node2 = new LiteralNode("B");
+        var node3 = new LiteralNode("C");
+        var node4 = new LiteralNode("D");
         var concatenateNode = new ConcatenateNode(node1, node2, node3, node4);
 
         // Act
@@ -62,7 +62,7 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldHandleSingleParameter()
     {
         // Arrange
-        var node = new StringSearchNode("Single");
+        var node = new LiteralNode("Single");
         var concatenateNode = new ConcatenateNode(node);
 
         // Act
@@ -76,8 +76,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldCacheResult()
     {
         // Arrange
-        var node1 = new StringSearchNode("Test");
-        var node2 = new StringSearchNode("Cache");
+        var node1 = new LiteralNode("Test");
+        var node2 = new LiteralNode("Cache");
         var concatenateNode = new ConcatenateNode(node1, node2);
 
         // Act
@@ -92,8 +92,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldInvalidateCacheWhenDirty()
     {
         // Arrange
-        var node1 = new StringSearchNode("Test");
-        var node2 = new StringSearchNode("Dirty");
+        var node1 = new LiteralNode("Test");
+        var node2 = new LiteralNode("Dirty");
         var concatenateNode = new ConcatenateNode(node1, node2);
         var firstResult = concatenateNode.ProduceResult();
 
@@ -109,8 +109,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldMatchConcatenatedPattern()
     {
         // Arrange
-        var node1 = new StringSearchNode("test");
-        var node2 = new StringSearchNode("123");
+        var node1 = new LiteralNode("test");
+        var node2 = new LiteralNode("123");
         var concatenateNode = new ConcatenateNode(node1, node2);
 
         // Act & Assert
@@ -137,8 +137,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldConcatenateWithSpecialRegexCharacters()
     {
         // Arrange
-        var node1 = new StringSearchNode(@"\d");
-        var node2 = new StringSearchNode(@"+");
+        var node1 = new LiteralNode(@"\d");
+        var node2 = new LiteralNode(@"+");
         var concatenateNode = new ConcatenateNode(node1, node2);
 
         // Act
@@ -156,8 +156,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldHandleVariousInputs(string input1, string input2, string expected)
     {
         // Arrange
-        var node1 = new StringSearchNode(input1);
-        var node2 = new StringSearchNode(input2);
+        var node1 = new LiteralNode(input1);
+        var node2 = new LiteralNode(input2);
         var concatenateNode = new ConcatenateNode(node1, node2);
 
         // Act
@@ -171,11 +171,11 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldConcatenateNestedConcatenations()
     {
         // Arrange
-        var node1 = new StringSearchNode("A");
-        var node2 = new StringSearchNode("B");
+        var node1 = new LiteralNode("A");
+        var node2 = new LiteralNode("B");
         var innerConcat = new ConcatenateNode(node1, node2);
 
-        var node3 = new StringSearchNode("C");
+        var node3 = new LiteralNode("C");
         var outerConcat = new ConcatenateNode(innerConcat, node3);
 
         // Act

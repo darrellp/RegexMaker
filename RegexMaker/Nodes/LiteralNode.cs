@@ -1,17 +1,17 @@
 ﻿namespace RegexMaker.Nodes;
-public class StringSearchNode : RgxNode
+public class LiteralNode : RgxNode
 {
     private string _searchString;
     public string SearchString { get => _searchString; set => _searchString=value; }
 
     // Nodes created with the parameterless constructor are only exemplars and will never calculate
-    public StringSearchNode()
+    public LiteralNode()
         : base(RgxNodeType.StringSearch)
     {
         SearchString = string.Empty;
     }
 
-    public StringSearchNode(string searchString) : base(RgxNodeType.StringSearch, new IRgxNode[0])
+    public LiteralNode(string searchString) : base(RgxNodeType.StringSearch, new IRgxNode[0])
     {
         SearchString = searchString;
     }
@@ -30,7 +30,7 @@ public class StringSearchNode : RgxNode
 
     public override IRgxNode Default()
     {
-        var ret = new StringSearchNode();
+        var ret = new LiteralNode();
         ret.SearchString = "search";
         return ret;
     }

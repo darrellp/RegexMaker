@@ -8,7 +8,7 @@ public class RepeatNodeTests
     [Fact]
     public void AnyCharFromNode_NameShouldBeRepeat()
     {
-        var node = new StringSearchNode("a");
+        var node = new LiteralNode("a");
         var repeatNode = new RepeatNode([node], 3, 3);
         Assert.Equal("Repeat", repeatNode.Name);
     }
@@ -17,7 +17,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldRepeatExactNumberOfTimes()
     {
         // Arrange
-        var node = new StringSearchNode("a");
+        var node = new LiteralNode("a");
         var repeatNode = new RepeatNode([node], 3, 3);
 
         // Assert
@@ -28,7 +28,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldRepeatWithRange()
     {
         // Arrange
-        var node = new StringSearchNode("b");
+        var node = new LiteralNode("b");
         var repeatNode = new RepeatNode([node], 2, 5);
 
         // Assert
@@ -44,7 +44,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldRepeatAtLeast()
     {
         // Arrange
-        var node = new StringSearchNode("c");
+        var node = new LiteralNode("c");
         var repeatNode = new RepeatNode([node], 3);
 
         // Assert
@@ -57,7 +57,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleZeroOrMore()
     {
         // Arrange
-        var node = new StringSearchNode("d");
+        var node = new LiteralNode("d");
         var repeatNode = new RepeatNode([node], 0);
 
         // Assert
@@ -69,7 +69,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleOneOrMore()
     {
         // Arrange
-        var node = new StringSearchNode("e");
+        var node = new LiteralNode("e");
         var repeatNode = new RepeatNode([node], 1);
 
         // Assert
@@ -82,7 +82,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleOptional()
     {
         // Arrange
-        var node = new StringSearchNode("f");
+        var node = new LiteralNode("f");
         var repeatNode = new RepeatNode([node], 0, 1);
 
         // Assert
@@ -95,7 +95,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleLazyQuantifier()
     {
         // Arrange
-        var node = new StringSearchNode("g");
+        var node = new LiteralNode("g");
         var repeatNode = new RepeatNode([node], 2, 4, isLazy: true);
 
         // Act
@@ -109,7 +109,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleLazyOptional()
     {
         // Arrange
-        var node = new StringSearchNode("h");
+        var node = new LiteralNode("h");
         var repeatNode = new RepeatNode([node], 0, 1, isLazy: true);
 
         // Act
@@ -123,7 +123,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleLazyZeroOrMore()
     {
         // Arrange
-        var node = new StringSearchNode("i");
+        var node = new LiteralNode("i");
         var repeatNode = new RepeatNode([node], 0, -1, isLazy: true);
 
         // Act
@@ -137,8 +137,8 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldThrowWhenMultipleParameters()
     {
         // Arrange
-        var node1 = new StringSearchNode("a");
-        var node2 = new StringSearchNode("b");
+        var node1 = new LiteralNode("a");
+        var node2 = new LiteralNode("b");
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => new RepeatNode([node1, node2], 1, 3));
@@ -155,7 +155,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHaveCorrectNodeType()
     {
         // Arrange
-        var node = new StringSearchNode("test");
+        var node = new LiteralNode("test");
         var repeatNode = new RepeatNode([node], 1);
 
         // Act
@@ -169,7 +169,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldCacheResult()
     {
         // Arrange
-        var node = new StringSearchNode("test");
+        var node = new LiteralNode("test");
         var repeatNode = new RepeatNode([node], 2, 4);
 
         // Act
@@ -184,7 +184,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldInvalidateCacheWhenDirty()
     {
         // Arrange
-        var node = new StringSearchNode("test");
+        var node = new LiteralNode("test");
         var repeatNode = new RepeatNode([node], 1, 3);
         var firstResult = repeatNode.ProduceResult();
 
@@ -201,7 +201,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldMatchRepeatedPattern()
     {
         // Arrange
-        var node = new StringSearchNode("a");
+        var node = new LiteralNode("a");
         var repeatNode = new RepeatNode([node], 2, 4);
 
         // Act & Assert
@@ -216,7 +216,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleComplexPattern()
     {
         // Arrange
-        var node = new StringSearchNode(@"\d");
+        var node = new LiteralNode(@"\d");
         var repeatNode = new RepeatNode([node], 3, 5);
 
         // Act
@@ -233,7 +233,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldStoreProperties()
     {
         // Arrange
-        var node = new StringSearchNode("x");
+        var node = new LiteralNode("x");
         var repeatNode = new RepeatNode([node], 2, 5, isLazy: true);
 
         // Assert
@@ -246,7 +246,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleNestedRepeat()
     {
         // Arrange
-        var innerNode = new StringSearchNode("a");
+        var innerNode = new LiteralNode("a");
         var innerRepeat = new RepeatNode([innerNode], 2, 2);
         var outerRepeat = new RepeatNode([innerRepeat], 3, 3);
 
@@ -267,7 +267,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleVariousRepeatPatterns(int least, int most, string expected)
     {
         // Arrange
-        var node = new StringSearchNode("x");
+        var node = new LiteralNode("x");
         var repeatNode = new RepeatNode([node], least, most);
 
         // Act
@@ -281,7 +281,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleDigitPatternRepeated()
     {
         // Arrange
-        var digitNode = new StringSearchNode(Stex.Digit);
+        var digitNode = new LiteralNode(Stex.Digit);
         var repeatNode = new RepeatNode([digitNode], 3, 3);
 
         // Assert

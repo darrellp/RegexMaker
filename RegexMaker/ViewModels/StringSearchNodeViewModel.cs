@@ -6,13 +6,13 @@ namespace RegexMaker.ViewModels;
 
 public partial class StringSearchNodeViewModel : ViewModelBase
 {
-    private readonly StringSearchNode _node;
+    private readonly LiteralNode _node;
     private readonly Action _onChanged;
 
     [ObservableProperty]
     private string _searchString;
 
-    public StringSearchNodeViewModel(StringSearchNode node, Action onChanged)
+    public StringSearchNodeViewModel(LiteralNode node, Action onChanged)
     {
         _node = node;
         _onChanged = onChanged;

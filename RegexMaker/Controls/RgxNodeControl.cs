@@ -92,7 +92,7 @@ public class RgxNodeControl : DragCanvasNode
 
     public void UpdateTextBlock()
     {
-        if (_rgxNode is StringSearchNode literal)
+        if (_rgxNode is LiteralNode literal)
         {
             _textBlock.Text = $"\"{literal.SearchString}\"";
         }
