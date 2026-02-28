@@ -733,7 +733,12 @@ public class DragCanvas : Canvas
                 // If node implements ISerializableNode, get application data
                 if (node is ISerializableNode serializableNode)
                 {
-                    nodeData.ApplicationData = serializableNode.SerializeApplicationData();
+                    var jsonString = serializableNode.SerializeApplicationData();
+                    // Parse the JSON string into a JsonElement for proper nesting
+                    if (!string.IsNullOrEmpty(jsonString))
+                    {
+                        nodeData.ApplicationData = JsonSerializer.Deserialize<JsonElement>(jsonString);
+                    }
                     nodeData.NodeTypeName = serializableNode.GetNodeTypeName();
                 }
 
@@ -790,7 +795,9 @@ public class DragCanvas : Canvas
             // This allows the application to set up its internal data structures
             if (node is ISerializableNode serializableNode && nodeData.ApplicationData != null)
             {
-                serializableNode.DeserializeApplicationData(nodeData.ApplicationData);
+                // Convert JsonElement back to JSON string for backwards compatibility
+                var jsonString = JsonSerializer.Serialize(nodeData.ApplicationData.Value);
+                serializableNode.DeserializeApplicationData(jsonString);
             }
 
             // Set port counts AFTER restoring application data

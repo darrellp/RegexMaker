@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace Avalonia.DragCanvas;
 
@@ -49,9 +50,9 @@ public class NodeSerializationData
     public int PortCtRight { get; set; }
 
     /// <summary>
-    /// Application-specific node data (will be serialized by derived class)
+    /// Application-specific node data (stored as JsonElement for proper JSON nesting)
     /// </summary>
-    public string? ApplicationData { get; set; }
+    public JsonElement? ApplicationData { get; set; }
 
     /// <summary>
     /// Type identifier for recreating the correct node type
@@ -84,3 +85,4 @@ public class ConnectionSerializationData
     /// </summary>
     public int TargetPortIndex { get; set; }
 }
+
