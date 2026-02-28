@@ -6,6 +6,7 @@ using Avalonia.Media;
 using System;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Collections.Generic;
 
 namespace RegexMaker.Controls;
 
@@ -129,10 +130,38 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
         var data = new RgxNodeSerializationData
         {
             NodeName = NodeName,
-            RgxNodeJson = _rgxNode.SerializeToJson()
+            RgxNodeData = GetRgxNodeDataAsDictionary()
         };
 
         return JsonSerializer.Serialize(data);
+    }
+
+    private Dictionary<string, object?>? GetRgxNodeDataAsDictionary()
+    {
+        if (_rgxNode == null)
+            return null;
+
+        // Use the existing serialization logic
+        var jsonString = _rgxNode.SerializeToJson();
+        
+        // Parse it into a dictionary so it's properly nested in the final JSON
+        var jsonDoc = JsonDocument.Parse(jsonString);
+        var dict = new Dictionary<string, object?>();
+        
+        foreach (var property in jsonDoc.RootElement.EnumerateObject())
+        {
+            dict[property.Name] = property.Value.ValueKind switch
+            {
+                JsonValueKind.String => property.Value.GetString(),
+                JsonValueKind.Number => property.Value.GetInt32(),
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.Null => null,
+                _ => property.Value.Clone()
+            };
+        }
+        
+        return dict;
     }
 
     public void DeserializeApplicationData(string data)
@@ -147,10 +176,12 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
             {
                 NodeName = nodeData.NodeName;
                 
-                // Restore the RgxNode from JSON
-                if (_rgxNode != null && !string.IsNullOrEmpty(nodeData.RgxNodeJson))
+                // Restore the RgxNode from the data dictionary
+                if (_rgxNode != null && nodeData.RgxNodeData != null)
                 {
-                    _rgxNode.DeserializeFromJson(nodeData.RgxNodeJson);
+                    // Convert back to JSON string for the existing DeserializeFromJson method
+                    var jsonString = JsonSerializer.Serialize(nodeData.RgxNodeData);
+                    _rgxNode.DeserializeFromJson(jsonString);
                     // Update the visual display after deserialization
                     UpdateTextBlock();
                 }
@@ -170,7 +201,7 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
     private class RgxNodeSerializationData
     {
         public string? NodeName { get; set; }
-        public string? RgxNodeJson { get; set; }
+        public Dictionary<string, object?>? RgxNodeData { get; set; }
     }
 
     private class PortCtLeftObserver : IObserver<int>
