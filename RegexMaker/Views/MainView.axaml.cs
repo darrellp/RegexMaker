@@ -62,6 +62,7 @@ public partial class MainView : UserControl
             _mainViewModel.SaveRequested -= OnSaveRequested;
             _mainViewModel.LoadRequested -= OnLoadRequested;
             _mainViewModel.ClearRequested -= OnClearRequested;
+            _mainViewModel.CopyRegexRequested -= OnCopyRegexRequested;
         }
 
         // Subscribe to new view model
@@ -71,6 +72,7 @@ public partial class MainView : UserControl
             _mainViewModel.SaveRequested += OnSaveRequested;
             _mainViewModel.LoadRequested += OnLoadRequested;
             _mainViewModel.ClearRequested += OnClearRequested;
+            _mainViewModel.CopyRegexRequested += OnCopyRegexRequested;
         }
         else
         {
@@ -699,5 +701,13 @@ public partial class MainView : UserControl
             return new RgxNodeControl();
         }
         return null;
+    }
+    private async void OnCopyRegexRequested(object? sender, CopyRegexRequestedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel?.Clipboard != null)
+        {
+            await topLevel.Clipboard.SetTextAsync(e.RegexPattern);
+        }
     }
 }

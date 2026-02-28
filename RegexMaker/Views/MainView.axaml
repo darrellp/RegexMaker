@@ -15,6 +15,7 @@
             <Button Content="Save" Margin="5,2" Padding="10,2" Command="{Binding SaveCommand}" />
             <Button Content="Load" Margin="5,2" Padding="10,2" Command="{Binding LoadCommand}" />
             <Button Content="Clear" Margin="5,2" Padding="10,2" Command="{Binding ClearCommand}" />
+            <Button Content="Copy Regex" Margin="5,2" Padding="10,2" Command="{Binding CopyRegexCommand}" />
         </StackPanel>
 
         <!--
