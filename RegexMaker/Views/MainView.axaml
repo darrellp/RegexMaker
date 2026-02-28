@@ -31,33 +31,49 @@
         -->
         <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox"/>
 
+        <!--
+        The DragCanvas - the main canvas where nodes are placed and connected.
+        This is positioned in the center column between the toolbox and parameters panel.
+        -->
+        <dragCanvas:DragCanvas Grid.Row="1" Grid.Column="1" 
+                              Name="DragCanvasMain"
+                              Background="LightBlue"
+                              NodeSelected="OnNodeSelected"
+                              ConnectionCreated="OnConnectionCreated"
+                              ConnectionDeleted="OnConnectionDeleted"
+                              NodeDeleted="OnNodeDeleted"/>
+
         <!-- 
         The Carousel control is used to display the parameters for the currently selected node type.
         Each item in the Carousel corresponds to a different node type, and the content of each item 
         is a set of controls that allow the user to edit the parameters for that node type. The 
         SelectedIndex property of the Carousel is bound to a property in the ViewModel that tracks 
         the currently selected node type, so when the user selects a different node type, 
-        the Carousel will automatically update to show the appropriate parameters. 
+        the Carousel will automatically update to show the appropriate parameters.
+        
+        All carousel items now bind to the shared CurrentNodeViewModel property using ReflectionBinding
+        for dynamic type support.
         -->
-        <Carousel Grid.Row="1" Grid.Column="2" SelectedIndex="0" Name="CarParameters" FontSize="12">            
+        <Carousel Grid.Row="1" Grid.Column="2" 
+                  SelectedIndex="{Binding SelectedCarouselIndex}" 
+                  Name="CarParameters" 
+                  FontSize="12">            
             <!-- StringSearch - Index 0 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Literal" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Value:"/>
-                    <TextBox x:Name="TxtStringSearchValue" 
-                             Text="{ReflectionBinding SearchString}" 
+                    <TextBox Text="{ReflectionBinding SearchString}" 
                              Watermark="Enter search string"/>
                 </StackPanel>
             </Border>
             
             <!-- Concatenate - Index 1 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Concatenate" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Port Count:"/>
-                    <NumericUpDown x:Name="NumConcatenatePortCount" 
-                                   FormatString="N0" ParsingNumberStyle="Integer"
+                    <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding PortCount}" 
                                    Minimum="2"
                                    Maximum="10"/>
@@ -66,28 +82,24 @@
             
             <!-- Repeat - Index 2 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Repeat" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Minimum:"/>
-                    <NumericUpDown x:Name="NumRepeatLeast" 
-                                   FormatString="N0" ParsingNumberStyle="Integer"
+                    <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding Least}" 
                                    Minimum="0"
                                    Maximum="{ReflectionBinding MaximumForLeast}"/>
                     <TextBlock Text="Maximum:"/>
-                    <NumericUpDown x:Name="NumRepeatMost" 
-                                   FormatString="N0" ParsingNumberStyle="Integer"
+                    <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding Most}" 
                                    Minimum="{ReflectionBinding Least}"
                                    Maximum="999999"
                                    IsEnabled="{ReflectionBinding IsMostEnabled}"/>
 
-                    <CheckBox x:Name="ChkRepeatIsInfinity" 
-                              IsChecked="{ReflectionBinding IsInfinity}" 
+                    <CheckBox IsChecked="{ReflectionBinding IsInfinity}" 
                               Content="Set Maximum to Infinity"/>
 
-                    <CheckBox x:Name="ChkRepeatIsLazy" 
-                              IsChecked="{ReflectionBinding IsLazy}" 
+                    <CheckBox IsChecked="{ReflectionBinding IsLazy}" 
                               Content="Lazy"/>
                 </StackPanel>
             </Border>
@@ -110,11 +122,10 @@
             
             <!-- AnyCharFrom - Index 5 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Any Char From" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Default Characters:"/>
-                    <TextBox x:Name="TxtAnyCharFromChars" 
-                             Text="{ReflectionBinding Chars}" 
+                    <TextBox Text="{ReflectionBinding Chars}" 
                              Watermark="A-Za-z0-9"/>
                     <TextBlock Text="(Also uses parameter nodes)" 
                                FontStyle="Italic" 
@@ -125,51 +136,26 @@
 
             <!-- AnyOf - Index 6 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Any Of" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Port Count:"/>
-                    <NumericUpDown x:Name="NumAnyOfPortCount" 
-                                   FormatString="N0" ParsingNumberStyle="Integer"
+                    <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
                                    Value="{ReflectionBinding PortCount}" 
                                    Minimum="2"
                                    Maximum="10"/>
                 </StackPanel>
             </Border>
             
-
-            
             <!-- Range - Index 7 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
-                <StackPanel Spacing="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Start Character:"/>
-                    <TextBox x:Name="TxtRangeCharStart" 
-                             Text="{ReflectionBinding CharStart}"/>
+                    <TextBox Text="{ReflectionBinding CharStart}"/>
                     <TextBlock Text="End Character:"/>
-                    <TextBox x:Name="TxtRangeCharEnd" 
-                             Text="{ReflectionBinding CharEnd}"/>
+                    <TextBox Text="{ReflectionBinding CharEnd}"/>
                 </StackPanel>
             </Border>
         </Carousel>
-
-        
-        <dragCanvas:DragCanvas Grid.Row="1" ZIndex="-1" Grid.Column="1" Background="LightBlue" 
-                       Name="DragCanvasMain" 
-                       NodeSelected="OnNodeSelected" 
-                       ConnectionCreated="OnConnectionCreated"
-                       ConnectionDeleted="OnConnectionDeleted"
-                       NodeDeleted="OnNodeDeleted">
-<!--            
-            <dragCanvas:DragCanvasNode PortCtLeft="2" PortCtRight="3"
-                                  Background="LightGray"
-                                  Padding="10"
-                                  CornerRadius="5"
-                                  Canvas.Left="200" Canvas.Top="200">
-                <TextBlock Text="String Search Node"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Center"/>
-            </dragCanvas:DragCanvasNode>
--->
-        </dragCanvas:DragCanvas>
     </Grid>
 </UserControl>

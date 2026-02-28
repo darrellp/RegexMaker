@@ -222,7 +222,7 @@ public partial class MainView : UserControl
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Called when a node is selected - updates the carousel and sets up data binding.
+    /// Called when a node is selected - updates the carousel and sets up data binding via MainViewModel.
     /// </summary>
     ///
     /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
@@ -232,11 +232,16 @@ public partial class MainView : UserControl
 
     private void NodeSwitched(RgxNode? node)
     {
+        if (_mainViewModel == null)
+            return;
+
         if (node == null)
         {
             _currentlySelectedNode = null;
             UnsubscribeFromViewModel();
             _currentViewModel = null;
+            _mainViewModel.CurrentNodeViewModel = null;
+            _mainViewModel.SelectedCarouselIndex = 0;
             return;
         }
 
@@ -245,17 +250,17 @@ public partial class MainView : UserControl
         // Unsubscribe from previous ViewModel
         UnsubscribeFromViewModel();
 
-        // Set carousel to the appropriate page
-        CarParameters.SelectedIndex = (int)node.NodeType;
+        // Set carousel to the appropriate page via MainViewModel
+        _mainViewModel.SelectedCarouselIndex = (int)node.NodeType;
 
-        // Create ViewModel and set up bindings based on node type
+        // Create ViewModel and set it on MainViewModel instead of individual controls
         switch (node.NodeType)
         {
             case RgxNodeType.StringSearch:
                 if (node is LiteralNode stringSearchNode)
                 {
                     _currentViewModel = new StringSearchNodeViewModel(stringSearchNode, UpdateNodeDisplay);
-                    TxtStringSearchValue.DataContext = _currentViewModel;
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
                 }
                 break;
 
@@ -263,10 +268,7 @@ public partial class MainView : UserControl
                 if (node is RepeatNode repeatNode)
                 {
                     _currentViewModel = new RepeatNodeViewModel(repeatNode, UpdateNodeDisplay);
-                    NumRepeatLeast.DataContext = _currentViewModel;
-                    NumRepeatMost.DataContext = _currentViewModel;
-                    ChkRepeatIsInfinity.DataContext = _currentViewModel;
-                    ChkRepeatIsLazy.DataContext = _currentViewModel;
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
                 }
                 break;
 
@@ -274,8 +276,7 @@ public partial class MainView : UserControl
                 if (node is RangeNode rangeNode)
                 {
                     _currentViewModel = new RangeNodeViewModel(rangeNode, UpdateNodeDisplay);
-                    TxtRangeCharStart.DataContext = _currentViewModel;
-                    TxtRangeCharEnd.DataContext = _currentViewModel;
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
                 }
                 break;
 
@@ -283,7 +284,7 @@ public partial class MainView : UserControl
                 if (node is AnyCharFromNode anyCharFromNode)
                 {
                     _currentViewModel = new AnyCharFromNodeViewModel(anyCharFromNode, UpdateNodeDisplay);
-                    TxtAnyCharFromChars.DataContext = _currentViewModel;
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
                 }
                 break;
 
@@ -291,7 +292,7 @@ public partial class MainView : UserControl
                 if (node is ConcatenateNode concatenateNode)
                 {
                     _currentViewModel = new ConcatenateNodeViewModel(concatenateNode, newCount => OnConcatenatePortCountChanged(concatenateNode, newCount));
-                    NumConcatenatePortCount.DataContext = _currentViewModel;
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
                 }
                 break;
 
@@ -299,13 +300,14 @@ public partial class MainView : UserControl
                 if (node is AnyOfNode anyOfNode)
                 {
                     _currentViewModel = new AnyOfViewModel(anyOfNode, newCount => OnAnyOfPortCountChanged(anyOfNode, newCount));
-                    NumAnyOfPortCount.DataContext = _currentViewModel;
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
                 }
                 break;
 
             case RgxNodeType.PatternStart:
             case RgxNodeType.PatternEnd:
                 _currentViewModel = null;
+                _mainViewModel.CurrentNodeViewModel = null;
                 break;
         }
 
@@ -467,7 +469,10 @@ public partial class MainView : UserControl
 
     internal void ShowNodeParameters(RgxNodeType nodeType)
     {
-        CarParameters.SelectedIndex = (int)nodeType;
+        if (_mainViewModel != null)
+        {
+            _mainViewModel.SelectedCarouselIndex = (int)nodeType;
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

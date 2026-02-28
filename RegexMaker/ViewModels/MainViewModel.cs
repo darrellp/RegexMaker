@@ -1,9 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace RegexMaker.ViewModels;
 
@@ -15,6 +12,12 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _regexPattern = string.Empty;
+
+    [ObservableProperty]
+    private object? _currentNodeViewModel;
+
+    [ObservableProperty]
+    private int _selectedCarouselIndex = 0;
 
     [RelayCommand]
     private void Save()
