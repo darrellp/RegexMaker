@@ -12,7 +12,7 @@ namespace Avalonia.DragCanvas;
 public class DragCanvasConnection : Control
 {
     private const double StrokeThickness = 2.0;
-    private const double HitTestThickness = 10.0; // Wider area for easier clicking
+    private const double HitTestThickness = 15.0; // Wider area for easier clicking
 
     public static readonly StyledProperty<Point> StartPointProperty =
         AvaloniaProperty.Register<DragCanvasConnection, Point>(nameof(StartPoint));
@@ -43,6 +43,8 @@ public class DragCanvasConnection : Control
     static DragCanvasConnection()
     {
         AffectsRender<DragCanvasConnection>(StartPointProperty, EndPointProperty, StrokeProperty, IsTemporaryProperty);
+        StartPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, e) => x.OnPointsChanged());
+        EndPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, e) => x.OnPointsChanged());
     }
 
     public Point StartPoint
@@ -99,6 +101,21 @@ public class DragCanvasConnection : Control
         // Make connections hit-testable for Alt-click deletion
         IsHitTestVisible = true;
         Cursor = new Cursor(StandardCursorType.Hand);
+        
+        // Connections should not be draggable - they update based on their connected nodes
+        DragCanvas.SetCanBeDragged(this, false);
+    }
+
+    private void OnPointsChanged()
+    {
+        // Update canvas position when points change
+        var minX = Math.Min(StartPoint.X, EndPoint.X);
+        var minY = Math.Min(StartPoint.Y, EndPoint.Y);
+        
+        Canvas.SetLeft(this, minX - HitTestThickness);
+        Canvas.SetTop(this, minY - HitTestThickness);
+        
+        InvalidateMeasure();
     }
 
     protected override void OnPointerEntered(PointerEventArgs e)
@@ -136,6 +153,38 @@ public class DragCanvasConnection : Control
     {
         base.Render(context);
 
+        // Calculate the offset needed to transform canvas coordinates to local coordinates
+        var minX = Math.Min(StartPoint.X, EndPoint.X) - HitTestThickness;
+        var minY = Math.Min(StartPoint.Y, EndPoint.Y) - HitTestThickness;
+        
+        var localStart = new Point(StartPoint.X - minX, StartPoint.Y - minY);
+        var localEnd = new Point(EndPoint.X - minX, EndPoint.Y - minY);
+
+        // Draw invisible hit test area first (wider)
+        var hitTestGeometry = new StreamGeometry();
+        using (var hitContext = hitTestGeometry.Open())
+        {
+            var dx = localEnd.X - localStart.X;
+            var dy = localEnd.Y - localStart.Y;
+            var length = Math.Sqrt(dx * dx + dy * dy);
+            
+            if (length > 0)
+            {
+                var perpX = -dy / length * HitTestThickness / 2;
+                var perpY = dx / length * HitTestThickness / 2;
+
+                hitContext.BeginFigure(new Point(localStart.X + perpX, localStart.Y + perpY), true);
+                hitContext.LineTo(new Point(localEnd.X + perpX, localEnd.Y + perpY));
+                hitContext.LineTo(new Point(localEnd.X - perpX, localEnd.Y - perpY));
+                hitContext.LineTo(new Point(localStart.X - perpX, localStart.Y - perpY));
+                hitContext.EndFigure(true);
+            }
+        }
+        
+        // Draw the invisible hit test area with transparent brush
+        context.DrawGeometry(Brushes.Transparent, null, hitTestGeometry);
+
+        // Draw the visible line
         var strokeBrush = _isHovered ? Brushes.Red : Stroke;
         var pen = new Pen(strokeBrush, StrokeThickness);
 
@@ -145,51 +194,26 @@ public class DragCanvasConnection : Control
             pen = new Pen(strokeBrush, StrokeThickness, new DashStyle(new[] { 4.0, 2.0 }, 0));
         }
 
-        context.DrawLine(pen, StartPoint, EndPoint);
+        context.DrawLine(pen, localStart, localEnd);
     }
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        // Return bounds that encompass the line
+        // Calculate bounds that encompass the line with hit test thickness
         var minX = Math.Min(StartPoint.X, EndPoint.X);
         var maxX = Math.Max(StartPoint.X, EndPoint.X);
         var minY = Math.Min(StartPoint.Y, EndPoint.Y);
         var maxY = Math.Max(StartPoint.Y, EndPoint.Y);
 
-        return new Size(maxX - minX + HitTestThickness * 2, maxY - minY + HitTestThickness * 2);
+        var width = maxX - minX + HitTestThickness * 2;
+        var height = maxY - minY + HitTestThickness * 2;
+
+        return new Size(width, height);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
     {
         return finalSize;
-    }
-
-    protected Geometry? GetHitTestGeometry()
-    {
-        // Create a wider hit test area for easier clicking
-        var geometry = new StreamGeometry();
-        using (var context = geometry.Open())
-        {
-            // Calculate perpendicular vector for thickness
-            var dx = EndPoint.X - StartPoint.X;
-            var dy = EndPoint.Y - StartPoint.Y;
-            var length = Math.Sqrt(dx * dx + dy * dy);
-            
-            if (length > 0)
-            {
-                var perpX = -dy / length * HitTestThickness / 2;
-                var perpY = dx / length * HitTestThickness / 2;
-
-                // Create a rectangle along the line
-                context.BeginFigure(new Point(StartPoint.X + perpX, StartPoint.Y + perpY), true);
-                context.LineTo(new Point(EndPoint.X + perpX, EndPoint.Y + perpY));
-                context.LineTo(new Point(EndPoint.X - perpX, EndPoint.Y - perpY));
-                context.LineTo(new Point(StartPoint.X - perpX, StartPoint.Y - perpY));
-                context.EndFigure(true);
-            }
-        }
-        
-        return geometry;
     }
 
     /// <summary>
@@ -213,6 +237,7 @@ public class DragCanvasConnection : Control
 
             StartPoint = sourceCanvas;
             EndPoint = targetCanvas;
+            // OnPointsChanged() will be called automatically via property changed handlers
         }
     }
 

@@ -251,6 +251,13 @@ public class DragCanvas : Canvas
             elementBeingDragged = FindCanvasChild(visual);
             if (elementBeingDragged == null) return;
 
+            // Check if the element can be dragged
+            if (!GetCanBeDragged(elementBeingDragged))
+            {
+                elementBeingDragged = null;
+                return;
+            }
+
             // Don't drag if it's a node with an active port drag
             if (elementBeingDragged is DragCanvasNode dragNode && dragNode.IsPortDragInProgress)
             {

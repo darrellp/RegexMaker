@@ -22,10 +22,14 @@ public partial class MainView : UserControl
     private RgxNode? _currentlySelectedNode;
     private RgxNodeControl? _currentlySelectedNodeControl;
     private object? _currentViewModel;
+    private MainViewModel? _mainViewModel;
 
     public MainView()
     {
         InitializeComponent();
+
+        // Handle DataContext changes
+        DataContextChanged += OnDataContextChanged;
 
         // Exemplars are set up in the static constructor of RgxNode using reflection to find all derived types
         // from RgxNode and create instances of them. We can just loop through those exemplars and create TextBlocks
@@ -48,14 +52,30 @@ public partial class MainView : UserControl
             SpToolBox.Children.Add(text);
             text.IsVisible = true;
         }
+    }
 
-        // Set up drop handling on DragCanvas
-        DragCanvasMain.AddHandler(DragDrop.DropEvent, OnDragCanvasDrop);
-        DragCanvasMain.AddHandler(DragDrop.DragOverEvent, OnDragCanvasDragOver);
-        
-        // Set up connection and node event handling
-        DragCanvasMain.ConnectionDeleted += OnConnectionDeleted;
-        DragCanvasMain.NodeDeleted += OnNodeDeleted;
+    private void OnDataContextChanged(object? sender, EventArgs e)
+    {
+        // Unsubscribe from old view model
+        if (_mainViewModel != null)
+        {
+            _mainViewModel.SaveRequested -= OnSaveRequested;
+            _mainViewModel.LoadRequested -= OnLoadRequested;
+            _mainViewModel.ClearRequested -= OnClearRequested;
+        }
+
+        // Subscribe to new view model
+        if (DataContext is MainViewModel newViewModel)
+        {
+            _mainViewModel = newViewModel;
+            _mainViewModel.SaveRequested += OnSaveRequested;
+            _mainViewModel.LoadRequested += OnLoadRequested;
+            _mainViewModel.ClearRequested += OnClearRequested;
+        }
+        else
+        {
+            _mainViewModel = null;
+        }
     }
 
     private Point? _toolboxDragStartPoint;
@@ -152,64 +172,6 @@ public partial class MainView : UserControl
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// <summary>   Handles drag over event on the canvas. </summary>
-    ///
-    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
-    /// <param name="sender">   Source of the event. </param>
-    /// <param name="e">        Drag event information. </param>
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void OnDragCanvasDragOver(object? sender, DragEventArgs e)
-    {
-        // Allow drop if we have a NodeName in the data
-        if (e.Data.Contains("NodeName"))
-        {
-            e.DragEffects = DragDropEffects.Copy;
-        }
-        else
-        {
-            e.DragEffects = DragDropEffects.None;
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// <summary>   Handles drop event on the canvas. </summary>
-    ///
-    /// <remarks>   Creates a new RgxNodeControl at the drop location.
-    ///             Darrell Plank, 2/26/2026. </remarks>
-    ///
-    /// <param name="sender">   Source of the event. </param>
-    /// <param name="e">        Drag event information. </param>
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void OnDragCanvasDrop(object? sender, DragEventArgs e)
-    {
-        if (e.Data.Contains("NodeName"))
-        {
-            var nodeName = e.Data.Get("NodeName") as string;
-            if (!string.IsNullOrEmpty(nodeName))
-            {
-                // Get drop position relative to the canvas
-                var dropPosition = e.GetPosition(DragCanvasMain);
-
-                // Create new node control
-                var nodeControl = new RgxNodeControl
-                {
-                    NodeName = nodeName
-                };
-
-                // Set position on canvas
-                Canvas.SetLeft(nodeControl, dropPosition.X - 50); // Offset to center under cursor
-                Canvas.SetTop(nodeControl, dropPosition.Y - 15);
-
-                // Add to canvas
-                DragCanvasMain.Children.Add(nodeControl);
-            }
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Handles node selection events from the DragCanvas. </summary>
     ///
     /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
@@ -225,7 +187,10 @@ public partial class MainView : UserControl
             Debug.Assert(rgxNodeControl.RgxNode != null, "Selected RgxNodeControl has a null RgxNode");
             _currentlySelectedNodeControl = rgxNodeControl;
             NodeSwitched(rgxNodeControl.RgxNode);
-            TxtRegex.Text = rgxNodeControl.RgxNode.ProduceResult();
+            if (_mainViewModel != null)
+            {
+                _mainViewModel.RegexPattern = rgxNodeControl.RgxNode.ProduceResult();
+            }
         }
     }
 
@@ -478,7 +443,10 @@ public partial class MainView : UserControl
     {
         if (_currentlySelectedNode != null)
         {
-            TxtRegex.Text = _currentlySelectedNode.ProduceResult();
+            if (_mainViewModel != null)
+            {
+                _mainViewModel.RegexPattern = _currentlySelectedNode.ProduceResult();
+            }
         }
 
         if (_currentlySelectedNodeControl != null)
@@ -612,16 +580,7 @@ public partial class MainView : UserControl
         return null;
     }
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        
-        // Wire up button events
-        BtnSave.Click += OnSaveClicked;
-        BtnLoad.Click += OnLoadClicked;
-    }
-
-    private async void OnSaveClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OnSaveRequested(object? sender, SaveRequestedEventArgs e)
     {
         try
         {
@@ -662,7 +621,7 @@ public partial class MainView : UserControl
         }
     }
 
-    private async void OnLoadClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OnLoadRequested(object? sender, LoadRequestedEventArgs e)
     {
         try
         {
@@ -698,7 +657,12 @@ public partial class MainView : UserControl
                     
                     // Deserialize the canvas with a factory function
                     DragCanvasMain.DeserializeCanvas(canvasData, CreateNodeFromTypeName);
-                    
+
+                    if (_mainViewModel != null)
+                    {
+                        _mainViewModel.RegexPattern = string.Empty;
+                    }
+
                     // Update display
                     UpdateNodeDisplay();
                 }
@@ -709,6 +673,18 @@ public partial class MainView : UserControl
             Debug.WriteLine($"Error loading file: {ex.Message}");
             // TODO: Show error dialog to user
         }
+    }
+
+    private void OnClearRequested(object? sender, EventArgs e)
+    {
+        // Clear the canvas
+        DragCanvasMain.Children.Clear();
+        NodeSwitched(null);
+        if (_mainViewModel != null)
+        {
+            _mainViewModel.RegexPattern = string.Empty;
+        }
+        UpdateNodeDisplay();
     }
 
     private RgxNodeControl? CreateNodeFromTypeName(string? typeName)
