@@ -3,11 +3,15 @@
         xmlns:vm="using:RegexMaker.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:views="using:RegexMaker.Views"
+        xmlns:views="clr-namespace:RegexMaker.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        Width="800" Height="450"
         x:Class="RegexMaker.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
+        x:DataType="vm:MainViewModel"
         Title="RegexMaker">
-        <views:MainView />
+    
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <views:MainView/>
 </Window>
