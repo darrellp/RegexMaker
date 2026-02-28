@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:dragCanvas="clr-namespace:Avalonia.DragCanvas;assembly=Avalonia.DragCanvas"
              xmlns:nodes="clr-namespace:RegexMaker.Controls;assembly=RegexMaker"
              xmlns:vm="using:RegexMaker.ViewModels"
@@ -9,7 +10,7 @@
              x:Class="RegexMaker.Views.MainView"
              x:DataType="vm:MainViewModel">
 
-    <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="120,*,150">
+    <Grid RowDefinitions="Auto,*,120,Auto" ColumnDefinitions="120,*,150">
         <!-- Top panel with buttons -->
         <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Background="Yellow" Height="30">
             <Button Content="Save" Margin="5,2" Padding="10,2" Command="{Binding SaveCommand}" />
@@ -18,10 +19,15 @@
             <Button Content="Copy Regex" Margin="5,2" Padding="10,2" Command="{Binding CopyRegexCommand}" />
         </StackPanel>
 
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="Black" BorderThickness="1" Margin="5">
+            <AvaloniaEdit:TextEditor Name="SampleTextEditor" Text="Replace with Sample Text"
+                           FontFamily="Cascadia Code,Consolas,Menlo,Monospace"/>
+        </Border>
+
         <!--
         This Border at the bottom is intended to display the generated regex pattern.
         -->
-        <Border Height="20" Background="LightGray" Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="3" >
+        <Border Height="20" Background="LightGray" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" >
             <TextBlock Name="TxtRegex" VerticalAlignment="Center" Text="{Binding RegexPattern}"/>
         </Border>
 

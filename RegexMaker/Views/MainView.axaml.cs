@@ -14,6 +14,8 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
+using AvaloniaEdit;
+using System.Text.RegularExpressions;
 
 namespace RegexMaker.Views;
 
@@ -23,6 +25,7 @@ public partial class MainView : UserControl
     private RgxNodeControl? _currentlySelectedNodeControl;
     private object? _currentViewModel;
     private MainViewModel? _mainViewModel;
+    private RegexMatchColorizer _colorizer;
 
     public MainView()
     {
@@ -52,6 +55,19 @@ public partial class MainView : UserControl
             SpToolBox.Children.Add(text);
             text.IsVisible = true;
         }
+
+        // Example: Use a simple regex pattern. Replace with your actual pattern.
+        //string pattern = "Sample"; // Or bind to your ViewModel's RegexPattern
+        //_colorizer = new RegexMatchColorizer(pattern, RegexOptions.IgnoreCase);
+
+        //// Attach the colorizer
+        //SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
+
+        //// Initial highlight
+        //UpdateRegexHighlights();
+
+        // Update highlights when text changes
+        SampleTextEditor.TextChanged += (s, e) => UpdateRegexHighlights();
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -73,6 +89,18 @@ public partial class MainView : UserControl
             _mainViewModel.LoadRequested += OnLoadRequested;
             _mainViewModel.ClearRequested += OnClearRequested;
             _mainViewModel.CopyRegexRequested += OnCopyRegexRequested;
+
+            _mainViewModel.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(MainViewModel.RegexPattern))
+                {
+                    // Only runs when RegexPattern changes
+                    _colorizer = new RegexMatchColorizer(_mainViewModel.RegexPattern, RegexOptions.IgnoreCase);
+                    SampleTextEditor.TextArea.TextView.LineTransformers.Clear();
+                    SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
+                    UpdateRegexHighlights();
+                }
+            };
         }
         else
         {
@@ -717,5 +745,17 @@ public partial class MainView : UserControl
         {
             await topLevel.Clipboard.SetTextAsync(e.RegexPattern);
         }
+    }
+
+    private void UpdateRegexHighlights()
+    {
+        if (SampleTextEditor?.Document == null || _colorizer == null)
+            return;
+
+        string text = SampleTextEditor.Text;
+        _colorizer.UpdateMatches(text);
+
+        // Force the editor to redraw so highlights update
+        SampleTextEditor.TextArea.TextView.Redraw();
     }
 }

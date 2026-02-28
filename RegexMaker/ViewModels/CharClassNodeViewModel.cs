@@ -1,28 +1,19 @@
+using RegexMaker.Nodes;
 using System;
 using System.Collections.ObjectModel;
-using RegexMaker.Nodes;
+using System.Xml.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace RegexMaker.ViewModels;
 
-public class CharClassNodeViewModel : ViewModelBase
+public partial class CharClassNodeViewModel : ViewModelBase
 {
     public CharClassNode Node { get; }
     public ObservableCollection<CharClassType> CharClassTypes { get; } =
         new(Enum.GetValues<CharClassType>());
 
-    public CharClassType SelectedCharClass
-    {
-        get => Node.CharClass;
-        set
-        {
-            if (Node.CharClass != value)
-            {
-                Node.CharClass = value;
-                OnPropertyChanged(nameof(SelectedCharClass));
-                _onChanged?.Invoke();
-            }
-        }
-    }
+    [ObservableProperty]
+    private CharClassType selectedCharClass;
 
     private readonly Action? _onChanged;
 
@@ -30,5 +21,16 @@ public class CharClassNodeViewModel : ViewModelBase
     {
         Node = node;
         _onChanged = onChanged;
+        selectedCharClass = node.CharClass;
+    }
+
+    partial void OnSelectedCharClassChanged(CharClassType value)
+    {
+        if (Node.CharClass != value)
+        {
+            Node.CharClass = value;
+            Node.MakeDirty();
+            _onChanged?.Invoke();
+        }
     }
 }

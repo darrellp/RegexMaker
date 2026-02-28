@@ -68,3 +68,6 @@ public class CopyRegexRequestedEventArgs : EventArgs
         RegexPattern = regexPattern;
     }
 }
+
+
+

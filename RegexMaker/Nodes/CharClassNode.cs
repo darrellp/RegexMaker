@@ -1,3 +1,4 @@
+using RegexStringLibrary;
 using System;
 using System.Collections.Generic;
 
@@ -5,8 +6,21 @@ namespace RegexMaker.Nodes;
 
 public enum CharClassType
 {
+    Start,
+    End,
     WhiteSpace,
-    Digit
+    Digit,
+    NonDigit,
+    WordChar,
+    NonWordChar,
+    WordBoundary,
+    NonWordBoundary,
+    Letter,
+    CapLetter,
+    LowerLetter,
+    AlphaNumeric,
+
+    // Add more character classes as needed
 }
 
 public class CharClassNode : RgxNode
@@ -26,8 +40,19 @@ public class CharClassNode : RgxNode
     internal override string CalculateResult()
     {
         return CharClass switch {
-            CharClassType.WhiteSpace => @"\s",
-            CharClassType.Digit => @"\d",
+            CharClassType.WhiteSpace => Stex.White,
+            CharClassType.Digit => Stex.Digit,
+            CharClassType.NonDigit => Stex.NonDigit,
+            CharClassType.WordChar => Stex.WordChar,
+            CharClassType.NonWordChar => Stex.NonWordChar,
+            CharClassType.WordBoundary => Stex.WordBoundary,
+            CharClassType.NonWordBoundary => Stex.NonWordBoundary,
+            CharClassType.Letter => Stex.Letter,
+            CharClassType.CapLetter => Stex.CapLetter,
+            CharClassType.LowerLetter => Stex.LowerLetter,
+            CharClassType.AlphaNumeric => Stex.Alphanum,
+            CharClassType.Start => Stex.Begin,
+            CharClassType.End => Stex.End,
             _ => string.Empty
         };
     }
