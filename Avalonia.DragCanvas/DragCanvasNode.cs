@@ -174,8 +174,18 @@ public class DragCanvasNode : ContentControl
 
     protected override Size ArrangeOverride(Size finalSize)
     {
-        _lastArrangedSize = finalSize;
-        return base.ArrangeOverride(finalSize);
+        var result = base.ArrangeOverride(finalSize);
+
+        // Only notify if the size actually changed
+        if (_lastArrangedSize != finalSize)
+        {
+            _lastArrangedSize = finalSize;
+
+            // Update ports immediately with the new size
+            UpdatePorts();
+        }
+
+        return result;
     }
 
     private double CalculateMinHeightForPorts(int portCount)
@@ -238,9 +248,6 @@ public class DragCanvasNode : ContentControl
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-
-        // Update ports before rendering to ensure correct positioning
-        UpdatePorts();
 
         // Render deletion border if Alt key is held while hovering (takes priority)
         if (_isAltHovered)
@@ -471,7 +478,8 @@ public class DragCanvasNode : ContentControl
         {
             if (parent is DragCanvas canvas)
             {
-                return this.TranslatePoint(localPos.Value, canvas) ?? localPos.Value;
+                var translated = this.TranslatePoint(localPos.Value, canvas);
+                return translated ?? localPos.Value;
             }
             parent = parent.GetVisualParent();
         }

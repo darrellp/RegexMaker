@@ -11,8 +11,8 @@ public enum RgxNodeType
     PatternEnd,
     AnyCharFrom,
     AnyOf,
-
-    Range
+    Range,
+    CharClass // <-- Added for CharClassNode
 };
 
 public interface IRgxNode

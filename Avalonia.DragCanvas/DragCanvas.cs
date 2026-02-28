@@ -561,7 +561,7 @@ public class DragCanvas : Canvas
         return Math.Sqrt(dx * dx + dy * dy);
     }
 
-    private void UpdateConnectionsForNode(DragCanvasNode node)
+    internal void UpdateConnectionsForNode(DragCanvasNode node)
     {
         foreach (var connection in _connections.Where(c => c.SourceNode == node || c.TargetNode == node))
         {

@@ -108,13 +108,13 @@ public class DragCanvasConnection : Control
 
     private void OnPointsChanged()
     {
-        // Update canvas position when points change
         var minX = Math.Min(StartPoint.X, EndPoint.X);
         var minY = Math.Min(StartPoint.Y, EndPoint.Y);
-        
+
         Canvas.SetLeft(this, minX - HitTestThickness);
         Canvas.SetTop(this, minY - HitTestThickness);
-        
+
+        // Force a layout pass for this connection control
         InvalidateMeasure();
     }
 
@@ -207,7 +207,6 @@ public class DragCanvasConnection : Control
 
         var width = maxX - minX + HitTestThickness * 2;
         var height = maxY - minY + HitTestThickness * 2;
-
         return new Size(width, height);
     }
 

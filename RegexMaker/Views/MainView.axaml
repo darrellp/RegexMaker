@@ -158,6 +158,16 @@
                     <TextBox Text="{ReflectionBinding CharEnd}"/>
                 </StackPanel>
             </Border>
+
+            <!-- CharClassNode - Index (last) -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
+                    <TextBlock Text="Char Class" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Class Type:"/>
+                    <ComboBox ItemsSource="{ReflectionBinding CharClassTypes}"
+                              SelectedItem="{ReflectionBinding SelectedCharClass, Mode=TwoWay}" />
+                </StackPanel>
+            </Border>
         </Carousel>
     </Grid>
 </UserControl>

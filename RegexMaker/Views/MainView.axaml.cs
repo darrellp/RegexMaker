@@ -306,6 +306,14 @@ public partial class MainView : UserControl
                 }
                 break;
 
+            case RgxNodeType.CharClass:
+                if (node is CharClassNode charClassNode)
+                {
+                    _currentViewModel = new CharClassNodeViewModel(charClassNode, UpdateNodeDisplay);
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
+                }
+                break;
+
             case RgxNodeType.PatternStart:
             case RgxNodeType.PatternEnd:
                 _currentViewModel = null;
