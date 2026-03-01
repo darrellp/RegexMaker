@@ -105,17 +105,6 @@ public partial class MainView : UserControl
             text.IsVisible = true;
         }
 
-        // Example: Use a simple regex pattern. Replace with your actual pattern.
-        //string pattern = "Sample"; // Or bind to your ViewModel's RegexPattern
-        //_colorizer = new RegexMatchColorizer(pattern, RegexOptions.IgnoreCase);
-
-        //// Attach the colorizer
-        //SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
-
-        //// Initial highlight
-        //UpdateRegexHighlights();
-
-        // Update highlights when text changes
         SampleTextEditor.TextChanged += (s, e) => UpdateRegexHighlights();
     }
 
@@ -144,7 +133,7 @@ public partial class MainView : UserControl
                 if (e.PropertyName == nameof(MainViewModel.RegexPattern))
                 {
                     // Only runs when RegexPattern changes
-                    _colorizer = new RegexMatchColorizer(_mainViewModel.RegexPattern, RegexOptions.IgnoreCase);
+                    _colorizer = new RegexMatchColorizer(_mainViewModel.RegexPattern);
                     SampleTextEditor.TextArea.TextView.LineTransformers.Clear();
                     SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
                     UpdateRegexHighlights();

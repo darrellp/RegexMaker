@@ -1,6 +1,7 @@
 // RegexMaker/Views/RegexMatchColorizer.cs
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
@@ -14,12 +15,21 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
 
     public RegexMatchColorizer(string pattern, RegexOptions options = RegexOptions.None)
     {
-        _regex = new Regex(pattern, options);
-        _highlightBrushes = new List<IBrush>
+        try
         {
-            new SolidColorBrush(Color.FromRgb(255, 255, 200)), // Light yellow
-            new SolidColorBrush(Color.FromRgb(200, 230, 255)), // Light blue
-        };
+            _regex = new Regex(pattern, options);
+            _highlightBrushes = new List<IBrush>
+            {
+                new SolidColorBrush(Color.FromRgb(255, 255, 200)), // Light yellow
+                new SolidColorBrush(Color.FromRgb(200, 230, 255)), // Light blue
+            };
+        }
+        catch (Exception ex)
+        {
+            _regex = new Regex(""); // Fallback to an empty regex to avoid null reference issues
+            // Handle regex compilation errors
+            Debug.WriteLine($"Error compiling regex: {ex.Message}");
+        }
     }
 
     public void UpdateMatches(string text)
