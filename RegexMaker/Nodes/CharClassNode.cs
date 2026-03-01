@@ -7,6 +7,7 @@ namespace RegexMaker.Nodes;
 
 public enum CharClassType
 {
+    WildCard,
     Start,
     End,
     WhiteSpace,
@@ -41,6 +42,7 @@ public class CharClassNode : RgxNode
     internal override string CalculateResult()
     {
         return CharClass switch {
+            CharClassType.WildCard => Stex.Any,
             CharClassType.WhiteSpace => Stex.White,
             CharClassType.Digit => Stex.Digit,
             CharClassType.NonDigit => Stex.NonDigit,
