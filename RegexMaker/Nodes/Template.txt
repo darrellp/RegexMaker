@@ -1,4 +1,11 @@
 ﻿#if false
+Steps to produce a new Bound Property
+1. Make a new value backed property for it in the appropriate node file and use it however makes sense.  An example:
+    private bool _autoEscape = true;
+    public bool AutoEscape { get => _autoEscape; set => _autoEscape=value; }
+2. Add it to the appropriate dialog in MainView.axaml
+3. Make an observable property for it in the appropriate viewModel.  Also set it in the constructor and modify it in it's On...Changed method.
+4. Add it to AddSerializationData and RestoreSerializationData in the node class to ensure that it gets saved and loaded properly.
 
 Steps to produce a new RgxNode type:
 1. Make a new RgxNode enum value for the new node type in IRgxNode.cs.  This is just an enum value that will be used to identify the node type.

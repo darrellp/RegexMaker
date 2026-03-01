@@ -72,6 +72,8 @@
                     <TextBlock Text="Value:"/>
                     <TextBox Text="{ReflectionBinding SearchString}" 
                              Watermark="Enter search string"/>
+                    <CheckBox IsChecked="{ReflectionBinding AutoEscape}" 
+                              Content="Auto Escape"/>
                 </StackPanel>
             </Border>
             
@@ -182,6 +184,14 @@
                     <TextBlock Text="Value:"/>
                     <TextBox Text="{ReflectionBinding GroupName}" 
                              Watermark="Enter group name"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Date - Index 10 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
+                    <TextBlock Text="Date" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <CheckBox Content="American" IsChecked="{ReflectionBinding IsAmerican}" />
                 </StackPanel>
             </Border>
 

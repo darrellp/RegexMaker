@@ -31,55 +31,6 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
 
-        //var node = new CharClassNode(CharClassType.Digit);
-        //var options = new JsonSerializerOptions
-        //{
-        //    WriteIndented = true,
-        //    Converters = { new JsonStringEnumConverter() }
-        //};
-        //options.TypeInfoResolver = new DefaultJsonTypeInfoResolver
-        //{
-        //    Modifiers =
-        //    {
-        //        ti =>
-        //        {
-        //            if (ti.Type == typeof(RgxNode))
-        //                ti.PolymorphismOptions = new JsonPolymorphismOptions
-        //                {
-        //                    TypeDiscriminatorPropertyName = "$type",
-        //                    IgnoreUnrecognizedTypeDiscriminators = true,
-        //                    DerivedTypes =
-        //                    {
-        //                        new JsonDerivedType(typeof(CharClassNode), "CharClassNode"),
-        //                        // Add other derived types as needed
-        //                    }
-        //                };
-        //        }
-        //    }
-        //};
-        //options.TypeInfoResolver = new DefaultJsonTypeInfoResolver
-        //{
-        //    Modifiers =
-        //    {
-        //        ti =>
-        //        {
-        //            if (ti.Type == typeof(RgxNode))
-        //                ti.PolymorphismOptions = new JsonPolymorphismOptions
-        //                {
-        //                    TypeDiscriminatorPropertyName = "$type",
-        //                    IgnoreUnrecognizedTypeDiscriminators = true,
-        //                    DerivedTypes =
-        //                    {
-        //                        new JsonDerivedType(typeof(CharClassNode), "CharClassNode"),
-        //                        // Add other derived types as needed
-        //                    }
-        //                };
-        //        }
-        //    }
-        //};
-        //var json = JsonSerializer.Serialize(node, options);
-        //Trace.WriteLine(json); // Should include "CharClass":"Digit"
-
         // Handle DataContext changes
         DataContextChanged += OnDataContextChanged;
 
