@@ -1,21 +1,21 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.DragCanvas;
+using Avalonia.Input;
 using Avalonia.Layout;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
 using RegexMaker.ViewModels;
-using System.Diagnostics;
-using Avalonia.Input;
 using System;
-using System.Linq;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Avalonia.Platform.Storage;
-using AvaloniaEdit;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization.Metadata;
 
 namespace RegexMaker.Views;
 
@@ -30,6 +30,55 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
+
+        //var node = new CharClassNode(CharClassType.Digit);
+        //var options = new JsonSerializerOptions
+        //{
+        //    WriteIndented = true,
+        //    Converters = { new JsonStringEnumConverter() }
+        //};
+        //options.TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        //{
+        //    Modifiers =
+        //    {
+        //        ti =>
+        //        {
+        //            if (ti.Type == typeof(RgxNode))
+        //                ti.PolymorphismOptions = new JsonPolymorphismOptions
+        //                {
+        //                    TypeDiscriminatorPropertyName = "$type",
+        //                    IgnoreUnrecognizedTypeDiscriminators = true,
+        //                    DerivedTypes =
+        //                    {
+        //                        new JsonDerivedType(typeof(CharClassNode), "CharClassNode"),
+        //                        // Add other derived types as needed
+        //                    }
+        //                };
+        //        }
+        //    }
+        //};
+        //options.TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        //{
+        //    Modifiers =
+        //    {
+        //        ti =>
+        //        {
+        //            if (ti.Type == typeof(RgxNode))
+        //                ti.PolymorphismOptions = new JsonPolymorphismOptions
+        //                {
+        //                    TypeDiscriminatorPropertyName = "$type",
+        //                    IgnoreUnrecognizedTypeDiscriminators = true,
+        //                    DerivedTypes =
+        //                    {
+        //                        new JsonDerivedType(typeof(CharClassNode), "CharClassNode"),
+        //                        // Add other derived types as needed
+        //                    }
+        //                };
+        //        }
+        //    }
+        //};
+        //var json = JsonSerializer.Serialize(node, options);
+        //Trace.WriteLine(json); // Should include "CharClass":"Digit"
 
         // Handle DataContext changes
         DataContextChanged += OnDataContextChanged;
@@ -646,10 +695,12 @@ public partial class MainView : UserControl
             {
                 // Serialize the canvas
                 var canvasData = DragCanvasMain.SerializeCanvas();
-                var json = JsonSerializer.Serialize(canvasData, new JsonSerializerOptions 
-                { 
-                    WriteIndented = true 
-                });
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Converters = { new JsonStringEnumConverter() }
+                };
+                var json = JsonSerializer.Serialize(canvasData, options);
 
                 // Write to file
                 await using var stream = await file.OpenWriteAsync();
@@ -692,7 +743,12 @@ public partial class MainView : UserControl
                 var json = await reader.ReadToEndAsync();
 
                 // Deserialize
-                var canvasData = JsonSerializer.Deserialize<CanvasSerializationData>(json);
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Converters = { new JsonStringEnumConverter() }
+                };
+                var canvasData = JsonSerializer.Deserialize<CanvasSerializationData>(json, options);
                 if (canvasData != null)
                 {
                     // Clear current selection

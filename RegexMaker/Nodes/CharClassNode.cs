@@ -1,6 +1,7 @@
 using RegexStringLibrary;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace RegexMaker.Nodes;
 
@@ -55,6 +56,21 @@ public class CharClassNode : RgxNode
             CharClassType.End => Stex.End,
             _ => string.Empty
         };
+    }
+
+    protected override void AddSerializationData(Dictionary<string, object?> data)
+    {
+        base.AddSerializationData(data);
+        data["CharClassType"] = Enum.GetName(CharClass);
+    }
+
+    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    {
+        base.RestoreSerializationData(data);
+        if (data.TryGetValue("CharClassType", out var classType))
+        {
+            CharClass = Enum.Parse<CharClassType>(classType.GetString() ?? string.Empty);
+        }
     }
 
     public override string RandomMatch()
