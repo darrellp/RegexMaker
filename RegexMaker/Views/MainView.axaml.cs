@@ -391,6 +391,14 @@ public partial class MainView : UserControl
                 }
                 break;
 
+            case RgxNodeType.Named:
+                if (node is NamedNode namedNode)
+                {
+                    _currentViewModel = new NamedNodeViewModel(namedNode, UpdateNodeDisplay);
+                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
+                }
+                break;
+
             case RgxNodeType.PatternStart:
             case RgxNodeType.PatternEnd:
                 _currentViewModel = null;

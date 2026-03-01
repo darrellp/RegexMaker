@@ -4,7 +4,8 @@ Steps to produce a new RgxNode type:
 1. Make a new RgxNode enum value for the new node type in IRgxNode.cs.  This is just an enum value that will be used to identify the node type.
 2. Produce the new node class in the Nodes folder, deriving from RgxNode.  This is a template for that file.
 3. Create a viewModel for the RgxNode type.  This will be bound to the UI and will handle any properties that need to be set on the node. 
-4. Create a Dialog to handle the parameters for the node in MainView.axaml under the CarParameters carousel.
+4. Create a Dialog to handle the parameters for the node in MainView.axaml under the CarParameters carousel.  Ensure that the dialogs are ordered
+    in the same order as the RgxNode enum value created in step 1.
 5. Add a case for the new node type in NodeSwitched (MainView.axaml.cs) to handle the visibility of the parameter dialog when the node is selected.
 6. Add any further handlers you need for your dialog in MainView.axaml.cs.  For example, if you have a TextBox for a string parameter,
     you would add a TextChanged handler to update the node's properties when the text changes.
@@ -105,5 +106,31 @@ public class TemplateNode : RgxNode
             return rep;
         }
     }
+    
+    protected override void AddSerializationData(Dictionary<string, object?> data)
+    {
+        base.AddSerializationData(data);
+        data["Least"] = Least;
+        data["Most"] = Most;
+        data["IsLazy"] = IsLazy;
+    }
+
+    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    {
+        base.RestoreSerializationData(data);
+        if (data.TryGetValue("Least", out var leastElement))
+        {
+            Least = leastElement.GetInt32();
+        }
+        if (data.TryGetValue("Most", out var mostElement))
+        {
+            Most = mostElement.GetInt32();
+        }
+        if (data.TryGetValue("IsLazy", out var isLazyElement))
+        {
+            IsLazy = isLazyElement.GetBoolean();
+        }
+    }
+
 }
 #endif
