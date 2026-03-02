@@ -3,14 +3,20 @@
              xmlns:local="using:RegexMaker"
              x:Class="RegexMaker.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-
-    <Application.DataTemplates>
-    </Application.DataTemplates>
 
     <Application.Styles>
         <FluentTheme />
         <!-- AvaloniaEdit styles (required!) -->
-    <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+        <StyleInclude Source="avares://RegexMaker/Styles/RegexrTheme.axaml"/>
     </Application.Styles>
+
+    <Application.Resources>
+      <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+          <MergeResourceInclude Source="avares://RegexMaker/Styles/RegexrColors.axaml" />
+        </ResourceDictionary.MergedDictionaries>
+      </ResourceDictionary>
+    </Application.Resources>
+    
 </Application>

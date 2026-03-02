@@ -125,6 +125,16 @@ public class DragCanvasNode : ContentControl
             SynchronizeConnectionList(_rightConnections, (int)change.NewValue!);
             InvalidateVisual();
         }
+        else if (change.Property == BackgroundProperty)
+        {
+            if (change.NewValue is null)
+                Background = GetInheritedBackground();
+        }
+        else if (change.Property == ForegroundProperty)
+        {
+            if (change.NewValue is null)
+                Foreground = GetInheritedForeground();
+        }
     }
 
     /// <summary>
@@ -260,8 +270,7 @@ public class DragCanvasNode : ContentControl
         // Render selection border if selected
         else if (IsSelected && SelectionBrush != null)
         {
-            var radius = CornerRadius.TopLeft + 12; // Assuming uniform corner radius for simplicity
-            var rect = new Rect(0, 0, _lastArrangedSize.Width, _lastArrangedSize.Height);
+            var rect = new Rect(-2, -2, _lastArrangedSize.Width + 4, _lastArrangedSize.Height + 4);
             var pen = new Pen(SelectionBrush, SelectionBorderThickness);
             context.DrawRectangle(null, pen, rect);
         }
@@ -665,6 +674,28 @@ public class DragCanvasNode : ContentControl
     {
         Left,
         Right
+    }
+
+    private IBrush? GetInheritedBackground()
+    {
+        var parent = this.FindAncestorOfType<DragCanvas>();
+        return parent?.NodeBackground
+            ?? (IBrush?)this.FindResource("BrushBackground");
+    }
+
+    private IBrush? GetInheritedForeground()
+    {
+        var parent = this.FindAncestorOfType<DragCanvas>();
+        return parent?.NodeForeground
+            ?? (IBrush?)this.FindResource("BrushText");
+    }
+
+    // Option 1: If you want to always use inherited values, override OnAttachedToVisualTree:
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Background = GetInheritedBackground();
+        Foreground = GetInheritedForeground();
     }
 }
 

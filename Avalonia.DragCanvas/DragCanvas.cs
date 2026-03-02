@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.VisualTree;
+using Avalonia.Media;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -109,6 +110,26 @@ public class DragCanvas : Canvas
     {
         get => GetValue(AllowDraggingProperty);
         set => SetValue(AllowDraggingProperty, value);
+    }
+
+    public static readonly StyledProperty<IBrush?> NodeBackgroundProperty =
+    AvaloniaProperty.Register<DragCanvas, IBrush?>(
+        nameof(NodeBackground));
+
+    public static readonly StyledProperty<IBrush?> NodeForegroundProperty =
+        AvaloniaProperty.Register<DragCanvas, IBrush?>(
+            nameof(NodeForeground));
+
+    public IBrush? NodeBackground
+    {
+        get => GetValue(NodeBackgroundProperty);
+        set => SetValue(NodeBackgroundProperty, value);
+    }
+
+    public IBrush? NodeForeground
+    {
+        get => GetValue(NodeForegroundProperty);
+        set => SetValue(NodeForegroundProperty, value);
     }
 
     // StyledProperty for SelectColor

@@ -12,7 +12,7 @@
 
     <Grid RowDefinitions="Auto,*,120,Auto" ColumnDefinitions="120,*,150">
         <!-- Top panel with buttons -->
-        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Background="Yellow" Height="30">
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Height="30">
             <Button Content="Save" Margin="5,2" Padding="10,2" Command="{Binding SaveCommand}" />
             <Button Content="Load" Margin="5,2" Padding="10,2" Command="{Binding LoadCommand}" />
             <Button Content="Clear" Margin="5,2" Padding="10,2" Command="{Binding ClearCommand}" />
@@ -27,7 +27,7 @@
         <!--
         This Border at the bottom is intended to display the generated regex pattern.
         -->
-        <Border Height="20" Background="LightGray" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" >
+        <Border Height="20" Background="{DynamicResource BrushBackground}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" >
             <TextBlock Name="TxtRegex" VerticalAlignment="Center" Text="{Binding RegexPattern}"/>
         </Border>
 
@@ -36,7 +36,9 @@
         drag and drop different node types onto the DragCanvas. It is set up at
         runtime in RegexMaker.Views.MainView().
         -->
-        <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox"/>
+        <Border Grid.Row="1" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5">
+            <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox"/>
+        </Border>
 
         <!--
         The DragCanvas - the main canvas where nodes are placed and connected.
@@ -48,6 +50,7 @@
                               NodeSelected="OnNodeSelected"
                               ConnectionCreated="OnConnectionCreated"
                               ConnectionDeleted="OnConnectionDeleted"
+                              NodeBackground="Transparent"
                               NodeDeleted="OnNodeDeleted"/>
 
         <!-- 
@@ -72,7 +75,7 @@
                     <TextBlock Text="Value:"/>
                     <TextBox Text="{ReflectionBinding SearchString}" 
                              Watermark="Enter search string"/>
-                    <CheckBox IsChecked="{ReflectionBinding AutoEscape}" 
+                    <CheckBox Foreground ="{DynamicResource RegexrTextColor}" IsChecked="{ReflectionBinding AutoEscape}" 
                               Content="Auto Escape"/>
                 </StackPanel>
             </Border>

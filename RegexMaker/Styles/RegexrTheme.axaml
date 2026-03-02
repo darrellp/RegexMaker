@@ -1,0 +1,38 @@
+<Styles xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="UserControl">
+        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontUI}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="StackPanel">
+	    <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+    </Style>
+    <Style Selector="TextBox">
+        <Setter Property="FontFamily" Value="{DynamicResource FontCode}" />
+        <Setter Property="Background" Value="{DynamicResource BrushPanel}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}" />
+    </Style>
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{DynamicResource BrushButton}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontUI}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+    </Style>
+    <Style Selector="Button:pointerover">
+        <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushBackground}" />
+    </Style>
+    <Style Selector="TextBlock">
+        <Setter Property="FontFamily" Value="{DynamicResource FontUI}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
+    </Style>
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+</Styles>

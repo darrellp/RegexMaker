@@ -1,0 +1,43 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Font Families -->
+  <FontFamily x:Key="FontCode">Fira Mono, Consolas, Menlo, monospace</FontFamily>
+  <FontFamily x:Key="FontUI">Open Sans, Segoe UI, Arial, sans-serif</FontFamily>
+
+  <!-- Color Palette -->
+  <Color x:Key="ColorBackground">#23272E</Color>
+  <Color x:Key="ColorPanel">#2C313A</Color>
+  <Color x:Key="ColorAccent">#00BFFF</Color>
+  <Color x:Key="ColorHighlight">#FFD700</Color>
+  <Color x:Key="ColorText">#F8F8F2</Color>
+  <Color x:Key="ColorSubtleText">#A6ACB9</Color>
+  <Color x:Key="ColorBorder">#3C4250</Color>
+  <Color x:Key="ColorButton">#3C4250</Color>
+  <Color x:Key="ColorButtonHover">#00BFFF</Color>
+
+  <!--
+  <Color x:Key="ColorBackground">Lavender</Color>
+  <Color x:Key="ColorPanel">Purple</Color>
+  <Color x:Key="ColorAccent">Orange</Color>
+  <Color x:Key="ColorHighlight">Green</Color>
+  <Color x:Key="ColorText">Turquoise</Color>
+  <Color x:Key="ColorSubtleText">Yellow</Color>
+  <Color x:Key="ColorBorder">Brown</Color>
+  <Color x:Key="ColorButton">Green</Color>
+  <Color x:Key="ColorButtonHover">Brown</Color>
+  -->
+
+
+
+  <!-- Brushes -->
+  <SolidColorBrush x:Key="BrushBackground" Color="{DynamicResource ColorBackground}" />
+  <SolidColorBrush x:Key="BrushPanel" Color="{DynamicResource ColorPanel}" />
+  <SolidColorBrush x:Key="BrushAccent" Color="{DynamicResource ColorAccent}" />
+  <SolidColorBrush x:Key="BrushHighlight" Color="{DynamicResource ColorHighlight}" />
+  <SolidColorBrush x:Key="BrushText" Color="{DynamicResource ColorText}" />
+  <SolidColorBrush x:Key="BrushSubtleText" Color="{DynamicResource ColorSubtleText}" />
+  <SolidColorBrush x:Key="BrushBorder" Color="{DynamicResource ColorBorder}" />
+  <SolidColorBrush x:Key="BrushButton" Color="{DynamicResource ColorButton}" />
+  <SolidColorBrush x:Key="BrushButtonHover" Color="{DynamicResource ColorButtonHover}" />
+</ResourceDictionary>

@@ -44,16 +44,17 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
         _textBlock = new TextBlock
         {
             VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Foreground = new SolidColorBrush(Colors.Black),
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
             Padding = new Thickness(10)
         };
 
         var border = new Border
         {
-            Background = new SolidColorBrush(Colors.LightGray),
+            Background = new SolidColorBrush(Colors.AliceBlue),
             CornerRadius = new CornerRadius(5),
             Child = _textBlock
-        };
+        };  
 
         Content = border;
         
