@@ -1,11 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RegexMaker.Nodes;
 using System;
-using Avalonia;
-using Avalonia.Input.Platform;
-using System.Threading.Tasks;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace RegexMaker.ViewModels;
 
@@ -15,6 +12,12 @@ public partial class MainViewModel : ViewModelBase
     public event EventHandler<LoadRequestedEventArgs>? LoadRequested;
     public event EventHandler? ClearRequested;
     public event EventHandler<CopyRegexRequestedEventArgs>? CopyRegexRequested;
+
+    /// <summary>
+    /// Raised when the node display needs to be refreshed (e.g., after a property change).
+    /// The View subscribes to this to update visual elements like RgxNodeControl.
+    /// </summary>
+    public event Action? NodeDisplayUpdateRequested;
 
     [ObservableProperty]
     private string _regexPattern = string.Empty;
@@ -31,30 +34,92 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<string> _matches = new();
 
-    [RelayCommand]
-    private void Save()
+    private RgxNode? _currentlySelectedNode;
+    private object? _currentViewModelBacking;
+
+    /// <summary>
+    /// Switches the active node selection — creates the appropriate ViewModel
+    /// and updates the carousel index. Pure logic, no UI dependencies.
+    /// </summary>
+    /// <param name="node">The newly selected node, or null to clear selection.</param>
+    /// <param name="portCountChangedCallback">
+    /// Callback for port-count changes that require canvas manipulation (UI-side concern).
+    /// </param>
+    public void SelectNode(RgxNode? node, Func<RgxNode, int, Action>? portCountChangedCallback = null)
     {
-        SaveRequested?.Invoke(this, new SaveRequestedEventArgs());
+        if (node == null)
+        {
+            _currentlySelectedNode = null;
+            UnsubscribeFromCurrentViewModel();
+            _currentViewModelBacking = null;
+            CurrentNodeViewModel = null;
+            SelectedCarouselIndex = 0;
+            return;
+        }
+
+        _currentlySelectedNode = node;
+        UnsubscribeFromCurrentViewModel();
+
+        SelectedCarouselIndex = (int)node.NodeType;
+
+        _currentViewModelBacking = node.NodeType switch
+        {
+            RgxNodeType.StringSearch when node is LiteralNode lit
+                => new StringSearchNodeViewModel(lit, RequestNodeDisplayUpdate),
+            RgxNodeType.Repeat when node is RepeatNode rep
+                => new RepeatNodeViewModel(rep, RequestNodeDisplayUpdate),
+            RgxNodeType.Range when node is RangeNode rng
+                => new RangeNodeViewModel(rng, RequestNodeDisplayUpdate),
+            RgxNodeType.AnyCharFrom when node is AnyCharFromNode acf
+                => new AnyCharFromNodeViewModel(acf, RequestNodeDisplayUpdate),
+            RgxNodeType.Concatenate when node is ConcatenateNode cat
+                => new ConcatenateNodeViewModel(cat, newCount => portCountChangedCallback?.Invoke(cat, newCount)),
+            RgxNodeType.AnyOf when node is AnyOfNode ao
+                => new AnyOfViewModel(ao, newCount => portCountChangedCallback?.Invoke(ao, newCount)),
+            RgxNodeType.CharClass when node is CharClassNode cc
+                => new CharClassNodeViewModel(cc, RequestNodeDisplayUpdate),
+            RgxNodeType.Named when node is NamedNode named
+                => new NamedNodeViewModel(named, RequestNodeDisplayUpdate),
+            _ => null
+        };
+
+        CurrentNodeViewModel = _currentViewModelBacking;
+
+        if (_currentViewModelBacking is ObservableObject obs)
+        {
+            obs.PropertyChanged += (_, _) => RequestNodeDisplayUpdate();
+        }
+    }
+
+    public void RequestNodeDisplayUpdate()
+    {
+        if (_currentlySelectedNode != null)
+        {
+            RegexPattern = _currentlySelectedNode.ProduceResult();
+        }
+        NodeDisplayUpdateRequested?.Invoke();
+    }
+
+    private void UnsubscribeFromCurrentViewModel()
+    {
+        // ObservableObject subscriptions are replaced each time SelectNode is called
+        _currentViewModelBacking = null;
     }
 
     [RelayCommand]
-    private void Load()
-    {
-        LoadRequested?.Invoke(this, new LoadRequestedEventArgs());
-    }
+    private void Save() => SaveRequested?.Invoke(this, new SaveRequestedEventArgs());
 
     [RelayCommand]
-    private void Clear()
-    {
-        ClearRequested?.Invoke(this, EventArgs.Empty);
-    }
+    private void Load() => LoadRequested?.Invoke(this, new LoadRequestedEventArgs());
+
+    [RelayCommand]
+    private void Clear() => ClearRequested?.Invoke(this, EventArgs.Empty);
 
     [RelayCommand]
     private void CopyRegex()
     {
         if (string.IsNullOrEmpty(RegexPattern))
             return;
-
         CopyRegexRequested?.Invoke(this, new CopyRegexRequestedEventArgs(RegexPattern));
     }
 }

@@ -63,6 +63,6 @@ public class RgxNodeTests
     // Helper method to create a concrete test implementation
     private LiteralNode CreateTestNode(string val)
     {
-        return new LiteralNode(val);
+        return new LiteralNode(val) { AutoEscape = false };
     }
 }

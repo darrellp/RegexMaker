@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
 using RegexMaker.ViewModels;
+using RegexMaker.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -94,20 +95,21 @@ public partial class MainView : UserControl
     // Handler for mouse hover (pointer move)
     private void OnSampleTextEditorPointerMoved(object? sender, PointerEventArgs e)
     {
-        var position = e.GetPosition(SampleTextEditor.TextArea.TextView);
-        var logicalPos = SampleTextEditor.TextArea.TextView.GetPositionFloor(position);
-        if (logicalPos != null)
-        {
-            // Convert logical position to document offset (character index)
-            var newOffset = SampleTextEditor.Document.GetOffset(logicalPos.Value.Line, logicalPos.Value.Column);
-            if (newOffset == offset)
-            {
-                return;
-            }
-            offset = newOffset;
-            Debug.WriteLine($"Mouse hovering over character index: {offset}");
-            // You can add your logic here
-        }
+        // May want this in the future
+     
+        //var position = e.GetPosition(SampleTextEditor.TextArea.TextView);
+        //var logicalPos = SampleTextEditor.TextArea.TextView.GetPositionFloor(position);
+        //if (logicalPos != null)
+        //{
+        //    // Convert logical position to document offset (character index)
+        //    var newOffset = SampleTextEditor.Document.GetOffset(logicalPos.Value.Line, logicalPos.Value.Column);
+        //    if (newOffset == offset)
+        //    {
+        //        return;
+        //    }
+        //    offset = newOffset;
+        //    // You can add your logic here
+        //}
     }
 
 
@@ -141,6 +143,11 @@ public partial class MainView : UserControl
                     SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
                     UpdateRegexHighlights();
                 }
+            };
+
+            _mainViewModel.NodeDisplayUpdateRequested += () =>
+            {
+                _currentlySelectedNodeControl?.UpdateTextBlock();
             };
         }
         else
@@ -283,125 +290,65 @@ public partial class MainView : UserControl
         var rgxNodeTarget = rgxNodeControlTarget?.RgxNode;
         if (rgxNodeSource != null && rgxNodeTarget != null)
         {
-            var targetNodeIndex = e.TargetPortIndex;
-            rgxNodeTarget.Parameters[targetNodeIndex] = rgxNodeSource;
-            rgxNodeSource.Parents.Add(rgxNodeTarget);
-            rgxNodeTarget.MakeDirty();
+            NodeGraphService.Connect(rgxNodeSource, rgxNodeTarget, e.TargetPortIndex);
             UpdateNodeDisplay();
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Called when a node is selected - updates the carousel and sets up data binding via MainViewModel.
+    /// Handles the connection deleted event from the DragCanvas.
     /// </summary>
     ///
-    /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
     ///
-    /// <param name="node"> The node. </param>
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Event information to send to registered event handlers. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private void NodeSwitched(RgxNode? node)
+    private void OnConnectionDeleted(object? sender, ConnectionEventArgs e)
     {
-        if (_mainViewModel == null)
-            return;
-
-        if (node == null)
+        var rgxNodeControlSource = e.SourceNode as RgxNodeControl;
+        var rgxNodeControlTarget = e.TargetNode as RgxNodeControl;
+        var rgxNodeSource = rgxNodeControlSource?.RgxNode;
+        var rgxNodeTarget = rgxNodeControlTarget?.RgxNode;
+        if (rgxNodeSource != null && rgxNodeTarget != null)
         {
-            _currentlySelectedNode = null;
-            UnsubscribeFromViewModel();
-            _currentViewModel = null;
-            _mainViewModel.CurrentNodeViewModel = null;
-            _mainViewModel.SelectedCarouselIndex = 0;
-            return;
+            NodeGraphService.Disconnect(rgxNodeSource, rgxNodeTarget, e.TargetPortIndex);
+            UpdateNodeDisplay();
         }
+    }
 
-        _currentlySelectedNode = node;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// <summary>
+    /// Handles the node deleted event from the DragCanvas.
+    /// Updates the underlying RgxNode data model to reflect the deletion.
+    /// The node has already been removed from the canvas at this point.
+    /// </summary>
+    ///
+    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
+    ///
+    /// <param name="sender">   Source of the event. </param>
+    /// <param name="e">        Event information to send to registered event handlers. </param>
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Unsubscribe from previous ViewModel
-        UnsubscribeFromViewModel();
-
-        // Set carousel to the appropriate page via MainViewModel
-        _mainViewModel.SelectedCarouselIndex = (int)node.NodeType;
-
-        // Create ViewModel and set it on MainViewModel instead of individual controls
-        switch (node.NodeType)
+    private void OnNodeDeleted(object? sender, NodeDeletedEventArgs e)
+    {
+        if (e.Node is RgxNodeControl rgxNodeControl && rgxNodeControl.RgxNode != null)
         {
-            case RgxNodeType.StringSearch:
-                if (node is LiteralNode stringSearchNode)
-                {
-                    _currentViewModel = new StringSearchNodeViewModel(stringSearchNode, UpdateNodeDisplay);
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
+            var rgxNode = rgxNodeControl.RgxNode;
 
-            case RgxNodeType.Repeat:
-                if (node is RepeatNode repeatNode)
-                {
-                    _currentViewModel = new RepeatNodeViewModel(repeatNode, UpdateNodeDisplay);
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
+            // Clear selection if this is the selected node
+            if (_currentlySelectedNode == rgxNode)
+            {
+                NodeSwitched(null);
+            }
 
-            case RgxNodeType.Range:
-                if (node is RangeNode rangeNode)
-                {
-                    _currentViewModel = new RangeNodeViewModel(rangeNode, UpdateNodeDisplay);
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
-
-            case RgxNodeType.AnyCharFrom:
-                if (node is AnyCharFromNode anyCharFromNode)
-                {
-                    _currentViewModel = new AnyCharFromNodeViewModel(anyCharFromNode, UpdateNodeDisplay);
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
-
-            case RgxNodeType.Concatenate:
-                if (node is ConcatenateNode concatenateNode)
-                {
-                    _currentViewModel = new ConcatenateNodeViewModel(concatenateNode, newCount => OnConcatenatePortCountChanged(concatenateNode, newCount));
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
-
-            case RgxNodeType.AnyOf:
-                if (node is AnyOfNode anyOfNode)
-                {
-                    _currentViewModel = new AnyOfViewModel(anyOfNode, newCount => OnAnyOfPortCountChanged(anyOfNode, newCount));
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
-
-            case RgxNodeType.CharClass:
-                if (node is CharClassNode charClassNode)
-                {
-                    _currentViewModel = new CharClassNodeViewModel(charClassNode, UpdateNodeDisplay);
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
-
-            case RgxNodeType.Named:
-                if (node is NamedNode namedNode)
-                {
-                    _currentViewModel = new NamedNodeViewModel(namedNode, UpdateNodeDisplay);
-                    _mainViewModel.CurrentNodeViewModel = _currentViewModel;
-                }
-                break;
-
-            case RgxNodeType.PatternStart:
-            case RgxNodeType.PatternEnd:
-                _currentViewModel = null;
-                _mainViewModel.CurrentNodeViewModel = null;
-                break;
-        }
-
-        // Subscribe to new ViewModel's property changes
-        if (_currentViewModel is ObservableObject observableObject)
-        {
-            observableObject.PropertyChanged += OnViewModelPropertyChanged;
+            // NOTE: Do NOT call DragCanvas.DeleteNode() here!
+            // The node has already been removed from the canvas by the time this event is raised.
+            // This handler only needs to update the application-level data model.
+            NodeGraphService.DeleteNode(rgxNode);
+            UpdateNodeDisplay();
         }
     }
 
@@ -412,24 +359,12 @@ public partial class MainView : UserControl
             return;
 
         int currentCount = node.Parameters.Count;
-        
-        if (newCount > currentCount)
+
+        if (newCount < currentCount)
         {
-            // Add ports at the bottom
-            int portsToAdd = newCount - currentCount;
-            for (int i = 0; i < portsToAdd; i++)
-            {
-                node.Parameters.Add(null);
-            }
-            nodeControl.PortCtLeft = newCount;
-        }
-        else if (newCount < currentCount)
-        {
-            // Remove ports from the bottom
-            // First, remove connections to the ports being deleted
+            // Remove UI connections to ports being deleted before modifying the model
             for (int i = newCount; i < currentCount; i++)
             {
-                // Find and remove connections to this port
                 var connectionsToRemove = DragCanvasMain.Connections
                     .Where(c => c.TargetNode == nodeControl && c.TargetPortIndex == i)
                     .ToList();
@@ -438,22 +373,11 @@ public partial class MainView : UserControl
                 {
                     DragCanvasMain.DeleteConnection(connection);
                 }
-
-                // Clear the parameter
-                node.Parameters[i] = null;
             }
-
-            // Now remove the extra parameters
-            int portsToRemove = currentCount - newCount;
-            for (int i = 0; i < portsToRemove; i++)
-            {
-                node.Parameters.RemoveAt(node.Parameters.Count - 1);
-            }
-
-            nodeControl.PortCtLeft = newCount;
         }
 
-        node.MakeDirty();
+        NodeGraphService.SetPortCount(node, newCount);
+        nodeControl.PortCtLeft = newCount;
         UpdateNodeDisplay();
     }
 
@@ -464,24 +388,12 @@ public partial class MainView : UserControl
             return;
 
         int currentCount = node.Parameters.Count;
-        
-        if (newCount > currentCount)
+
+        if (newCount < currentCount)
         {
-            // Add ports at the bottom
-            int portsToAdd = newCount - currentCount;
-            for (int i = 0; i < portsToAdd; i++)
-            {
-                node.Parameters.Add(null);
-            }
-            nodeControl.PortCtLeft = newCount;
-        }
-        else if (newCount < currentCount)
-        {
-            // Remove ports from the bottom
-            // First, remove connections to the ports being deleted
+            // Remove UI connections to ports being deleted before modifying the model
             for (int i = newCount; i < currentCount; i++)
             {
-                // Find and remove connections to this port
                 var connectionsToRemove = DragCanvasMain.Connections
                     .Where(c => c.TargetNode == nodeControl && c.TargetPortIndex == i)
                     .ToList();
@@ -490,22 +402,11 @@ public partial class MainView : UserControl
                 {
                     DragCanvasMain.DeleteConnection(connection);
                 }
-
-                // Clear the parameter
-                node.Parameters[i] = null;
             }
-
-            // Now remove the extra parameters
-            int portsToRemove = currentCount - newCount;
-            for (int i = 0; i < portsToRemove; i++)
-            {
-                node.Parameters.RemoveAt(node.Parameters.Count - 1);
-            }
-
-            nodeControl.PortCtLeft = newCount;
         }
 
-        node.MakeDirty();
+        NodeGraphService.SetPortCount(node, newCount);
+        nodeControl.PortCtLeft = newCount;
         UpdateNodeDisplay();
     }
 
@@ -560,116 +461,6 @@ public partial class MainView : UserControl
         {
             _mainViewModel.SelectedCarouselIndex = (int)nodeType;
         }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// <summary>
-    /// Handles the connection deleted event from the DragCanvas.
-    /// </summary>
-    ///
-    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
-    /// <param name="sender">   Source of the event. </param>
-    /// <param name="e">        Event information to send to registered event handlers. </param>
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void OnConnectionDeleted(object? sender, ConnectionEventArgs e)
-    {
-        var rgxNodeControlSource = e.SourceNode as RgxNodeControl;
-        var rgxNodeControlTarget = e.TargetNode as RgxNodeControl;
-        var rgxNodeSource = rgxNodeControlSource?.RgxNode;
-        var rgxNodeTarget = rgxNodeControlTarget?.RgxNode;
-        if (rgxNodeSource != null && rgxNodeTarget != null)
-        {
-            var targetNodeIndex = e.TargetPortIndex;
-            if (targetNodeIndex >= 0 && targetNodeIndex < rgxNodeTarget.Parameters.Count)
-            {
-                rgxNodeTarget.Parameters[targetNodeIndex] = null;
-            }
-            rgxNodeSource.Parents.Remove(rgxNodeTarget);
-            rgxNodeTarget.MakeDirty();
-            UpdateNodeDisplay();
-        }
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// <summary>
-    /// Handles the node deleted event from the DragCanvas.
-    /// Updates the underlying RgxNode data model to reflect the deletion.
-    /// The node has already been removed from the canvas at this point.
-    /// </summary>
-    ///
-    /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
-    /// <param name="sender">   Source of the event. </param>
-    /// <param name="e">        Event information to send to registered event handlers. </param>
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void OnNodeDeleted(object? sender, NodeDeletedEventArgs e)
-    {
-        if (e.Node is RgxNodeControl rgxNodeControl && rgxNodeControl.RgxNode != null)
-        {
-            var rgxNode = rgxNodeControl.RgxNode;
-
-            // Clear selection if this is the selected node
-            if (_currentlySelectedNode == rgxNode)
-            {
-                NodeSwitched(null);
-            }
-
-            // Remove the node from parent references in all its parents
-            foreach (var parent in rgxNode.Parents.ToList())
-            {
-                if (parent is RgxNode parentRgxNode)
-                {
-                    // Find all parameters that reference this node and set them to null
-                    for (int i = 0; i < parentRgxNode.Parameters.Count; i++)
-                    {
-                        if (parentRgxNode.Parameters[i] == rgxNode)
-                        {
-                            parentRgxNode.Parameters[i] = null;
-                        }
-                    }
-                    parentRgxNode.MakeDirty();
-                }
-            }
-
-            // Clear this node's parent list
-            rgxNode.Parents.Clear();
-
-            // Clear this node's parameters (disconnect from children)
-            for (int i = 0; i < rgxNode.Parameters.Count; i++)
-            {
-                if (rgxNode.Parameters[i] is RgxNode childNode)
-                {
-                    childNode.Parents.Remove(rgxNode);
-                    childNode.MakeDirty();
-                }
-                rgxNode.Parameters[i] = null;
-            }
-
-            // NOTE: Do NOT call DragCanvas.DeleteNode() here!
-            // The node has already been removed from the canvas by the time this event is raised.
-            // This handler only needs to update the application-level data model.
-            
-            UpdateNodeDisplay();
-        }
-    }
-
-    private RgxNodeControl? FindNodeControlForRgxNode(RgxNode? rgxNode)
-    {
-        if (rgxNode == null)
-            return null;
-
-        foreach (var child in DragCanvasMain.Children)
-        {
-            if (child is RgxNodeControl nodeControl && nodeControl.RgxNode == rgxNode)
-            {
-                return nodeControl;
-            }
-        }
-
-        return null;
     }
 
     private async void OnSaveRequested(object? sender, SaveRequestedEventArgs e)
@@ -736,7 +527,7 @@ public partial class MainView : UserControl
             if (files.Count > 0)
             {
                 var file = files[0];
-                
+
                 // Read file content
                 await using var stream = await file.OpenReadAsync();
                 using var reader = new StreamReader(stream);
@@ -753,7 +544,7 @@ public partial class MainView : UserControl
                 {
                     // Clear current selection
                     NodeSwitched(null);
-                    
+
                     // Deserialize the canvas with a factory function
                     DragCanvasMain.DeserializeCanvas(canvasData, CreateNodeFromTypeName);
 
@@ -819,61 +610,48 @@ public partial class MainView : UserControl
     // Assume you have a reference to your ViewModel as '_mainViewModel'
     private void RetrieveMatchData()
     {
-        int caretOffset = SampleTextEditor.CaretOffset;
+        var result = MatchDataService.GetMatchAtOffset(
+        _colorizer?.MatchCollection, _colorizer?.Regex, SampleTextEditor.CaretOffset);
 
-        Debug.Assert(_colorizer is not null);
+        if (_mainViewModel == null) return;
 
-            // Find the match containing the cursor
-        Match? containingMatch = null;
-        foreach (Match match in _colorizer.MatchCollection)
+        if (result != null)
         {
-            if (match.Success && match.Index <= caretOffset && caretOffset < match.Index + match.Length)
-            {
-                containingMatch = match;
-                break;
-            }
+            _mainViewModel.MatchExtent = result.Extent;
+            _mainViewModel.Matches = new ObservableCollection<string>(result.Groups);
         }
-
-        if (containingMatch != null && _mainViewModel != null)
-        {
-            // Set extent
-            _mainViewModel.MatchExtent = $"Range: {containingMatch.Index} to {containingMatch.Index + containingMatch.Length}";
-
-            // Set matches
-            var matchesList = _mainViewModel.Matches;
-            matchesList.Clear();
-            for (int i = 0; i < containingMatch.Groups.Count; i++)
-            {
-                var group = containingMatch.Groups[i];
-                string name = string.Empty;
-                if (containingMatch.Groups.Count > i && containingMatch.Groups[i] != null)
-                {
-                    // Try to get group name from the matchCollection's regex if available
-                    // Since Match does not expose Regex, you need to pass the Regex as a parameter
-                    // or store it elsewhere. Here, let's assume you have _colorizer.Regex available:
-                    var regex = _colorizer?.Regex;
-                    if (regex != null)
-                    {
-                        name = regex.GroupNameFromNumber(i);
-                    }
-                    else
-                    {
-                        name = i.ToString();
-                    }
-                }
-                else
-                {
-                    name = i.ToString();
-                }
-
-                string displayName = name == i.ToString() ? $"<{i}>" : $"<{name}>";
-                matchesList.Add($"{displayName}:  \"{group.Value}\"");
-            }
-        }
-        else if (_mainViewModel != null)
+        else
         {
             _mainViewModel.MatchExtent = string.Empty;
             _mainViewModel.Matches = new ObservableCollection<string>();
         }
+    }
+
+    /// <summary>
+    /// Switches the currently selected node and updates related state.
+    /// </summary>
+    /// <param name="node">The node to switch to, or null to clear selection.</param>
+    private void NodeSwitched(RgxNode? node)
+    {
+        _currentlySelectedNode = node;
+        // You may want to update the UI or ViewModel here as needed
+        // For example, clear or update parameter panels, etc.
+    }
+
+    /// <summary>
+    /// Finds the RgxNodeControl associated with the given RgxNode, if any.
+    /// </summary>
+    /// <param name="node">The RgxNode to find the control for.</param>
+    /// <returns>The corresponding RgxNodeControl, or null if not found.</returns>
+    private RgxNodeControl? FindNodeControlForRgxNode(RgxNode node)
+    {
+        foreach (var child in DragCanvasMain.Children)
+        {
+            if (child is RgxNodeControl control && control.RgxNode == node)
+            {
+                return control;
+            }
+        }
+        return null;
     }
 }

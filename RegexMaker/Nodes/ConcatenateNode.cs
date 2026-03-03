@@ -1,4 +1,5 @@
-﻿using RegexStringLibrary;
+﻿using Avalonia;
+using RegexStringLibrary;
 using System.Linq;
 
 namespace RegexMaker.Nodes;
@@ -9,6 +10,7 @@ public class ConcatenateNode : RgxNode
     public ConcatenateNode()
         : base(RgxNodeType.Concatenate)
     {
+        Parameters = [null, null];
     }
 
     public ConcatenateNode(params IRgxNode[] parameters) : base(RgxNodeType.Concatenate, parameters) { }
@@ -26,8 +28,6 @@ public class ConcatenateNode : RgxNode
 
     public override IRgxNode Default()
     {
-        var ret = new ConcatenateNode();
-        ret.Parameters = [null, null];
-        return ret;
+        return new ConcatenateNode();
     }
 }

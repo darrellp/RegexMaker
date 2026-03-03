@@ -137,8 +137,8 @@ public class ConcatenateNodeTests
     public void ConcatenateNode_ShouldConcatenateWithSpecialRegexCharacters()
     {
         // Arrange
-        var node1 = new LiteralNode(@"\d");
-        var node2 = new LiteralNode(@"+");
+        var node1 = new LiteralNode(@"\d") { AutoEscape = false };
+        var node2 = new LiteralNode(@"+") { AutoEscape = false };
         var concatenateNode = new ConcatenateNode(node1, node2);
 
         // Act

@@ -102,7 +102,7 @@ public class AnyCharFromNodeTests
     {
         // Arrange
         var node1 = new LiteralNode(Stex.Range("0", "9"));
-        var node2 = new LiteralNode("._-");
+        var node2 = new LiteralNode("._-") { AutoEscape = false };
         var anyCharFromNode = new AnyCharFromNode([node1, node2]);
 
         // Act
@@ -191,7 +191,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleSpecialRegexCharacters()
     {
         // Arrange
-        var node = new LiteralNode(@".\+*");
+        var node = new LiteralNode(@".\+*") { AutoEscape = false };
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act
@@ -205,7 +205,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleBuiltInCharacterClasses()
     {
         // Arrange
-        var node1 = new LiteralNode(Stex.Digit);
+        var node1 = new LiteralNode(Stex.Digit) { AutoEscape = false };
         var node2 = new LiteralNode("abc");
         var anyCharFromNode = new AnyCharFromNode([node1, node2]);
 
@@ -307,7 +307,7 @@ public class AnyCharFromNodeTests
     public void AnyCharFromNode_ShouldHandleHyphenInCharacterClass()
     {
         // Arrange
-        var node = new LiteralNode("-_.");
+        var node = new LiteralNode("-_.") { AutoEscape = false };
         var anyCharFromNode = new AnyCharFromNode([node]);
 
         // Act

@@ -216,7 +216,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleComplexPattern()
     {
         // Arrange
-        var node = new LiteralNode(@"\d");
+        var node = new LiteralNode(@"\d") { AutoEscape = false };
         var repeatNode = new RepeatNode([node], 3, 5);
 
         // Act
@@ -281,7 +281,7 @@ public class RepeatNodeTests
     public void RepeatNode_ShouldHandleDigitPatternRepeated()
     {
         // Arrange
-        var digitNode = new LiteralNode(Stex.Digit);
+        var digitNode = new LiteralNode(Stex.Digit) { AutoEscape = false };
         var repeatNode = new RepeatNode([digitNode], 3, 3);
 
         // Assert
