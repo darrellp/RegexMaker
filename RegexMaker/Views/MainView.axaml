@@ -10,7 +10,7 @@
              x:Class="RegexMaker.Views.MainView"
              x:DataType="vm:MainViewModel">
 
-    <Grid RowDefinitions="Auto,*,120,Auto" ColumnDefinitions="120,*,180">
+    <Grid RowDefinitions="Auto,*,180,Auto" ColumnDefinitions="120,*,180">
         <!-- Top panel with buttons -->
         <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Height="30">
             <Button Content="Save" Margin="5,2" Padding="10,2" Command="{Binding SaveCommand}" />
@@ -20,7 +20,7 @@
         </StackPanel>
 
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="5">
-            <Grid RowDefinitions="*" ColumnDefinitions="*,Auto">
+            <Grid RowDefinitions="*" ColumnDefinitions="*,200">
 
             <!-- Sample Text Editor -->
             <AvaloniaEdit:TextEditor Grid.Column="0" BorderBrush="Black" BorderThickness="1" Name="SampleTextEditor" 
@@ -31,7 +31,14 @@
             <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Stretch">
                 <TextBlock Text="Match Information" Margin="0,0,5,0" Padding="10,2" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding MatchExtent}" HorizontalAlignment="Center" Margin="0,0,5,0" Padding="10,2" />
-                <ListBox ItemsSource="{Binding Matches}" x:Name="MatchesListBox"/>
+                <ListBox
+                    Background="{DynamicResource BrushBackground}"
+                    ItemsSource="{Binding Matches}"
+                    x:Name="MatchesListBox"
+                    FontSize="11"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    MaxHeight="160">
+                </ListBox>
             </StackPanel>
             </Grid>
         </Border>

@@ -35,4 +35,10 @@
     <Style Selector="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
     </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="2,0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="MinHeight" Value="18"/>
+    </Style>
+
 </Styles>

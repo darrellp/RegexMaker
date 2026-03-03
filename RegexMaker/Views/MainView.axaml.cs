@@ -837,7 +837,7 @@ public partial class MainView : UserControl
         if (containingMatch != null && _mainViewModel != null)
         {
             // Set extent
-            _mainViewModel.MatchExtent = $"[{containingMatch.Index}, {containingMatch.Index + containingMatch.Length})";
+            _mainViewModel.MatchExtent = $"Range: {containingMatch.Index} to {containingMatch.Index + containingMatch.Length}";
 
             // Set matches
             var matchesList = _mainViewModel.Matches;
@@ -867,7 +867,7 @@ public partial class MainView : UserControl
                 }
 
                 string displayName = name == i.ToString() ? $"<{i}>" : $"<{name}>";
-                matchesList.Add($"{displayName}:{group.Value}");
+                matchesList.Add($"{displayName}:  \"{group.Value}\"");
             }
         }
         else if (_mainViewModel != null)
