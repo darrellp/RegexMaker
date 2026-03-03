@@ -119,8 +119,10 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
 
     public void UpdateTextBlock()
     {
-        Debug.Assert(_rgxNode != null);
-        _textBlock.Text = _rgxNode.DisplayName;
+        if (_rgxNode != null)
+        {
+            _textBlock.Text = _rgxNode.DisplayName;
+        }
     }
 
     public string SerializeApplicationData()

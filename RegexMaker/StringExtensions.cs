@@ -1018,7 +1018,7 @@ namespace RegexStringLibrary
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         public static string Named(this string str, string strName)
         {
-            return string.Format("(?<{0}>{1})", strName, str);
+            return string.Format(strName == String.Empty ? str.Capture() : "(?<{0}>{1})", strName, str);
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////

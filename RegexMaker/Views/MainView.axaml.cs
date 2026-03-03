@@ -56,8 +56,59 @@ public partial class MainView : UserControl
             text.IsVisible = true;
         }
 
+        // Subscribe to caret position changes
+        SampleTextEditor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
+
+        // Subscribe to pointer move for mouse hover
+        SampleTextEditor.PointerMoved += OnSampleTextEditorPointerMoved;
+
         SampleTextEditor.TextChanged += (s, e) => UpdateRegexHighlights();
     }
+
+    // Handler for caret movement (text cursor)
+    private void OnCaretPositionChanged(object? sender, EventArgs e)
+    {
+        if (_colorizer == null || _colorizer.MatchCollection == null)
+            return;
+        RetrieveMatchInfo();
+    }
+
+    private void RetrieveMatchInfo()
+    {
+        int caretOffset = SampleTextEditor.CaretOffset;
+
+        Debug.Assert(_colorizer is not null);
+
+        foreach (Match match in _colorizer.MatchCollection)
+        {
+            var matchStart = match.Index;
+            if (caretOffset >= matchStart && caretOffset <= matchStart + match.Length)
+            {
+                var captures = match.Captures;
+            }
+        }
+    }
+
+    static int offset = -1;
+    // Handler for mouse hover (pointer move)
+    private void OnSampleTextEditorPointerMoved(object? sender, PointerEventArgs e)
+    {
+        var position = e.GetPosition(SampleTextEditor.TextArea.TextView);
+        var logicalPos = SampleTextEditor.TextArea.TextView.GetPositionFloor(position);
+        if (logicalPos != null)
+        {
+            // Convert logical position to document offset (character index)
+            var newOffset = SampleTextEditor.Document.GetOffset(logicalPos.Value.Line, logicalPos.Value.Column);
+            if (newOffset == offset)
+            {
+                return;
+            }
+            offset = newOffset;
+            Debug.WriteLine($"Mouse hovering over character index: {offset}");
+            // You can add your logic here
+        }
+    }
+
 
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
@@ -758,6 +809,7 @@ public partial class MainView : UserControl
 
         string text = SampleTextEditor.Text;
         _colorizer.UpdateMatches(text);
+        RetrieveMatchInfo();
 
         // Force the editor to redraw so highlights update
         SampleTextEditor.TextArea.TextView.Redraw();

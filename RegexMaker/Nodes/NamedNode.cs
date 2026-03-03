@@ -14,14 +14,14 @@ public class NamedNode : RgxNode
     // Pass the appropriate RgxNodeType to the base constructor.
     public NamedNode() : base(RgxNodeType.Named)
     {
-        GroupName = "unnamed";
+        GroupName = String.Empty;
         Parameters = [null];
     }
 
     // This should just calculate.  Caching is done by 
     internal override string CalculateResult()
     {
-        return (Parameters[0] == null ? "Unnamed" : Parameters[0]!.ProduceResult()).Named(GroupName);
+        return (Parameters[0] == null ? "" : Parameters[0]!.ProduceResult()).Named(GroupName);
     }
 
     // This should generate a random string that will match this pattern.  It should use the static random variable from the base class for any random 
@@ -30,6 +30,8 @@ public class NamedNode : RgxNode
     {
         return Parameters[0]!.RandomMatch();
     }
+
+    public override string Name => "Capture";
 
     public override IRgxNode Default()
     {
@@ -41,7 +43,7 @@ public class NamedNode : RgxNode
     {
         get
         {
-            return $"Named {GroupName}";
+            return GroupName == String.Empty ? "Capture" : $"Named {GroupName}";
         }
     }
 
@@ -54,9 +56,9 @@ public class NamedNode : RgxNode
     protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
     {
         base.RestoreSerializationData(data);
-        if (data.TryGetValue("Name", out var leastElement))
+        if (data.TryGetValue("Name", out var namedElement))
         {
-            GroupName = leastElement.GetString()??"Unnamed";
+            GroupName = namedElement.GetString()??String.Empty;
         }
     }
 

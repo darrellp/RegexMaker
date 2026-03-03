@@ -11,7 +11,9 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
 {
     private readonly Regex _regex;
     private readonly List<IBrush> _highlightBrushes;
-    private List<(int Start, int Length, int ColorIndex)> _matches = new();
+    private List<(int Start, int Length, int ColorIndex)> _matchInfo = new();
+    private MatchCollection? _matchCollection = null;
+    public MatchCollection? MatchCollection => _matchCollection;
 
     public RegexMatchColorizer(string pattern, RegexOptions options = RegexOptions.None)
     {
@@ -34,13 +36,14 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
 
     public void UpdateMatches(string text)
     {
-        _matches.Clear();
+        _matchInfo.Clear();
         int colorIndex = 0;
-        foreach (Match match in _regex.Matches(text))
+        _matchCollection = _regex.Matches(text);
+        foreach (Match match in MatchCollection)
         {
             if (match.Length > 0)
             {
-                _matches.Add((match.Index, match.Length, colorIndex));
+                _matchInfo.Add((match.Index, match.Length, colorIndex));
                 colorIndex = (colorIndex + 1) % _highlightBrushes.Count;
             }
         }
@@ -48,13 +51,13 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
 
     protected override void ColorizeLine(DocumentLine line)
     {
-        if (_matches.Count == 0)
+        if (_matchInfo.Count == 0)
             return;
 
         int lineStart = line.Offset;
         int lineEnd = lineStart + line.Length;
 
-        foreach (var (start, length, colorIndex) in _matches)
+        foreach (var (start, length, colorIndex) in _matchInfo)
         {
             int matchStart = start;
             int matchEnd = start + length;
