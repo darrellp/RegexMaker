@@ -40,6 +40,16 @@
     <Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
     </Style>
+    <Style Selector="ComboBox">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+    </Style>
     <Style Selector="ListBoxItem">
         <Setter Property="Padding" Value="2,0"/>
         <Setter Property="Margin" Value="0"/>
