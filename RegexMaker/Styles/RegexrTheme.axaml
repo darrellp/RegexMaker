@@ -21,16 +21,12 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontUI}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
     </Style>
-    <Style Selector="Button:pointerover">
-        <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
-        <Setter Property="Foreground" Value="{DynamicResource BrushBackground}" />
-    </Style>
     <Style Selector="TextBlock">
         <Setter Property="FontFamily" Value="{DynamicResource FontUI}" />
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
     </Style>
     <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+        <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
     </Style>
     <Style Selector="CheckBox:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
