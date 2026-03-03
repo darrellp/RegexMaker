@@ -30,8 +30,8 @@
             <!-- Match Information Panel -->
             <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Stretch">
                 <TextBlock Text="Match Information" Margin="0,0,5,0" Padding="10,2" HorizontalAlignment="Center" />
-                <TextBlock Text="0-0" HorizontalAlignment="Center" Margin="0,0,5,0" Padding="10,2" Name="MatchExtent"/>
-                <ListBox HorizontalAlignment="Stretch" Name="Matches"/>
+                <TextBlock Text="{Binding MatchExtent}" HorizontalAlignment="Center" Margin="0,0,5,0" Padding="10,2" />
+                <ListBox ItemsSource="{Binding Matches}" x:Name="MatchesListBox"/>
             </StackPanel>
             </Grid>
         </Border>

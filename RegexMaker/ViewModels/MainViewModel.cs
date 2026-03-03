@@ -4,6 +4,8 @@ using System;
 using Avalonia;
 using Avalonia.Input.Platform;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace RegexMaker.ViewModels;
 
@@ -22,6 +24,12 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     private int _selectedCarouselIndex = 0;
+
+    [ObservableProperty]
+    private string? _matchExtent;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _matches = new();
 
     [RelayCommand]
     private void Save()

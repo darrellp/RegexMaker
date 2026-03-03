@@ -16,6 +16,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Text.Json.Serialization.Metadata;
+using System.Collections.ObjectModel;
 
 namespace RegexMaker.Views;
 
@@ -70,24 +71,24 @@ public partial class MainView : UserControl
     {
         if (_colorizer == null || _colorizer.MatchCollection == null)
             return;
-        RetrieveMatchInfo();
+        RetrieveMatchData();
     }
 
-    private void RetrieveMatchInfo()
-    {
-        int caretOffset = SampleTextEditor.CaretOffset;
+    //private void RetrieveMatchInfo()
+    //{
+    //    int caretOffset = SampleTextEditor.CaretOffset;
 
-        Debug.Assert(_colorizer is not null);
+    //    Debug.Assert(_colorizer is not null);
 
-        foreach (Match match in _colorizer.MatchCollection)
-        {
-            var matchStart = match.Index;
-            if (caretOffset >= matchStart && caretOffset <= matchStart + match.Length)
-            {
-                var captures = match.Captures;
-            }
-        }
-    }
+    //    foreach (Match match in _colorizer.MatchCollection)
+    //    {
+    //        var matchStart = match.Index;
+    //        if (caretOffset >= matchStart && caretOffset <= matchStart + match.Length)
+    //        {
+    //            var captures = match.Captures;
+    //        }
+    //    }
+    //}
 
     static int offset = -1;
     // Handler for mouse hover (pointer move)
@@ -809,9 +810,70 @@ public partial class MainView : UserControl
 
         string text = SampleTextEditor.Text;
         _colorizer.UpdateMatches(text);
-        RetrieveMatchInfo();
+        RetrieveMatchData();
 
         // Force the editor to redraw so highlights update
         SampleTextEditor.TextArea.TextView.Redraw();
+    }
+
+    // Assume you have a reference to your ViewModel as '_mainViewModel'
+    private void RetrieveMatchData()
+    {
+        int caretOffset = SampleTextEditor.CaretOffset;
+
+        Debug.Assert(_colorizer is not null);
+
+            // Find the match containing the cursor
+        Match? containingMatch = null;
+        foreach (Match match in _colorizer.MatchCollection)
+        {
+            if (match.Success && match.Index <= caretOffset && caretOffset < match.Index + match.Length)
+            {
+                containingMatch = match;
+                break;
+            }
+        }
+
+        if (containingMatch != null && _mainViewModel != null)
+        {
+            // Set extent
+            _mainViewModel.MatchExtent = $"[{containingMatch.Index}, {containingMatch.Index + containingMatch.Length})";
+
+            // Set matches
+            var matchesList = _mainViewModel.Matches;
+            matchesList.Clear();
+            for (int i = 0; i < containingMatch.Groups.Count; i++)
+            {
+                var group = containingMatch.Groups[i];
+                string name = string.Empty;
+                if (containingMatch.Groups.Count > i && containingMatch.Groups[i] != null)
+                {
+                    // Try to get group name from the matchCollection's regex if available
+                    // Since Match does not expose Regex, you need to pass the Regex as a parameter
+                    // or store it elsewhere. Here, let's assume you have _colorizer.Regex available:
+                    var regex = _colorizer?.Regex;
+                    if (regex != null)
+                    {
+                        name = regex.GroupNameFromNumber(i);
+                    }
+                    else
+                    {
+                        name = i.ToString();
+                    }
+                }
+                else
+                {
+                    name = i.ToString();
+                }
+
+                string displayName = name == i.ToString() ? $"<{i}>" : $"<{name}>";
+                matchesList.Add($"{displayName}:{group.Value}");
+            }
+        }
+        else if (_mainViewModel != null)
+        {
+            _mainViewModel.MatchExtent = string.Empty;
+            _mainViewModel.Matches = new ObservableCollection<string>();
+        }
     }
 }

@@ -14,6 +14,7 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
     private List<(int Start, int Length, int ColorIndex)> _matchInfo = new();
     private MatchCollection? _matchCollection = null;
     public MatchCollection? MatchCollection => _matchCollection;
+    public Regex Regex => _regex;
 
     public RegexMatchColorizer(string pattern, RegexOptions options = RegexOptions.None)
     {
