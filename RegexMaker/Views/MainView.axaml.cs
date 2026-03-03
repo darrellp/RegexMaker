@@ -634,8 +634,22 @@ public partial class MainView : UserControl
     private void NodeSwitched(RgxNode? node)
     {
         _currentlySelectedNode = node;
-        // You may want to update the UI or ViewModel here as needed
-        // For example, clear or update parameter panels, etc.
+
+        if (_mainViewModel != null)
+        {
+            _mainViewModel.SelectNode(node, (rgxNode, newCount) =>
+            {
+                if (rgxNode is ConcatenateNode catNode)
+                {
+                    OnConcatenatePortCountChanged(catNode, newCount);
+                }
+                else if (rgxNode is AnyOfNode aoNode)
+                {
+                    OnAnyOfPortCountChanged(aoNode, newCount);
+                }
+                return () => { };
+            });
+        }
     }
 
     /// <summary>
