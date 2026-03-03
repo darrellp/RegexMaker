@@ -30,10 +30,19 @@
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
     </Style>
     <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
+        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
     </Style>
-    <Style Selector="CheckBox">
+    <Style Selector="CheckBox:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="CheckBox:unchecked">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="CheckBox:checked">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
     </Style>
     <Style Selector="ListBoxItem">
         <Setter Property="Padding" Value="2,0"/>
