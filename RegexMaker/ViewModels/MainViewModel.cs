@@ -80,6 +80,8 @@ public partial class MainViewModel : ViewModelBase
                 => new CharClassNodeViewModel(cc, RequestNodeDisplayUpdate),
             RgxNodeType.Named when node is NamedNode named
                 => new NamedNodeViewModel(named, RequestNodeDisplayUpdate),
+            RgxNodeType.AnyWordFrom when node is AnyWordFromNode awf
+                => new AnyWordFromNodeViewModel(awf, RequestNodeDisplayUpdate),
             _ => null
         };
 

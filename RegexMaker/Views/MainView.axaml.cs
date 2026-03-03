@@ -668,4 +668,17 @@ public partial class MainView : UserControl
         }
         return null;
     }
+
+    private void OnAnyWordFromTextBoxKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key == Avalonia.Input.Key.Return || e.Key == Avalonia.Input.Key.Enter)
+        {
+            if (_mainViewModel?.CurrentNodeViewModel is AnyWordFromNodeViewModel vm)
+            {
+                vm.AddWordCommand.Execute(null);
+                // Focus stays on TextBox since we just cleared it
+            }
+            e.Handled = true;
+        }
+    }
 }

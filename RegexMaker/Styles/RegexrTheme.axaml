@@ -55,5 +55,11 @@
         <Setter Property="Margin" Value="0"/>
         <Setter Property="MinHeight" Value="18"/>
     </Style>
+    <Style Selector="ListBox">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
 
 </Styles>

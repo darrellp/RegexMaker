@@ -15,6 +15,7 @@ public enum RgxNodeType
     CharClass,
     Named,
     Date,
+    AnyWordFrom,
 };
 
 public interface IRgxNode

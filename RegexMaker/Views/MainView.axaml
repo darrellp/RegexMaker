@@ -221,6 +221,25 @@
                 </StackPanel>
             </Border>
 
+            <!-- AnyWordFrom - Index 11 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
+                    <TextBlock Text="Any Word From" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Words to match:"/>
+                    <ListBox ItemsSource="{ReflectionBinding Words}" 
+                             SelectedItem="{ReflectionBinding SelectedWord}"
+                             Height="120"
+                             ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    <TextBox Text="{ReflectionBinding NewWord}" 
+                             Watermark="Enter new word"
+                             Name="AnyWordFromTextBox"
+                             KeyDown="OnAnyWordFromTextBoxKeyDown"/>
+                    <Button Content="Remove Selected" 
+                            Command="{ReflectionBinding RemoveWordCommand}"
+                            HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </Border>
+
         </Carousel>
     </Grid>
 </UserControl>
