@@ -16,6 +16,7 @@ public enum RgxNodeType
     Named,
     Date,
     AnyWordFrom,
+    BackReference,
 };
 
 public interface IRgxNode

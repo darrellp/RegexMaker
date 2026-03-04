@@ -117,6 +117,26 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
         }
     }
 
+    public override void Render(DrawingContext context)
+    {
+        if (IsSelected && SelectionBrush != null)
+        {
+            var baseRect = new Rect(-1, -1, _lastArrangedSize.Width + 2, _lastArrangedSize.Height + 2);
+            var rect = new RoundedRect(baseRect, new CornerRadius(5));
+            var pen = new Pen(SelectionBrush, SelectionBorderThickness);
+            context.DrawRectangle(null, pen, rect);
+
+            // Render all ports
+            RenderPorts(context, _leftPorts);
+            RenderPorts(context, _rightPorts);
+
+        }
+        else
+        {
+            base.Render(context);
+        }
+    }
+
     public void UpdateTextBlock()
     {
         if (_rgxNode != null)

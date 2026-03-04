@@ -226,10 +226,11 @@
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
                     <TextBlock Text="Any Word From" FontWeight="Bold" HorizontalAlignment="Center"/>
                     <TextBlock Text="Words to match:"/>
-                    <ListBox ItemsSource="{ReflectionBinding Words}" 
-                             SelectedItem="{ReflectionBinding SelectedWord}"
-                             Height="120"
-                             ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                    <Border Height="120" BorderBrush="Gray" BorderThickness="1">
+                        <ListBox ItemsSource="{ReflectionBinding Words}" 
+                                 SelectedItem="{ReflectionBinding SelectedWord}"
+                                 ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                    </Border>
                     <TextBox Text="{ReflectionBinding NewWord}" 
                              Watermark="Enter new word"
                              Name="AnyWordFromTextBox"
@@ -237,6 +238,21 @@
                     <Button Content="Remove Selected" 
                             Command="{ReflectionBinding RemoveWordCommand}"
                             HorizontalAlignment="Stretch"/>
+                </StackPanel>
+            </Border>
+
+            <!-- BackReference - Index 12 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
+                    <TextBlock Text="Back Reference" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Group Name:"/>
+                    <TextBox Text="{ReflectionBinding GroupName}" 
+                             Watermark="Enter group name"/>
+                    <TextBlock Text="References a previously captured group" 
+                               FontStyle="Italic" 
+                               HorizontalAlignment="Center"
+                               FontSize="10"
+                               TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 

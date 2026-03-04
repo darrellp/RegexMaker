@@ -16,11 +16,11 @@ public class DragCanvasNode : ContentControl
     private const double PortRadiusHover = 7.0;
     private const double PortSpacing = 20.0;
     private const double PortPadding = 10.0;
-    private const double SelectionBorderThickness = 2.0;
+    protected const double SelectionBorderThickness = 2.0;
     private const double DeletionBorderThickness = 3.0;
 
-    private readonly List<PortInfo> _leftPorts = new();
-    private readonly List<PortInfo> _rightPorts = new();
+    protected readonly List<PortInfo> _leftPorts = new();
+    protected readonly List<PortInfo> _rightPorts = new();
 
     // _leftConnections[i] is the list of connections for the port at index i on the left side.
     // Similarly for _rightConnections.
@@ -32,7 +32,7 @@ public class DragCanvasNode : ContentControl
     private int? _hoveredPortIndex;
     private PortSide? _hoveredPortSide;
     private Point _lastPointerPosition;
-    private Size _lastArrangedSize;
+    protected Size _lastArrangedSize;
     private bool _isPortDragInProgress;
     private bool _isAltHovered;
 
@@ -262,7 +262,6 @@ public class DragCanvasNode : ContentControl
         // Render deletion border if Alt key is held while hovering (takes priority)
         if (_isAltHovered)
         {
-            var radius = CornerRadius.TopLeft + 12;
             var rect = new Rect(0, 0, _lastArrangedSize.Width, _lastArrangedSize.Height);
             var pen = new Pen(Brushes.Red, DeletionBorderThickness);
             context.DrawRectangle(null, pen, rect);
@@ -280,7 +279,7 @@ public class DragCanvasNode : ContentControl
         RenderPorts(context, _rightPorts);
     }
 
-    private void RenderPorts(DrawingContext context, List<PortInfo> ports)
+    protected void RenderPorts(DrawingContext context, List<PortInfo> ports)
     {
         foreach (var port in ports)
         {
@@ -663,7 +662,7 @@ public class DragCanvasNode : ContentControl
         return null;
     }
 
-    private class PortInfo
+    protected class PortInfo
     {
         public Point Center { get; set; }
         public int Index { get; set; }

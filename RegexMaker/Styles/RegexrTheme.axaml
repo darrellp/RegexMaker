@@ -29,7 +29,7 @@
         <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
     </Style>
     <Style Selector="CheckBox:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushButtonHover}" />
     </Style>
     <Style Selector="CheckBox:unchecked">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
@@ -58,8 +58,6 @@
     <Style Selector="ListBox">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
         <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
-        <Setter Property="BorderThickness" Value="1"/>
     </Style>
 
 </Styles>

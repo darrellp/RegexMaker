@@ -82,6 +82,8 @@ public partial class MainViewModel : ViewModelBase
                 => new NamedNodeViewModel(named, RequestNodeDisplayUpdate),
             RgxNodeType.AnyWordFrom when node is AnyWordFromNode awf
                 => new AnyWordFromNodeViewModel(awf, RequestNodeDisplayUpdate),
+            RgxNodeType.BackReference when node is BackReferenceNode br
+                => new BackReferenceNodeViewModel(br, RequestNodeDisplayUpdate),
             _ => null
         };
 
