@@ -86,6 +86,8 @@ public partial class MainViewModel : ViewModelBase
                 => new BackReferenceNodeViewModel(br, RequestNodeDisplayUpdate),
             RgxNodeType.Numeric when node is NumericNode num
                 => new NumericNodeViewModel(num, RequestNodeDisplayUpdate),
+            RgxNodeType.Options when node is OptionsNode opt
+                => new OptionsNodeViewModel(opt, RequestNodeDisplayUpdate),
             _ => null
         };
 
