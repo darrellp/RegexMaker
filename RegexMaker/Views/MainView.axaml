@@ -17,8 +17,14 @@
             <Button Content="Load" Margin="5,2" Padding="10,2" Command="{Binding LoadCommand}" />
             <Button Content="Clear" Margin="5,2" Padding="10,2" Command="{Binding ClearCommand}" />
             <Button Content="Copy Regex" Margin="5,2" Padding="10,2" Command="{Binding CopyRegexCommand}" />
+            <Border Width="1" Background="Gray" Margin="5,4" />
+            <ToggleButton Content="CRLF" Margin="5,2" Padding="10,2"
+                          IsChecked="{Binding UseCrLf}"
+                          ToolTip.Tip="Toggle line endings: CRLF (\r\n) when pressed, LF (\n) when released" />
+            <ToggleButton Content="WS" Margin="5,2" Padding="10,2"
+                          IsChecked="{Binding ShowWhitespace}"
+                          ToolTip.Tip="Show/hide whitespace characters in the sample text editor" />
         </StackPanel>
-
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="5">
             <Grid RowDefinitions="*" ColumnDefinitions="*,200">
 

@@ -19,6 +19,18 @@ public partial class MainViewModel : ViewModelBase
     /// </summary>
     public event Action? NodeDisplayUpdateRequested;
 
+    /// <summary>
+    /// Raised when the line ending mode is toggled. The View subscribes to convert
+    /// the editor text between \r\n and \n.
+    /// </summary>
+    public event Action<bool>? LineEndingToggled;
+
+    /// <summary>
+    /// Raised when the show whitespace toggle changes. The View subscribes to update
+    /// the AvaloniaEdit editor options.
+    /// </summary>
+    public event Action<bool>? ShowWhitespaceToggled;
+
     [ObservableProperty]
     private string _regexPattern = string.Empty;
 
@@ -34,8 +46,24 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<string> _matches = new();
 
+    [ObservableProperty]
+    private bool _useCrLf = true;
+
+    [ObservableProperty]
+    private bool _showWhitespace;
+
     private RgxNode? _currentlySelectedNode;
     private object? _currentViewModelBacking;
+
+    partial void OnUseCrLfChanged(bool value)
+    {
+        LineEndingToggled?.Invoke(value);
+    }
+
+    partial void OnShowWhitespaceChanged(bool value)
+    {
+        ShowWhitespaceToggled?.Invoke(value);
+    }
 
     /// <summary>
     /// Switches the active node selection — creates the appropriate ViewModel

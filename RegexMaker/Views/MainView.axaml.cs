@@ -28,6 +28,7 @@ public partial class MainView : UserControl
     private object? _currentViewModel;
     private MainViewModel? _mainViewModel;
     private RegexMatchColorizer _colorizer;
+    private WhitespaceMatchBackgroundRenderer? _whitespaceRenderer;
 
     public MainView()
     {
@@ -122,6 +123,8 @@ public partial class MainView : UserControl
             _mainViewModel.LoadRequested -= OnLoadRequested;
             _mainViewModel.ClearRequested -= OnClearRequested;
             _mainViewModel.CopyRegexRequested -= OnCopyRegexRequested;
+            _mainViewModel.LineEndingToggled -= OnLineEndingToggled;
+            _mainViewModel.ShowWhitespaceToggled -= OnShowWhitespaceToggled;
         }
 
         // Subscribe to new view model
@@ -132,6 +135,8 @@ public partial class MainView : UserControl
             _mainViewModel.LoadRequested += OnLoadRequested;
             _mainViewModel.ClearRequested += OnClearRequested;
             _mainViewModel.CopyRegexRequested += OnCopyRegexRequested;
+            _mainViewModel.LineEndingToggled += OnLineEndingToggled;
+            _mainViewModel.ShowWhitespaceToggled += OnShowWhitespaceToggled;
 
             _mainViewModel.PropertyChanged += (s, e) =>
             {
@@ -141,6 +146,14 @@ public partial class MainView : UserControl
                     _colorizer = new RegexMatchColorizer(_mainViewModel.RegexPattern);
                     SampleTextEditor.TextArea.TextView.LineTransformers.Clear();
                     SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
+
+                    // Ensure background renderer exists for whitespace highlighting
+                    if (_whitespaceRenderer == null)
+                    {
+                        _whitespaceRenderer = new WhitespaceMatchBackgroundRenderer();
+                        SampleTextEditor.TextArea.TextView.BackgroundRenderers.Add(_whitespaceRenderer);
+                    }
+
                     UpdateRegexHighlights();
                 }
             };
@@ -601,6 +614,10 @@ public partial class MainView : UserControl
 
         string text = SampleTextEditor.Text;
         _colorizer.UpdateMatches(text);
+
+        // Sync match info to the background renderer so whitespace glyphs get highlighted
+        _whitespaceRenderer?.UpdateMatches(_colorizer.MatchInfo);
+
         RetrieveMatchData();
 
         // Force the editor to redraw so highlights update
@@ -680,5 +697,41 @@ public partial class MainView : UserControl
             }
             e.Handled = true;
         }
+    }
+
+    // Add these two methods to handle the LineEndingToggled and ShowWhitespaceToggled events
+
+    private void OnLineEndingToggled(bool useCrLf)
+    {
+        if (SampleTextEditor?.Document == null)
+            return;
+
+        var text = SampleTextEditor.Text;
+        if (useCrLf)
+        {
+            // Convert LF to CRLF (avoid doubling existing CRLF)
+            text = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        }
+        else
+        {
+            // Convert CRLF to LF
+            text = text.Replace("\r\n", "\n");
+        }
+
+        SampleTextEditor.Text = text;
+        UpdateRegexHighlights();
+    }
+
+    private void OnShowWhitespaceToggled(bool showWhitespace)
+    {
+        if (SampleTextEditor == null)
+            return;
+
+        SampleTextEditor.Options.ShowSpaces = showWhitespace;
+        SampleTextEditor.Options.ShowTabs = showWhitespace;
+        SampleTextEditor.Options.ShowEndOfLine = showWhitespace;
+
+        // Force redraw to reflect the change
+        SampleTextEditor.TextArea.TextView.Redraw();
     }
 }

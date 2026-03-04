@@ -16,6 +16,11 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
     public MatchCollection? MatchCollection => _matchCollection;
     public Regex Regex => _regex;
 
+    /// <summary>
+    /// Exposes match info so a background renderer can draw highlights behind whitespace glyphs.
+    /// </summary>
+    public List<(int Start, int Length, int ColorIndex)> MatchInfo => _matchInfo;
+
     public RegexMatchColorizer(string pattern, RegexOptions options = RegexOptions.None)
     {
         try

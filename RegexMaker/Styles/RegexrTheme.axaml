@@ -1,4 +1,4 @@
-<Styles xmlns="https://github.com/avaloniaui"
+  <Styles xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style Selector="UserControl">
@@ -48,6 +48,25 @@
     </Style>
     <Style Selector="RadioButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Foreground" Value="{DynamicResource BrushButtonHover}" />
+    </Style>
+
+    <!-- ToggleButton styles -->
+    <Style Selector="ToggleButton">
+        <Setter Property="Background" Value="{DynamicResource BrushButton}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+        <Setter Property="FontFamily" Value="{DynamicResource FontUI}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}" />
+    </Style>
+    <Style Selector="ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushAccent}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="ToggleButton:unchecked /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushButton}" />
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="ToggleButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushButtonHover}" />
     </Style>
 
     <Style Selector="ComboBox">
