@@ -407,11 +407,11 @@ namespace RegexStringLibrary
             // Performing regex replacements on our regex string!  Kinky!
             string strSingleDate2 = Regex.Replace(strSingleDate, strTags, "$&2");
             return Cat(
-                    Begin,
+                    //Begin,
                     fAllowBetween ? (strBetween + " ").Optional() : string.Empty,
                     strSingleDate,
-                    fAllowBetween ? "betweenPrefix".If(" AND " + strSingleDate2) : string.Empty,
-                    End)
+                    fAllowBetween ? "betweenPrefix".If(" AND " + strSingleDate2) : string.Empty//,
+                    )//End)
                 .CaseSensitive(false);
         }
         #endregion

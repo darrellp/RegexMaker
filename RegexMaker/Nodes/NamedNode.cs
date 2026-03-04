@@ -1,6 +1,7 @@
 ﻿using RegexStringLibrary;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace RegexMaker.Nodes;
 
@@ -21,6 +22,11 @@ public class NamedNode : RgxNode
     // This should just calculate.  Caching is done by 
     internal override string CalculateResult()
     {
+        if (Parameters == null || Parameters.Count == 0 || Parameters[0] == null)
+        {
+            Debug.WriteLine("Warning: NamedNode has no parameters. Returning empty string.");
+            return String.Empty;
+        }
         return (Parameters[0] == null ? "" : Parameters[0]!.ProduceResult()).Named(GroupName);
     }
 
