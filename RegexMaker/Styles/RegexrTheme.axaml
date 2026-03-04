@@ -40,6 +40,16 @@
     <Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
         <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
     </Style>
+    <Style Selector="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="RadioButton:unchecked /template/ Ellipse#OuterEllipse">
+        <Setter Property="Stroke" Value="{DynamicResource BrushText}" />
+    </Style>
+    <Style Selector="RadioButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource BrushButtonHover}" />
+    </Style>
+
     <Style Selector="ComboBox">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
         <Setter Property="Background" Value="{DynamicResource BrushBackground}" />

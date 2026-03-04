@@ -256,6 +256,20 @@
                 </StackPanel>
             </Border>
 
+            <!-- Numeric - Index 13 -->
+            <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
+                    <TextBlock Text="Numeric" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Match Type:"/>
+                    <RadioButton Content="Integer" GroupName="NumericType"
+                                 IsChecked="{ReflectionBinding IsInteger, Mode=TwoWay}" />
+                    <RadioButton Content="Unsigned" GroupName="NumericType"
+                                 IsChecked="{ReflectionBinding IsUnsigned, Mode=TwoWay}" />
+                    <RadioButton Content="Float" GroupName="NumericType"
+                                 IsChecked="{ReflectionBinding IsFloat, Mode=TwoWay}" />
+                </StackPanel>
+            </Border>
+
         </Carousel>
     </Grid>
 </UserControl>
