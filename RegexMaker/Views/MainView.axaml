@@ -52,8 +52,11 @@
         <!--
         This Border at the bottom is intended to display the generated regex pattern.
         -->
-        <Border Height="20" Background="{DynamicResource BrushBackground}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" >
-            <TextBlock Name="TxtRegex" VerticalAlignment="Center" Text="{Binding RegexPattern}"/>
+        <Border Height="20" 
+                CornerRadius="8"
+                BorderBrush="{DynamicResource BrushText}" BorderThickness="1"
+                Background="{DynamicResource BrushBackground}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" >
+            <TextBlock Name="TxtRegex" Margin="2" VerticalAlignment="Center" Text="{Binding RegexPattern}"/>
         </Border>
 
         <!-- 
