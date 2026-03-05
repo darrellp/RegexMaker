@@ -60,6 +60,34 @@ public class CharClassNode : RgxNode
         };
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+        
+        var code = CharClass switch {
+            CharClassType.WildCard => ".",
+            CharClassType.WhiteSpace => "Stex.White",
+            CharClassType.Digit => "Stex.Digit",
+            CharClassType.NonDigit => "Stex.NonDigit",
+            CharClassType.WordChar => "Stex.WordChar",
+            CharClassType.NonWordChar => "Stex.NonWordChar",
+            CharClassType.WordBoundary => "Stex.WordBoundary",
+            CharClassType.NonWordBoundary => "Stex.NonWordBoundary",
+            CharClassType.Letter => "Stex.Letter",
+            CharClassType.CapLetter => "Stex.CapLetter",
+            CharClassType.LowerLetter => "Stex.LowerLetter",
+            CharClassType.AlphaNumeric => "Stex.Alphanum",
+            CharClassType.Start => "Stex.Begin",
+            CharClassType.End => "Stex.End",
+            _ => string.Empty
+        };
+
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {
         base.AddSerializationData(data);

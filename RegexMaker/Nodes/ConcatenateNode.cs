@@ -1,6 +1,9 @@
-﻿using Avalonia;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using Avalonia;
 using RegexStringLibrary;
 using System.Linq;
+using System.Text;
 
 namespace RegexMaker.Nodes;
 public class ConcatenateNode : RgxNode
@@ -14,6 +17,7 @@ public class ConcatenateNode : RgxNode
     }
 
     public ConcatenateNode(params IRgxNode[] parameters) : base(RgxNodeType.Concatenate, parameters) { }
+    
     internal override string CalculateResult()
     {
         // Concatenate the results of all parameter nodes.
@@ -29,5 +33,37 @@ public class ConcatenateNode : RgxNode
     public override IRgxNode Default()
     {
         return new ConcatenateNode();
+    }
+
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+        var inputList = new List<string>();
+        foreach (var irgx in Parameters)
+        {
+            if (irgx is null)
+            {
+                continue;
+            }
+            var node = irgx as RgxNode;
+            if (node is null)
+            {
+                continue;
+            }
+
+            var insert = node is LiteralNode literal ? literal.SearchString : node.VariableName;
+            if (insert is null)
+            {
+                node.CheckRename(cc, true);
+                insert = node.VariableName;
+            }
+            inputList.Add(insert);
+        }
+        
+        var code = $"Stex.Cat({string.Join(", ", inputList)})";
+        return (CheckRename(cc) ? VariableName : code)!;
     }
 }

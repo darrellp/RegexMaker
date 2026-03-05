@@ -48,6 +48,17 @@ public class LiteralNode : RgxNode
 
     public override string Name => "Literal";
     public override string DisplayName => $"\"{(AutoEscape ? AutoEscapeString(SearchString) : SearchString)}\"";
+    
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+        var code = $"\"{SearchString}\"";
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
 
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {

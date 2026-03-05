@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
 
 namespace RegexMaker.Nodes;
 
-// The strategy for gathering up code here is in two parts.  One part is that nodes gather up code
+// The strategy for gathering code here is in two parts.  One part is that nodes gather code
 // from their parameters and put it together in whatever way makes sense for that node using Stex.
 // This produces a string which is either a single variable name if the node produced code that was
 // stored in a variable or the stex code to produce the proper result based on what came from
@@ -15,24 +13,16 @@ namespace RegexMaker.Nodes;
 // avoid recalculation on those nodes.  The nodes themselves determine this and return either code
 // or a variable name.
 
-public class CodeCollector
+public class CodeCollector(RgxNode node)
 {
-    private List<string> _codeLines;
-    private readonly RgxNode _baseNode;
+    private List<string> _codeLines = [];
     private static int _varCounter;
     
-    public string Result { get; private set; }
+    public string Result { get; private set; } = "";
 
-    public CodeCollector(RgxNode node)
+    public string NextVariable(string baseName)
     {
-        _baseNode = node;
-        _codeLines = [];
-        Result = "";
-    }
-
-    public string NextVariable()
-    {
-        return $"__var__{_varCounter++}";
+        return $"__{baseName}__{_varCounter++}";
     }
 
     public void AddCode(string varName, string code)
@@ -44,8 +34,8 @@ public class CodeCollector
     {
         _varCounter = 0;
         _codeLines = [];
-        _baseNode.InitializeForCode();
-        var result = _baseNode.Code(this);
+        node.InitializeForCode();
+        var result = node.Code(this);
 
         var sb = new StringBuilder();
         foreach (var line in _codeLines)

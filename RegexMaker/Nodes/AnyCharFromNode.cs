@@ -53,6 +53,20 @@ public class AnyCharFromNode : RgxNode
         return new AnyCharFromNode();
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+
+        // We're just going to calculate the result and put it in directly on the assumption that
+        // calculating the input for this is way more complicated than the final output.
+        var code = $"\"{CalculateResult()}\"";
+
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {
         base.AddSerializationData(data);

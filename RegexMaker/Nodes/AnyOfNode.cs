@@ -1,4 +1,5 @@
-﻿using RegexStringLibrary;
+﻿using System.Collections.Generic;
+using RegexStringLibrary;
 using System.Linq;
 
 namespace RegexMaker.Nodes;
@@ -10,8 +11,9 @@ public class AnyOfNode : RgxNode
     {
         Parameters = [null, null];
     }
+    public AnyOfNode(params IRgxNode[] parameters) : base(RgxNodeType.Concatenate, parameters) { }
 
-    // This should just calculate.  Caching is done by 
+    // This should just calculate.  Caching is done by RgxNode
     internal override string CalculateResult()
     {
         // Concatenate the results of all parameter nodes.
@@ -31,5 +33,36 @@ public class AnyOfNode : RgxNode
         return new AnyOfNode();
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+        var inputList = new List<string>();
+        foreach (var irgx in Parameters)
+        {
+            if (irgx is null)
+            {
+                continue;
+            }
+            var node = irgx as RgxNode;
+            if (node is null)
+            {
+                continue;
+            }
+
+            var insert = node is LiteralNode literal ? literal.SearchString : node.VariableName;
+            if (insert is null)
+            {
+                node.CheckRename(cc, true);
+                insert = node.VariableName;
+            }
+            inputList.Add(insert);
+        }
+        
+        var code = $"Stex.AnyOf({string.Join(", ", inputList)})";
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
     // DisplayName will default to "AnyOf" so we don't need to override.
 }

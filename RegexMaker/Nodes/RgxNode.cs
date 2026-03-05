@@ -72,7 +72,27 @@ public abstract class RgxNode : IRgxNode
             }
         }
     }
-    
+
+    internal bool CheckRename(CodeCollector cc, bool fForce = false)
+    {
+        // We can't have fForce being true when we've already got a Variable name
+        Debug.Assert(!(fForce && VariableName is not null));
+        if ((VariableName != null || Parents.Count <= 1) && !fForce)
+        {
+            return false;
+        }
+        var variableBaseName = this.GetType().Name;
+        if (variableBaseName.EndsWith("Node"))
+        {
+            variableBaseName = variableBaseName.Remove(variableBaseName.Length - "Node".Length);
+        }
+
+        var code = Code(cc);
+        VariableName = cc.NextVariable(variableBaseName);
+        cc.AddCode(VariableName, code);
+        return true;
+    }
+
     public virtual string Code(CodeCollector cc)
     {
         return $"DEBUG ERROR: No Code for {DisplayName}";
