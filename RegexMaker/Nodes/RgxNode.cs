@@ -87,13 +87,24 @@ public abstract class RgxNode : IRgxNode
             variableBaseName = variableBaseName.Remove(variableBaseName.Length - "Node".Length);
         }
 
-        var code = Code(cc);
+        var code = RawCode(cc);
         VariableName = cc.NextVariable(variableBaseName);
         cc.AddCode(VariableName, code);
         return true;
     }
 
     public virtual string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+
+        var code = RawCode(cc);
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
+    public virtual string RawCode(CodeCollector cc)
     {
         return $"DEBUG ERROR: No Code for {DisplayName}";
     }

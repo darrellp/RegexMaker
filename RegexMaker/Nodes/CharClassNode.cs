@@ -60,14 +60,9 @@ public class CharClassNode : RgxNode
         };
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-        
-        var code = CharClass switch {
+        return CharClass switch {
             CharClassType.WildCard => ".",
             CharClassType.WhiteSpace => "Stex.White",
             CharClassType.Digit => "Stex.Digit",
@@ -84,8 +79,6 @@ public class CharClassNode : RgxNode
             CharClassType.End => "Stex.End",
             _ => string.Empty
         };
-
-        return (CheckRename(cc) ? VariableName : code)!;
     }
 
     protected override void AddSerializationData(Dictionary<string, object?> data)

@@ -12,6 +12,7 @@ public partial class MainViewModel : ViewModelBase
     public event EventHandler<LoadRequestedEventArgs>? LoadRequested;
     public event EventHandler? ClearRequested;
     public event EventHandler<CopyRegexRequestedEventArgs>? CopyRegexRequested;
+    public event EventHandler<ShowCodeRequestedEventArgs>? ShowCodeRequested;
 
     /// <summary>
     /// Raised when the node display needs to be refreshed (e.g., after a property change).
@@ -158,6 +159,17 @@ public partial class MainViewModel : ViewModelBase
             return;
         CopyRegexRequested?.Invoke(this, new CopyRegexRequestedEventArgs(RegexPattern));
     }
+
+    [RelayCommand]
+    private void ShowCode()
+    {
+        if (_currentlySelectedNode == null)
+            return;
+
+        var cc = new CodeCollector(_currentlySelectedNode);
+        cc.GatherCode();
+        ShowCodeRequested?.Invoke(this, new ShowCodeRequestedEventArgs(cc.Result));
+    }
 }
 
 public class SaveRequestedEventArgs : EventArgs
@@ -175,6 +187,16 @@ public class CopyRegexRequestedEventArgs : EventArgs
     public CopyRegexRequestedEventArgs(string regexPattern)
     {
         RegexPattern = regexPattern;
+    }
+}
+
+public class ShowCodeRequestedEventArgs : EventArgs
+{
+    public string Code { get; }
+
+    public ShowCodeRequestedEventArgs(string code)
+    {
+        Code = code;
     }
 }
 

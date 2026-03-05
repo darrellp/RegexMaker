@@ -61,13 +61,8 @@ public class RepeatNode : RgxNode
         return new RepeatNode();
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-
         var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "\"\"";
 
         var lazyArg = IsLazy ? ", true" : "";
@@ -81,7 +76,7 @@ public class RepeatNode : RgxNode
             (var least, var most) => $"{input}.Rep({least}, {most}{lazyArg})"
         };
 
-        return (CheckRename(cc) ? VariableName : repCode)!;
+        return repCode!;
     }
 
     public override string DisplayName

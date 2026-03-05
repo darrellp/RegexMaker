@@ -27,7 +27,7 @@ public class CodeCollector(RgxNode node)
 
     public void AddCode(string varName, string code)
     {
-        _codeLines.Add($"{varName} = {code};");
+        _codeLines.Add($"var {varName} = {code};");
     }
 
     public void GatherCode()
@@ -42,7 +42,7 @@ public class CodeCollector(RgxNode node)
         {
             sb.AppendLine(line);
         }
-        sb.AppendLine($"var Result = {result};");
+        sb.AppendLine($"var result = {result};");
         Result = sb.ToString();
     }
 }

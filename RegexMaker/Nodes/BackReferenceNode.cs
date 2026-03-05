@@ -49,18 +49,11 @@ public class BackReferenceNode : RgxNode
         return new BackReferenceNode();
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-
-        var code = Int32.TryParse(GroupName, out int groupNumber)
+        return Int32.TryParse(GroupName, out int groupNumber)
             ? $"Stex.BRef({groupNumber})"
             : $@"Stex.BRef(""{GroupName}"")";
-
-        return (CheckRename(cc) ? VariableName : code)!;
     }
 
     protected override void AddSerializationData(Dictionary<string, object?> data)

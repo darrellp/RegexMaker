@@ -70,13 +70,8 @@ public class OptionsNode : RgxNode
         }
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-
         var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "\"\"";
 
         var code = input;
@@ -89,7 +84,7 @@ public class OptionsNode : RgxNode
             code = $"{code}.Multiline({(MultilineState == TriState.On ? "true" : "false")})";
         }
 
-        return (CheckRename(cc) ? VariableName : code)!;
+        return code;
     }
 
     protected override void AddSerializationData(Dictionary<string, object?> data)

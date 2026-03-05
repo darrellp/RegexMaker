@@ -56,22 +56,15 @@ public class NumericNode : RgxNode
 
     public override string DisplayName => NumericType.ToString();
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-        
-        var code = NumericType switch
+        return NumericType switch
         {
             NumericType.Integer => "Stex.Integer()",
             NumericType.Unsigned => "Stex.UnsignedInteger()",
             NumericType.Float => "Stex.Float()",
             _ => string.Empty
         };
-
-        return (CheckRename(cc) ? VariableName : code)!;
     }
 
     protected override void AddSerializationData(Dictionary<string, object?> data)

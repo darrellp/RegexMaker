@@ -33,7 +33,7 @@ public class AnyOfNode : RgxNode
         return new AnyOfNode();
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
         if (VariableName != null)
         {
@@ -52,7 +52,13 @@ public class AnyOfNode : RgxNode
                 continue;
             }
 
-            var insert = node is LiteralNode literal ? literal.SearchString : node.VariableName;
+
+            var insert = node switch
+            {
+                LiteralNode literal => $"\"{literal.SearchString}\"",
+                NamedNode named => named.Code(cc),
+                _ => node.VariableName
+            };
             if (insert is null)
             {
                 node.CheckRename(cc, true);
@@ -62,7 +68,7 @@ public class AnyOfNode : RgxNode
         }
         
         var code = $"Stex.AnyOf({string.Join(", ", inputList)})";
-        return (CheckRename(cc) ? VariableName : code)!;
+        return code;
     }
     // DisplayName will default to "AnyOf" so we don't need to override.
 }

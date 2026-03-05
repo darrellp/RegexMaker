@@ -124,6 +124,7 @@ public partial class MainView : UserControl
             _mainViewModel.LoadRequested -= OnLoadRequested;
             _mainViewModel.ClearRequested -= OnClearRequested;
             _mainViewModel.CopyRegexRequested -= OnCopyRegexRequested;
+            _mainViewModel.ShowCodeRequested -= OnShowCodeRequested;
             _mainViewModel.LineEndingToggled -= OnLineEndingToggled;
             _mainViewModel.ShowWhitespaceToggled -= OnShowWhitespaceToggled;
         }
@@ -136,6 +137,7 @@ public partial class MainView : UserControl
             _mainViewModel.LoadRequested += OnLoadRequested;
             _mainViewModel.ClearRequested += OnClearRequested;
             _mainViewModel.CopyRegexRequested += OnCopyRegexRequested;
+            _mainViewModel.ShowCodeRequested += OnShowCodeRequested;
             _mainViewModel.LineEndingToggled += OnLineEndingToggled;
             _mainViewModel.ShowWhitespaceToggled += OnShowWhitespaceToggled;
 
@@ -605,6 +607,20 @@ public partial class MainView : UserControl
         if (topLevel?.Clipboard != null)
         {
             await topLevel.Clipboard.SetTextAsync(e.RegexPattern);
+        }
+    }
+
+    private void OnShowCodeRequested(object? sender, ShowCodeRequestedEventArgs e)
+    {
+        var codeWindow = new CodeWindow(e.Code);
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel is Window ownerWindow)
+        {
+            codeWindow.Show(ownerWindow);
+        }
+        else
+        {
+            codeWindow.Show();
         }
     }
 

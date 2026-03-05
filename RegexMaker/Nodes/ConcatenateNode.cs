@@ -35,12 +35,8 @@ public class ConcatenateNode : RgxNode
         return new ConcatenateNode();
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
         var inputList = new List<string>();
         foreach (var irgx in Parameters)
         {
@@ -54,7 +50,12 @@ public class ConcatenateNode : RgxNode
                 continue;
             }
 
-            var insert = node is LiteralNode literal ? literal.SearchString : node.VariableName;
+            var insert = node switch
+            {
+                LiteralNode literal => $"\"{literal.SearchString}\"",
+                NamedNode named => named.Code(cc),
+                _ => node.VariableName
+            };
             if (insert is null)
             {
                 node.CheckRename(cc, true);
@@ -63,7 +64,6 @@ public class ConcatenateNode : RgxNode
             inputList.Add(insert);
         }
         
-        var code = $"Stex.Cat({string.Join(", ", inputList)})";
-        return (CheckRename(cc) ? VariableName : code)!;
+        return $"Stex.Cat({string.Join(", ", inputList)})";
     }
 }

@@ -58,17 +58,10 @@ public class AnyWordFromNode : RgxNode
         return new AnyWordFromNode();
     }
 
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-
         var quotedWords = Words.Select(w => $@"""{w}""");
-        var code = $"Stex.AnyOf({string.Join(", ", quotedWords)})";
-
-        return (CheckRename(cc) ? VariableName : code)!;
+        return $"Stex.AnyOf({string.Join(", ", quotedWords)})";
     }
 
     protected override void AddSerializationData(Dictionary<string, object?> data)

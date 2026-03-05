@@ -49,14 +49,9 @@ public class LiteralNode : RgxNode
     public override string Name => "Literal";
     public override string DisplayName => $"\"{(AutoEscape ? AutoEscapeString(SearchString) : SearchString)}\"";
     
-    public override string Code(CodeCollector cc)
+    public override string RawCode(CodeCollector cc)
     {
-        if (VariableName != null)
-        {
-            return VariableName;
-        }
-        var code = $"\"{SearchString}\"";
-        return (CheckRename(cc) ? VariableName : code)!;
+        return $"\"{SearchString}\"";
     }
 
 

@@ -17,6 +17,7 @@
             <Button Content="Load" Margin="5,2" Padding="10,2" Command="{Binding LoadCommand}" />
             <Button Content="Clear" Margin="5,2" Padding="10,2" Command="{Binding ClearCommand}" />
             <Button Content="Copy Regex" Margin="5,2" Padding="10,2" Command="{Binding CopyRegexCommand}" />
+            <Button Content="Code" Margin="5,2" Padding="10,2" Command="{Binding ShowCodeCommand}" />
             <Border Width="1" Background="Gray" Margin="5,4" />
             <ToggleButton Content="CRLF" Margin="5,2" Padding="10,2"
                           IsChecked="{Binding UseCrLf}"
