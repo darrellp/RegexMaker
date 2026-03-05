@@ -70,6 +70,28 @@ public class OptionsNode : RgxNode
         }
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+
+        var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "\"\"";
+
+        var code = input;
+        if (CaseSensitiveState != TriState.Dflt)
+        {
+            code = $"{code}.CaseSensitive({(CaseSensitiveState == TriState.On ? "true" : "false")})";
+        }
+        if (MultilineState != TriState.Dflt)
+        {
+            code = $"{code}.Multiline({(MultilineState == TriState.On ? "true" : "false")})";
+        }
+
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {
         base.AddSerializationData(data);

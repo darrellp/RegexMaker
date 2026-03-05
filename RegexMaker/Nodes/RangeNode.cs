@@ -49,6 +49,18 @@ public class RangeNode : RgxNode
         return new RangeNode();
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+
+        var code = $@"Stex.Range(""{CharStart}"", ""{CharEnd}"")";
+
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {
         base.AddSerializationData(data);

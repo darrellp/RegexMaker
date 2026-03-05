@@ -39,6 +39,18 @@ public class DateNode : RgxNode
         return new DateNode();
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+
+        var code = IsAmerican ? "Stex.DateAmerican" : "Stex.DateEuropean";
+
+        return (CheckRename(cc) ? VariableName : code)!;
+    }
+
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {
         base.AddSerializationData(data);

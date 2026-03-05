@@ -60,6 +60,30 @@ public class RepeatNode : RgxNode
     {
         return new RepeatNode();
     }
+
+    public override string Code(CodeCollector cc)
+    {
+        if (VariableName != null)
+        {
+            return VariableName;
+        }
+
+        var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "\"\"";
+
+        var lazyArg = IsLazy ? ", true" : "";
+        var repCode = (Least, Most) switch
+        {
+            (0, 1) => $"{input}.Rep(0, 1{lazyArg})",
+            (0, -1) => $"{input}.Rep(0, -1{lazyArg})",
+            (1, -1) => $"{input}.Rep(1, -1{lazyArg})",
+            (var least, -1) => $"{input}.Rep({least}, -1{lazyArg})",
+            (var least, var most) when least == most => $"{input}.Rep({least}, {most}{lazyArg})",
+            (var least, var most) => $"{input}.Rep({least}, {most}{lazyArg})"
+        };
+
+        return (CheckRename(cc) ? VariableName : repCode)!;
+    }
+
     public override string DisplayName
     {
         get
