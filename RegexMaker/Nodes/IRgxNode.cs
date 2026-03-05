@@ -25,7 +25,7 @@ public interface IRgxNode
 {
     public int ID { get; }
     public RgxNodeType NodeType { get; }
-    public IList<IRgxNode> Parameters { get; }
+    public IList<IRgxNode?> Parameters { get; }
     public string Name { get; }
 
     // This method is responsible for producing the result of the node based on its type and parameters.

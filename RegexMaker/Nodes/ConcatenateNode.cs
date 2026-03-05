@@ -23,7 +23,7 @@ public class ConcatenateNode : RgxNode
     override public string RandomMatch()
     {
         // Concatenate the random matches of all parameter nodes.
-        return string.Concat(Parameters.Select(p => p.RandomMatch()));
+        return string.Concat(Parameters.Select(p => p?.RandomMatch()??string.Empty));
     }
 
     public override IRgxNode Default()

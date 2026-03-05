@@ -21,7 +21,7 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
     /// </summary>
     public List<(int Start, int Length, int ColorIndex)> MatchInfo => _matchInfo;
 
-    public RegexMatchColorizer(string pattern, RegexOptions options = RegexOptions.None)
+    public RegexMatchColorizer(string pattern = "", RegexOptions options = RegexOptions.None)
     {
         try
         {

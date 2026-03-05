@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace RegexMaker.Nodes;
@@ -17,6 +18,7 @@ public class LiteralNode : RgxNode
         : base(RgxNodeType.StringSearch)
     {
         SearchString = string.Empty;
+        Debug.Assert(_searchString != null);
         AutoEscape = true;
     }
 

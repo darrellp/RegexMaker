@@ -33,6 +33,7 @@ public partial class MainView : UserControl
     public MainView()
     {
         InitializeComponent();
+        _colorizer = new();
 
         // Handle DataContext changes
         DataContextChanged += OnDataContextChanged;

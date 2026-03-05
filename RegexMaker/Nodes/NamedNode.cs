@@ -53,6 +53,15 @@ public class NamedNode : RgxNode
         }
     }
 
+    public override string Code(CodeCollector cc)
+    {
+        VariableName = GroupName == string.Empty ? cc.NextVariable() : GroupName;
+        var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "";
+        var code = $"{input}.Named(\"{VariableName}\")";
+        cc.AddCode(VariableName, code);
+        return VariableName;
+    }
+
     protected override void AddSerializationData(Dictionary<string, object?> data)
     {
         base.AddSerializationData(data);

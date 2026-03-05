@@ -11,6 +11,8 @@ namespace RegexMaker.Nodes;
 public abstract class RgxNode : IRgxNode
 {
     public static Random random = new();
+    
+    public string? VariableName { get; set; }
 
     private static int _idCounter = 0;
     public int ID { get; private set; }
@@ -25,6 +27,15 @@ public abstract class RgxNode : IRgxNode
 
     private string? _cachedResult;
 
+    public void InitializeForCode()
+    {
+        VariableName = null;
+        foreach (var parameter in Parameters)
+        {
+            (parameter as RgxNode)?.InitializeForCode();
+        }
+    }
+    
     internal static List<RgxNode> Exemplars { get; private set; }
 
     static RgxNode()
@@ -61,6 +72,12 @@ public abstract class RgxNode : IRgxNode
             }
         }
     }
+    
+    public virtual string Code(CodeCollector cc)
+    {
+        return $"DEBUG ERROR: No Code for {DisplayName}";
+    }
+    
 
     private string NameFromType()
     {
