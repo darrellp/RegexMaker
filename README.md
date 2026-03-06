@@ -1,5 +1,5 @@
 # RegexMaker
-![Screenshot](RegexMaker Screenshot.png)
+![Screenshot](.\RegexMaker Screenshot.png)
 
 ## What does it do?
 RegexMaker produces a visual programming drag/drop screen which allows setting up nodes which take in patterns and produce patterns.  
