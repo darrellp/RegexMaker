@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		Directory.Packages.props = Directory.Packages.props
 		README.md = README.md
+		RegexMaker Screenshot.png = RegexMaker Screenshot.png
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Avalonia.DragCanvas", "Avalonia.DragCanvas\Avalonia.DragCanvas.csproj", "{44BA7F10-B227-2AF8-1EEF-C9E3A4DE2A89}"
