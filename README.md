@@ -26,9 +26,7 @@ Concatenate and AnyOf node in their parameter pane.
 ### Other Functionality
 It also has a way to produce random strings based on the nodes.  Not precisely sure how this might be useful but it seemed
 easy enough to do that I wanted to get it in early so it will be easy to implement in each node type.  I suppose it might
-be handy to generate test cases ala Bogus.  Perhaps in conjunction with bogus.  Might be fun for producing random nonsense also. Save/Load will save and load the network to a file.
-The CR/LF button is a toggle which, when pressed, causes line breaks to be represented by "CR/LF".  Otherwise they are represented by
-a single '\n'.  The WS key will display white space in the sample text window.
+be handy to generate test cases ala Bogus.  Perhaps in conjunction with bogus.  Might be fun for producing random nonsense also.
 
 There are Save/Load buttons to save and load the network to a file.
 The CR/LF button is a toggle which, when pressed, causes line breaks to be represented by "CR/LF" rather than a single \n.
@@ -80,8 +78,8 @@ Personally, I think this is about as readable as you're going to find such a com
 I find the code far easier to deal with.
 
 ### Visual Programming Control
-It includes as a separate project a control to allow visual programming - i.e., nodes with ports which can be connected to each other.  
-This is used in the main RegexMaker project but it is a separate project so it can be used in other projects as well. It is not specific 
+It includes as an independent project a control to allow visual programming - i.e., nodes with ports which can be connected to each other.  
+This is used in the main RegexMaker project but it is a separate project so it can be used in other projects/applications as well. It is not specific 
 to regexes at all and could be used for any sort of visual programming. 
 It has a lot of functionality built in such as dragging nodes from a toolbox, 
 dragging from port to port to connect nodes, selecting nodes to show parameters, etc.  
