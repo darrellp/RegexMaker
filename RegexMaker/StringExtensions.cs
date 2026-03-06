@@ -177,6 +177,7 @@ namespace RegexStringLibrary
             public DateInfo()
             {
                 Date1 = DateUninitialized;
+                Prefix1 = Prefix2 = Suffix1 = Suffix2 = string.Empty;
             }
             public bool Initialized()
             {

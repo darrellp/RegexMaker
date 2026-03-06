@@ -21,6 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+    <ProjectReference Include="..\RegexMaker.iOS\RegexMaker.iOS.csproj" />
     <ProjectReference Include="..\RegexMaker\RegexMaker.csproj" />
   </ItemGroup>
 

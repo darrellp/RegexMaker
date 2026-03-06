@@ -1,5 +1,6 @@
 ﻿using RegexStringLibrary;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace RegexMaker.Nodes;
@@ -40,10 +41,15 @@ public class AnyCharFromNode : RgxNode
         return result;
     }
 
-    override public string RandomMatch()
+    public override string RandomMatch()
     {
-        var chars = Parameters.Select(p => p.RandomMatch()).ToArray();
-        return chars[random.Next(chars.Length)];
+        if (Parameters.Count == 0)
+        {
+            Debug.Assert(Chars != null);
+            return new string([Chars[random.Next(Chars.Length)]]);
+        }
+        var chars = Parameters.Where(p => p is not null).Select(p => p?.RandomMatch()).ToArray();
+        return chars[random.Next(chars.Length)]??string.Empty;
     }
 
     public override string DisplayName => NotIn ? $"[^{Chars}]" : $"[{Chars}]";

@@ -23,14 +23,15 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
 
     public RegexMatchColorizer(string pattern = "", RegexOptions options = RegexOptions.None)
     {
+        _highlightBrushes = [];
         try
         {
             _regex = new Regex(pattern, options);
-            _highlightBrushes = new List<IBrush>
-            {
+            _highlightBrushes =
+            [
                 new SolidColorBrush(Color.FromRgb(255, 255, 200)), // Light yellow
-                new SolidColorBrush(Color.FromRgb(200, 230, 255)), // Light blue
-            };
+                new SolidColorBrush(Color.FromRgb(200, 230, 255)) // Light blue
+            ];
         }
         catch (Exception ex)
         {
@@ -45,7 +46,11 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
         _matchInfo.Clear();
         int colorIndex = 0;
         _matchCollection = _regex.Matches(text);
-        foreach (Match match in MatchCollection)
+        if (_matchCollection is null)
+        {
+            return;
+        }
+        foreach (Match match in MatchCollection!)
         {
             if (match.Length > 0)
             {

@@ -119,7 +119,8 @@ public abstract class RgxNode : IRgxNode
     {
         ID = _idCounter++;
         NodeType = rgxType;
-        Parameters = parameters.ToList();
+        Debug.Assert(parameters != null, nameof(parameters) + " != null");
+        Parameters = parameters.ToList()!;
         _cachedResult = null;
     }
 

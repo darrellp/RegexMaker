@@ -873,6 +873,27 @@ public class DragCanvas : Canvas
         RaiseEvent(eventArgs);
     }
 
+    public void BeginDragItem(Control nodeBeingCreated, PointerEventArgs e)
+    {
+        // Set position on canvas
+        var canvasPosition = e.GetPosition(this);
+        Canvas.SetLeft(nodeBeingCreated, canvasPosition.X - 50);
+        Canvas.SetTop(nodeBeingCreated, canvasPosition.Y - 15);
+
+        // Add to canvas
+        Children.Add(nodeBeingCreated);
+
+        // Force layout pass so the control is properly positioned
+        UpdateLayout();
+
+        // Capture the pointer on the canvas so subsequent events go there
+        e.Pointer.Capture(this);
+
+        // Directly initiate the drag operation
+       BeginDrag(nodeBeingCreated, canvasPosition);
+
+    }
+
     /// <summary>
     /// Serializes the current canvas state to a CanvasSerializationData object
     /// </summary>

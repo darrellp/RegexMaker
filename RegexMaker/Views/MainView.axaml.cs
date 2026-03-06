@@ -203,7 +203,7 @@ public partial class MainView : UserControl
     /// <param name="e">        Pointer event information. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    private async void OnToolboxItemPointerMoved(object? sender, PointerEventArgs e)
+    private /* async */ void OnToolboxItemPointerMoved(object? sender, PointerEventArgs e)
     {
         if (_toolboxDragStartPoint.HasValue && sender is TextBlock textBlock)
         {
@@ -216,31 +216,12 @@ public partial class MainView : UserControl
                 var nodeName = textBlock.Tag as string;
                 if (!string.IsNullOrEmpty(nodeName))
                 {
-                    // Get position relative to canvas
-                    var canvasPosition = e.GetPosition(DragCanvasMain);
-
                     // Create new node control at cursor position
                     _nodeBeingCreated = new RgxNodeControl
                     {
                         NodeName = nodeName
                     };
-
-                    // Set position on canvas
-                    Canvas.SetLeft(_nodeBeingCreated, canvasPosition.X - 50);
-                    Canvas.SetTop(_nodeBeingCreated, canvasPosition.Y - 15);
-
-                    // Add to canvas
-                    DragCanvasMain.Children.Add(_nodeBeingCreated);
-
-                    // Force layout pass so the control is properly positioned
-                    DragCanvasMain.UpdateLayout();
-
-                    // Capture the pointer on the canvas so subsequent events go there
-                    e.Pointer.Capture(DragCanvasMain);
-
-                    // Directly initiate the drag operation
-                    DragCanvasMain.BeginDrag(_nodeBeingCreated, canvasPosition);
-
+                    DragCanvasMain.BeginDragItem(_nodeBeingCreated, e);
                     // Mark the event as handled
                     e.Handled = true;
                 }
