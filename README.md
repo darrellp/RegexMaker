@@ -95,6 +95,7 @@ mobile apps.
 * [NuGet](https://www.nuget.org/)
 * [GitHub](https://github.com/)
 * [Avalonia](https://avaloniaui.net/)
+* [AvaloniaEdit](https://github.com/AvaloniaUI/AvaloniaEdit)
 
 
 ## Versions & Release Notes
