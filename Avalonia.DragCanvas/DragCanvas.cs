@@ -33,6 +33,14 @@ public class DragCanvas : Canvas
     // Selection management
     private DragCanvasNode? _selectedNode;
 
+    // Panning management
+    private bool _isSpaceHeld;
+    private bool _isPanning;
+    private Point _panStartPosition;
+    private Cursor? _previousCursor;
+    private bool _isPointerOverCanvas;
+    private bool _keyHandlersAttached;
+
     public bool IsDragInProgress { get; private set; }
 
     // Routed event for connections created
@@ -181,6 +189,89 @@ public class DragCanvas : Canvas
         
         // Subscribe to node deletion events
         AddHandler(DragCanvasNode.NodeDeletedEvent, OnNodeDeleteRequested);
+
+        Focusable = true;
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        AttachTopLevelKeyHandlers();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        DetachTopLevelKeyHandlers();
+        base.OnDetachedFromVisualTree(e);
+    }
+
+    private void AttachTopLevelKeyHandlers()
+    {
+        if (_keyHandlersAttached) return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null) return;
+
+        // Use Tunnel routing so we receive key events regardless of which control has focus
+        topLevel.AddHandler(KeyDownEvent, OnTopLevelKeyDown, RoutingStrategies.Tunnel);
+        topLevel.AddHandler(KeyUpEvent, OnTopLevelKeyUp, RoutingStrategies.Tunnel);
+        _keyHandlersAttached = true;
+    }
+
+    private void DetachTopLevelKeyHandlers()
+    {
+        if (!_keyHandlersAttached) return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null) return;
+
+        topLevel.RemoveHandler(KeyDownEvent, OnTopLevelKeyDown);
+        topLevel.RemoveHandler(KeyUpEvent, OnTopLevelKeyUp);
+        _keyHandlersAttached = false;
+    }
+
+    private void OnTopLevelKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Space && !_isSpaceHeld && !IsDragInProgress && _temporaryConnection == null && _isPointerOverCanvas)
+        {
+            _isSpaceHeld = true;
+            _previousCursor = Cursor;
+            Cursor = new Cursor(StandardCursorType.Hand);
+        }
+    }
+
+    private void OnTopLevelKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Space && _isSpaceHeld)
+        {
+            _isSpaceHeld = false;
+
+            if (!_isPanning)
+            {
+                Cursor = _previousCursor;
+                _previousCursor = null;
+            }
+        }
+    }
+
+    protected override void OnPointerEntered(PointerEventArgs e)
+    {
+        base.OnPointerEntered(e);
+        _isPointerOverCanvas = true;
+    }
+
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        _isPointerOverCanvas = false;
+
+        // If space is held but we left the canvas, revert cursor
+        if (_isSpaceHeld && !_isPanning)
+        {
+            _isSpaceHeld = false;
+            Cursor = _previousCursor;
+            _previousCursor = null;
+        }
     }
 
     protected override void ChildrenChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -251,6 +342,19 @@ public class DragCanvas : Canvas
     {
         base.OnPointerPressed(e);
 
+        // Handle panning mode
+        if (_isSpaceHeld)
+        {
+            var point = e.GetCurrentPoint(this);
+            if (point.Properties.IsLeftButtonPressed)
+            {
+                _isPanning = true;
+                _panStartPosition = point.Position;
+                e.Handled = true;
+            }
+            return;
+        }
+
         // Check if a node is starting a port connection
         if (e.Source is DragCanvasNode node && node.IsPortDragInProgress)
         {
@@ -260,10 +364,10 @@ public class DragCanvas : Canvas
 
         if (!AllowDragging) return;
 
-        var point = e.GetCurrentPoint(this);
-        if (!point.Properties.IsLeftButtonPressed) return;
+        var pt = e.GetCurrentPoint(this);
+        if (!pt.Properties.IsLeftButtonPressed) return;
 
-        origCursorLocation = point.Position;
+        origCursorLocation = pt.Position;
         hasMovedBeyondThreshold = false;
 
         // Find canvas child
@@ -302,6 +406,37 @@ public class DragCanvas : Canvas
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
+
+        // Handle panning
+        if (_isPanning)
+        {
+            Point currentPosition = e.GetPosition(this);
+            double deltaX = currentPosition.X - _panStartPosition.X;
+            double deltaY = currentPosition.Y - _panStartPosition.Y;
+
+            // Move all child controls
+            foreach (var child in Children)
+            {
+                if (child is Control control and not DragCanvasConnection)
+                {
+                    double left = GetLeft(control);
+                    double top = GetTop(control);
+
+                    SetLeft(control, (double.IsNaN(left) ? 0 : left) + deltaX);
+                    SetTop(control, (double.IsNaN(top) ? 0 : top) + deltaY);
+                }
+            }
+
+            // Update all connections
+            foreach (var connection in _connections)
+            {
+                connection.UpdateFromNodes();
+            }
+
+            _panStartPosition = currentPosition;
+            e.Handled = true;
+            return;
+        }
 
         Point cursorLocation = e.GetPosition(this);
 
@@ -406,6 +541,19 @@ public class DragCanvas : Canvas
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
+
+        // Handle panning release
+        if (_isPanning)
+        {
+            _isPanning = false;
+            if (!_isSpaceHeld)
+            {
+                Cursor = _previousCursor;
+                _previousCursor = null;
+            }
+            e.Handled = true;
+            return;
+        }
 
         // Handle connection completion
         if (_temporaryConnection != null)
