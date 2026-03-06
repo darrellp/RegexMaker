@@ -2,19 +2,41 @@
 ![Screenshot](Images/RegexMaker%20Screenshot.png)
 
 ## What does it do?
-RegexMaker produces a visual programming drag/drop screen which allows setting up nodes which take in patterns and produce patterns.  
-For instance a Repeat node
+### Basic Functionality
+RegexMaker produces a visual programming drag/drop screen which allows setting up nodes which will produce regex patterns or code to match
+patterns represented by the nodes.  For instance a Repeat node
 will take a pattern and output a pattern which matches repeats of that pattern.  Each node has a parameters
-screen which allows setting parameters for that node.  For instance the Repeat node has a parameter for
-min and max times to repeat the pattern.  There's also a checkbox for max to be infinity and a checkbox to make it a lazy search.  The output pattern of
-one node can be connected to the input of another node, allowing for complex patterns to be built up visually.  
-The final output will be a regex pattern which can be used in code or elsewhere.  Whenever a node is selected it's current output regex is
+screen which allows setting parameters for that node.  As an example, the repeat node has parameters for max and min.  The output pattern of
+one node can be connected to the input of another node, allowing for complex patterns to be built up visually.  The final output will be a regex pattern which can be used in code or elsewhere.  Whenever a node is selected it's current output regex is
 displayed at the bottom.
 
-It also allows you to enter text to test the pattern on and highlights any matches.  Clicking on any match shows the position of the match and any
-captures to the right of the text.
+### Testing on Sample Text
+You can enter text to test the pattern out on. Whenever a node is selected, the sample text is evaluated against the pattern
+and highlights any matches.  Alternate matches are alternating colors to make them easier to distinguish when they abut each other.
+Clicking on any match in the sample code shows the position of the match and any captures to the right of the sample text.
 
-It now allows you to press a "Code" button and will produce code which will produce the regular expression using the Stex string
+### Node manipulation
+Nodes are dragged from a toolbox on the left onto the main canvas.  Each node will have a number of ports on it's left side and a
+single port on the right side.  The ports on the left are for input and the port on the right is for output.
+Dragging from port to port connects nodes.  Clicking on a node selects it which shows the parameters for that node in the right pane
+and it's current output regex at the bottom. 
+The parameters can be edited and the output regex will update as you edit them.  You can increase the number of ports for the 
+Concatenate and AnyOf node in their parameter pane.
+
+### Other Functionality
+It also has a way to produce random strings based on the nodes.  Not precisely sure how this might be useful but it seemed
+easy enough to do that I wanted to get it in early so it will be easy to implement in each node type.  I suppose it might
+be handy to generate test cases ala Bogus.  Perhaps in conjunction with bogus.  Might be fun for producing random nonsense also. Save/Load will save and load the network to a file.
+The CR/LF button is a toggle which, when pressed, causes line breaks to be represented by "CR/LF".  Otherwise they are represented by
+a single '\n'.  The WS key will display white space in the sample text window.
+
+There are Save/Load buttons to save and load the network to a file.
+The CR/LF button is a toggle which, when pressed, causes line breaks to be represented by "CR/LF" rather than a single \n.
+The WS button is a toggle which causes white space to be shown in the sample text window as a visible character rather than just blank space.
+
+
+### Code Production
+When you press the "Code" button it will display code which will produce the regular expression using the Stex string
 extensions.  Stex is a way to make putting together regular expressions in code MUCH easier.  It's a set of string extension methods
 and can be just downloaded from the StringExtensions.cs file in RegexMaker project.  An example produced from Regexmaker for
 a somewhat complicated phone number pattern (shown in the screenshot above) is
@@ -57,19 +79,14 @@ Personally, I think this is about as readable as you're going to find such a com
 
 I find the code far easier to deal with.
 
-Currently it still has some aesthetic rough edges. Nodes are dragged from a toolbox on the left.
-Dragging from port to port connects nodes.  Clicking on a node selects it, shows the parameters for that node in the right pane and it's current output 
-regex at the bottom. 
-The parameters can be edited and the output regex will update as you edit them.  You can increase the number of ports for the 
-Concatenate and AnyOf node in their parameter pane.
+### Visual Programming Control
+It includes as a separate project a control to allow visual programming - i.e., nodes with ports which can be connected to each other.  
+This is used in the main RegexMaker project but it is a separate project so it can be used in other projects as well. It is not specific 
+to regexes at all and could be used for any sort of visual programming. 
+It has a lot of functionality built in such as dragging nodes from a toolbox, 
+dragging from port to port to connect nodes, selecting nodes to show parameters, etc.  
 
-
-It also has a way to produce random strings based on the nodes.  Not precisely sure how this might be useful but it seemed
-easy enough to do that I wanted to get it in early so it will be easy to implement in each node type.  I suppose it might
-be handy to generate test cases ala Bogus.  Perhaps in conjunction with bogus.  It will require some sort of serializer/deserializer
-so people can use it in their code.  Might be fun for producing random nonsense also. Save/Load will save and load the network to a file.
-The CR/LF button is a toggle which, when pressed, causes line breaks to be represented by "CR/LF".  Otherwise they are represented by
-a single '\n'.  The WS key will display white space in the sample text window.
+### Current State of the Project
 
 I still have to implement a lot of nodes, serialization, a copy button to copy the regex to the clipboard and a way to test the regex against
 arbitrary input as well as a way to put out random matching strings.
@@ -85,6 +102,8 @@ want a capture - well, that's what this is about.
 Idea here is to allow for variables used in the pattern which can be set to values outside the pattern in code for customized patterns.  They
 will have a default value which will be used in the regex pattern produced.
 * A few more aesthetic tweaks
+* Perhaps a way to use the Bogus package to generate random values in the network for the generation of random strings which match the pattern.\
+This would be a fun way to generate random test data which matches a pattern.  Perhaps as defaults for the unset variables mentioned above.
 
 The project currently builds fine for a desktop windows app and Web AL.  I don't have a mac which is needed to build a mac version but I
 assume that with the excellent cross platform Avalonia it will work fine.  Also on Linux.  Doesn't really seem like a great fit for any
