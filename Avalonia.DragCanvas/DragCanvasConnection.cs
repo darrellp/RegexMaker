@@ -44,8 +44,8 @@ public class DragCanvasConnection : Control
     static DragCanvasConnection()
     {
         AffectsRender<DragCanvasConnection>(StartPointProperty, EndPointProperty, StrokeProperty, IsTemporaryProperty);
-        StartPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, e) => x.OnPointsChanged());
-        EndPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, e) => x.OnPointsChanged());
+        StartPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, _) => x.OnPointsChanged());
+        EndPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, _) => x.OnPointsChanged());
     }
 
     public DragCanvasConnection()
@@ -53,7 +53,7 @@ public class DragCanvasConnection : Control
         ClipToBounds = false;
         // Make connections hit-testable for Alt-click deletion
         IsHitTestVisible = true;
-        Cursor = new Cursor(StandardCursorType.Hand);
+        Cursor = new(StandardCursorType.Hand);
 
         // Connections should not be draggable - they update based on their connected nodes
         DragCanvas.SetCanBeDragged(this, false);
@@ -203,7 +203,7 @@ public class DragCanvasConnection : Control
         var pen = new Pen(strokeBrush, StrokeThickness);
 
         // Draw dashed line for temporary connections
-        if (IsTemporary) pen = new Pen(strokeBrush, StrokeThickness, new DashStyle(new[] { 4.0, 2.0 }, 0));
+        if (IsTemporary) pen = new Pen(strokeBrush, StrokeThickness, new DashStyle([4.0, 2.0], 0));
 
         context.DrawLine(pen, localStart, localEnd);
     }
@@ -269,21 +269,16 @@ public class DragCanvasConnection : Control
     }
 }
 
-public class ConnectionInfo
+public class ConnectionInfo(
+    DragCanvasNode sourceNode,
+    DragCanvasNode targetNode,
+    int sourcePortIndex,
+    int targetPortIndex)
 {
-    public ConnectionInfo(DragCanvasNode sourceNode, DragCanvasNode targetNode, int sourcePortIndex,
-        int targetPortIndex)
-    {
-        SourceNode = sourceNode;
-        TargetNode = targetNode;
-        SourcePortIndex = sourcePortIndex;
-        TargetPortIndex = targetPortIndex;
-    }
-
-    public DragCanvasNode SourceNode { get; }
-    public DragCanvasNode TargetNode { get; }
-    public int SourcePortIndex { get; }
-    public int TargetPortIndex { get; }
+    public DragCanvasNode SourceNode { get; } = sourceNode;
+    public DragCanvasNode TargetNode { get; } = targetNode;
+    public int SourcePortIndex { get; } = sourcePortIndex;
+    public int TargetPortIndex { get; } = targetPortIndex;
 
     public (DragCanvasNode otherNode, int otherPortIndex) GetOtherEnd(DragCanvasNode node)
     {

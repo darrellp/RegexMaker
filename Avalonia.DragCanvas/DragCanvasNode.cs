@@ -41,20 +41,17 @@ public class DragCanvasNode : ContentControl
     public static readonly StyledProperty<int> PortCtLeftProperty =
         AvaloniaProperty.Register<DragCanvasNode, int>(
             nameof(PortCtLeft),
-            0,
             validate: value => value >= 0);
 
     public static readonly StyledProperty<int> PortCtRightProperty =
         AvaloniaProperty.Register<DragCanvasNode, int>(
             nameof(PortCtRight),
-            0,
             validate: value => value >= 0);
 
     // Styled properties for selection
     public static readonly StyledProperty<bool> IsSelectedProperty =
         AvaloniaProperty.Register<DragCanvasNode, bool>(
-            nameof(IsSelected),
-            false);
+            nameof(IsSelected));
 
     public static readonly StyledProperty<IBrush?> SelectionBrushProperty =
         AvaloniaProperty.Register<DragCanvasNode, IBrush?>(
@@ -62,10 +59,10 @@ public class DragCanvasNode : ContentControl
             Brushes.Blue);
 
     private readonly List<List<DragCanvasConnection>> _leftConnections = new();
-
-    protected readonly List<PortInfo> _leftPorts = new();
     private readonly List<List<DragCanvasConnection>> _rightConnections = new();
-    protected readonly List<PortInfo> _rightPorts = new();
+
+    protected readonly List<PortInfo> LeftPorts = [];
+    protected readonly List<PortInfo> RightPorts = [];
 
     // _leftConnections[i] is the list of connections for the port at index i on the left side.
     // Similarly for _rightConnections.
@@ -75,7 +72,7 @@ public class DragCanvasNode : ContentControl
     private int? _hoveredPortIndex;
     private PortSide? _hoveredPortSide;
     private bool _isAltHovered;
-    protected Size _lastArrangedSize;
+    protected Size LastArrangedSize;
     private Point _lastPointerPosition;
 
     static DragCanvasNode()
@@ -193,9 +190,9 @@ public class DragCanvasNode : ContentControl
         var result = base.ArrangeOverride(finalSize);
 
         // Only notify if the size actually changed
-        if (_lastArrangedSize != finalSize)
+        if (LastArrangedSize != finalSize)
         {
-            _lastArrangedSize = finalSize;
+            LastArrangedSize = finalSize;
 
             // Update ports immediately with the new size
             UpdatePorts();
@@ -216,20 +213,20 @@ public class DragCanvasNode : ContentControl
     private void UpdatePorts()
     {
         // Clear port visual information but preserve connection lists
-        _leftPorts.Clear();
-        _rightPorts.Clear();
+        LeftPorts.Clear();
+        RightPorts.Clear();
 
-        var width = _lastArrangedSize.Width;
-        var height = _lastArrangedSize.Height;
+        var width = LastArrangedSize.Width;
+        var height = LastArrangedSize.Height;
 
         if (width <= 0 || height <= 0)
             return;
 
         // Create left ports
-        CreatePorts(_leftPorts, _leftConnections, PortCtLeft, 0, height, PortSide.Left);
+        CreatePorts(LeftPorts, _leftConnections, PortCtLeft, 0, height, PortSide.Left);
 
         // Create right ports
-        CreatePorts(_rightPorts, _rightConnections, PortCtRight, width, height, PortSide.Right);
+        CreatePorts(RightPorts, _rightConnections, PortCtRight, width, height, PortSide.Right);
         _connectionsInitialized = true;
     }
 
@@ -266,21 +263,21 @@ public class DragCanvasNode : ContentControl
         // Render deletion border if Alt key is held while hovering (takes priority)
         if (_isAltHovered)
         {
-            var rect = new Rect(0, 0, _lastArrangedSize.Width, _lastArrangedSize.Height);
+            var rect = new Rect(0, 0, LastArrangedSize.Width, LastArrangedSize.Height);
             var pen = new Pen(Brushes.Red, DeletionBorderThickness);
             context.DrawRectangle(null, pen, rect);
         }
         // Render selection border if selected
         else if (IsSelected && SelectionBrush != null)
         {
-            var rect = new Rect(-2, -2, _lastArrangedSize.Width + 4, _lastArrangedSize.Height + 4);
+            var rect = new Rect(-2, -2, LastArrangedSize.Width + 4, LastArrangedSize.Height + 4);
             var pen = new Pen(SelectionBrush, SelectionBorderThickness);
             context.DrawRectangle(null, pen, rect);
         }
 
         // Render all ports
-        RenderPorts(context, _leftPorts);
-        RenderPorts(context, _rightPorts);
+        RenderPorts(context, LeftPorts);
+        RenderPorts(context, RightPorts);
     }
 
     protected void RenderPorts(DrawingContext context, List<PortInfo> ports)
@@ -395,10 +392,10 @@ public class DragCanvasNode : ContentControl
         var minDistanceSq = hoverDistance * hoverDistance;
 
         // Ensure ports are up to date
-        if (_leftPorts.Count == 0 && _rightPorts.Count == 0) UpdatePorts();
+        if (LeftPorts.Count == 0 && RightPorts.Count == 0) UpdatePorts();
 
         // If our x position isn't near the left or right side there's no need to check further.
-        if (pointerPosition.X > hoverDistance / 2 && pointerPosition.X < _lastArrangedSize.Width - hoverDistance / 2)
+        if (pointerPosition.X > hoverDistance / 2 && pointerPosition.X < LastArrangedSize.Width - hoverDistance / 2)
         {
             {
                 _hoveredPortIndex = null;
@@ -409,7 +406,7 @@ public class DragCanvasNode : ContentControl
         }
 
         // Check all ports
-        foreach (var port in _leftPorts.Concat(_rightPorts))
+        foreach (var port in LeftPorts.Concat(RightPorts))
         {
             var distanceSq = DistanceSq(pointerPosition, port.Center);
             if (distanceSq < minDistanceSq)
@@ -452,9 +449,9 @@ public class DragCanvasNode : ContentControl
     public Point? GetPortPosition(int portIndex, bool isLeftSide)
     {
         // Ensure ports are current
-        if (_leftPorts.Count == 0 && _rightPorts.Count == 0) UpdatePorts();
+        if (LeftPorts.Count == 0 && RightPorts.Count == 0) UpdatePorts();
 
-        var portList = isLeftSide ? _leftPorts : _rightPorts;
+        var portList = isLeftSide ? LeftPorts : RightPorts;
 
         if (portIndex < 0 || portIndex >= portList.Count)
             return null;
@@ -653,9 +650,9 @@ public class DragCanvasNode : ContentControl
 
     protected class PortInfo
     {
-        public Point Center { get; set; }
-        public int Index { get; set; }
-        public PortSide Side { get; set; }
+        public Point Center { get; init; }
+        public int Index { get; init; }
+        public PortSide Side { get; init; }
     }
 }
 

@@ -86,11 +86,11 @@ public class DragCanvas : Canvas
 
     // Connection management
     private DragCanvasConnection? _temporaryConnection;
-    private Control? elementBeingDragged;
-    private bool hasMovedBeyondThreshold;
-    private bool modifyLeftOffset, modifyTopOffset;
-    private Point origCursorLocation;
-    private double origHorizOffset, origVertOffset;
+    private Control? _elementBeingDragged;
+    private bool _hasMovedBeyondThreshold;
+    private bool _modifyLeftOffset, _modifyTopOffset;
+    private Point _origCursorLocation;
+    private double _origHorizOffset, _origVertOffset;
 
     public DragCanvas()
     {
@@ -359,36 +359,36 @@ public class DragCanvas : Canvas
         var pt = e.GetCurrentPoint(this);
         if (!pt.Properties.IsLeftButtonPressed) return;
 
-        origCursorLocation = pt.Position;
-        hasMovedBeyondThreshold = false;
+        _origCursorLocation = pt.Position;
+        _hasMovedBeyondThreshold = false;
 
         // Find canvas child
         if (e.Source is Visual visual)
         {
-            elementBeingDragged = FindCanvasChild(visual);
-            if (elementBeingDragged == null) return;
+            _elementBeingDragged = FindCanvasChild(visual);
+            if (_elementBeingDragged == null) return;
 
             // Check if the element can be dragged
-            if (!GetCanBeDragged(elementBeingDragged))
+            if (!GetCanBeDragged(_elementBeingDragged))
             {
-                elementBeingDragged = null;
+                _elementBeingDragged = null;
                 return;
             }
 
             // Don't drag if it's a node with an active port drag
-            if (elementBeingDragged is DragCanvasNode dragNode && dragNode.IsPortDragInProgress)
+            if (_elementBeingDragged is DragCanvasNode dragNode && dragNode.IsPortDragInProgress)
             {
-                elementBeingDragged = null;
+                _elementBeingDragged = null;
                 return;
             }
 
-            var left = GetLeft(elementBeingDragged);
-            var right = GetRight(elementBeingDragged);
-            var top = GetTop(elementBeingDragged);
-            var bottom = GetBottom(elementBeingDragged);
+            var left = GetLeft(_elementBeingDragged);
+            var right = GetRight(_elementBeingDragged);
+            var top = GetTop(_elementBeingDragged);
+            var bottom = GetBottom(_elementBeingDragged);
 
-            origHorizOffset = ResolveOffset(left, right, out modifyLeftOffset);
-            origVertOffset = ResolveOffset(top, bottom, out modifyTopOffset);
+            _origHorizOffset = ResolveOffset(left, right, out _modifyLeftOffset);
+            _origVertOffset = ResolveOffset(top, bottom, out _modifyTopOffset);
 
             IsDragInProgress = true;
             e.Handled = true;
@@ -408,13 +408,13 @@ public class DragCanvas : Canvas
 
             // Move all child controls
             foreach (var child in Children)
-                if (child is Control control and not DragCanvasConnection)
+                if (child is not null and not DragCanvasConnection)
                 {
-                    var left = GetLeft(control);
-                    var top = GetTop(control);
+                    var left = GetLeft(child);
+                    var top = GetTop(child);
 
-                    SetLeft(control, (double.IsNaN(left) ? 0 : left) + deltaX);
-                    SetTop(control, (double.IsNaN(top) ? 0 : top) + deltaY);
+                    SetLeft(child, (double.IsNaN(left) ? 0 : left) + deltaX);
+                    SetTop(child, (double.IsNaN(top) ? 0 : top) + deltaY);
                 }
 
             // Update all connections
@@ -437,41 +437,41 @@ public class DragCanvas : Canvas
             return;
         }
 
-        if (elementBeingDragged == null || !IsDragInProgress) return;
+        if (_elementBeingDragged == null || !IsDragInProgress) return;
 
         // Check if we've moved beyond the threshold (taxicab distance > 5)
-        if (!hasMovedBeyondThreshold)
+        if (!_hasMovedBeyondThreshold)
         {
-            var taxicabDistance = Math.Abs(cursorLocation.X - origCursorLocation.X) +
-                                  Math.Abs(cursorLocation.Y - origCursorLocation.Y);
+            var taxicabDistance = Math.Abs(cursorLocation.X - _origCursorLocation.X) +
+                                  Math.Abs(cursorLocation.Y - _origCursorLocation.Y);
 
             if (taxicabDistance > 5)
-                hasMovedBeyondThreshold = true;
+                _hasMovedBeyondThreshold = true;
             else
                 // Not ready to drag yet
                 return;
         }
 
-        var newHorizontalOffset = modifyLeftOffset
-            ? origHorizOffset + (cursorLocation.X - origCursorLocation.X)
-            : origHorizOffset - (cursorLocation.X - origCursorLocation.X);
+        var newHorizontalOffset = _modifyLeftOffset
+            ? _origHorizOffset + (cursorLocation.X - _origCursorLocation.X)
+            : _origHorizOffset - (cursorLocation.X - _origCursorLocation.X);
 
-        var newVerticalOffset = modifyTopOffset
-            ? origVertOffset + (cursorLocation.Y - origCursorLocation.Y)
-            : origVertOffset - (cursorLocation.Y - origCursorLocation.Y);
+        var newVerticalOffset = _modifyTopOffset
+            ? _origVertOffset + (cursorLocation.Y - _origCursorLocation.Y)
+            : _origVertOffset - (cursorLocation.Y - _origCursorLocation.Y);
 
-        if (modifyLeftOffset)
-            SetLeft(elementBeingDragged, newHorizontalOffset);
+        if (_modifyLeftOffset)
+            SetLeft(_elementBeingDragged, newHorizontalOffset);
         else
-            SetRight(elementBeingDragged, newHorizontalOffset);
+            SetRight(_elementBeingDragged, newHorizontalOffset);
 
-        if (modifyTopOffset)
-            SetTop(elementBeingDragged, newVerticalOffset);
+        if (_modifyTopOffset)
+            SetTop(_elementBeingDragged, newVerticalOffset);
         else
-            SetBottom(elementBeingDragged, newVerticalOffset);
+            SetBottom(_elementBeingDragged, newVerticalOffset);
 
         // Update all connections involving this node
-        if (elementBeingDragged is DragCanvasNode movedNode) UpdateConnectionsForNode(movedNode);
+        if (_elementBeingDragged is DragCanvasNode movedNode) UpdateConnectionsForNode(movedNode);
     }
 
     private void UpdateConnectionHoverFeedback(Point canvasPosition)
@@ -631,15 +631,15 @@ public class DragCanvas : Canvas
             _temporaryConnection = null;
             _connectionSourceNode = null;
         }
-        else if (elementBeingDragged is DragCanvasNode nodeClicked && !hasMovedBeyondThreshold)
+        else if (_elementBeingDragged is DragCanvasNode nodeClicked && !_hasMovedBeyondThreshold)
         {
             // This was a click (not a drag) - select the node
             SelectedNode = nodeClicked;
         }
 
-        elementBeingDragged = null;
+        _elementBeingDragged = null;
         IsDragInProgress = false;
-        hasMovedBeyondThreshold = false;
+        _hasMovedBeyondThreshold = false;
     }
 
     private DragCanvasNode? FindNodeNearPosition(Point canvasPosition)
@@ -758,17 +758,17 @@ public class DragCanvas : Canvas
         if (!AllowDragging) return;
         if (!Children.Contains(element)) return;
 
-        elementBeingDragged = element;
-        origCursorLocation = startPosition;
-        hasMovedBeyondThreshold = false;
+        _elementBeingDragged = element;
+        _origCursorLocation = startPosition;
+        _hasMovedBeyondThreshold = false;
 
-        var left = GetLeft(elementBeingDragged);
-        var right = GetRight(elementBeingDragged);
-        var top = GetTop(elementBeingDragged);
-        var bottom = GetBottom(elementBeingDragged);
+        var left = GetLeft(_elementBeingDragged);
+        var right = GetRight(_elementBeingDragged);
+        var top = GetTop(_elementBeingDragged);
+        var bottom = GetBottom(_elementBeingDragged);
 
-        origHorizOffset = ResolveOffset(left, right, out modifyLeftOffset);
-        origVertOffset = ResolveOffset(top, bottom, out modifyTopOffset);
+        _origHorizOffset = ResolveOffset(left, right, out _modifyLeftOffset);
+        _origVertOffset = ResolveOffset(top, bottom, out _modifyTopOffset);
 
         IsDragInProgress = true;
     }

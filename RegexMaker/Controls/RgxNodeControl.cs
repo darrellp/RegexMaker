@@ -173,14 +173,14 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
     {
         if (IsSelected && SelectionBrush != null)
         {
-            var baseRect = new Rect(-1, -1, _lastArrangedSize.Width + 2, _lastArrangedSize.Height + 2);
+            var baseRect = new Rect(-1, -1, LastArrangedSize.Width + 2, LastArrangedSize.Height + 2);
             var rect = new RoundedRect(baseRect, new CornerRadius(5));
             var pen = new Pen(SelectionBrush, SelectionBorderThickness);
             context.DrawRectangle(null, pen, rect);
 
             // Render all ports
-            RenderPorts(context, _leftPorts);
-            RenderPorts(context, _rightPorts);
+            RenderPorts(context, LeftPorts);
+            RenderPorts(context, RightPorts);
         }
         else
         {
