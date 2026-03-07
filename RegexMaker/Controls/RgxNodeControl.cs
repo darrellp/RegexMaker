@@ -60,6 +60,7 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
             _variableName = value;
             if (_rgxNode is not null)
                 _rgxNode.UserVariableName = value;
+            UpdateTextBlock();
         }
     }
 
@@ -189,7 +190,13 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
 
     public void UpdateTextBlock()
     {
-        if (_rgxNode != null) _textBlock.Text = _rgxNode.DisplayName;
+        if (_rgxNode != null)
+        {
+            _textBlock.Text = _rgxNode.DisplayName;
+            _textBlock.Foreground = !string.IsNullOrEmpty(_variableName)
+                ? new SolidColorBrush(Colors.Blue)
+                : new SolidColorBrush(Colors.Black);
+        }
     }
 
     private Dictionary<string, object?>? GetRgxNodeDataAsDictionary()

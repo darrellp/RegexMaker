@@ -103,6 +103,19 @@ Personally, I think this is about as readable as you're going to find such a com
 
 I find the code far easier to deal with.
 
+UPDATE: I have since added the ability to use arbitrary variable names in the output code.
+So now instead of __Repeat__0 you can have optOnePrefix or whatever you want. By default the variable names are generated 
+based on the node type (except named captures which use the group name by default) but can be overridden in the parameter pane 
+at the top in the Variable Name field.  Nodes with variable names are displayed in blue to make it easier to see which nodes have variable names.
+This allows for much more readable code to be produced but doesn't affect the regex pattern produced at all.  Using this feature
+you can get the code to look like the second example above without having to edit it at all after it's produced.
+
+Nodes take names in the code for two reasons - if the have multiple parents to avoid recalculation or when they're an input
+to either a concatenation or an AnyOf node to make the code more readable.
+For instance, in the above example the digit triplet is used in both the area code and the prefix so it gets a variable name to 
+avoid having to calculate it twice in the code.  The area code and prefix are both inputs to concatenation nodes so they 
+get variable names to make the code more readable.
+
 ### Visual Programming Control
 
 It includes as an independent project a control to allow visual programming - i.e., nodes with ports which can be
@@ -114,20 +127,11 @@ It has a lot of functionality built in such as dragging nodes from a toolbox,
 dragging from port to port to connect nodes, selecting nodes to show parameters, etc.
 
 ### Current State of the Project
-
-I still have to implement a lot of nodes, serialization, a copy button to copy the regex to the clipboard and a way to
-test the regex against
-arbitrary input as well as a way to put out random matching strings.
-
 Still to come:
 
 * Search and replace
 * Random strings which match the pattern
 * More Regex nodes
-* Variable naming for the code output only\
-  Currently named captures will produce a variable name with the same name as the capture but if you want something to
-  have a name in the code output but don't necessarily
-  want a capture - well, that's what this is about.
 * Arbitrary unset variable names in the output code\
   Idea here is to allow for variables used in the pattern which can be set to values outside the pattern in code for
   customized patterns. They
