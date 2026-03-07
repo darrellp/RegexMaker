@@ -24,22 +24,6 @@ public partial class MainView : UserControl
 {
     private const double DragThreshold = 5.0;
 
-    //private void RetrieveMatchInfo()
-    //{
-    //    int caretOffset = SampleTextEditor.CaretOffset;
-
-    //    Debug.Assert(_colorizer is not null);
-
-    //    foreach (Match match in _colorizer.MatchCollection)
-    //    {
-    //        var matchStart = match.Index;
-    //        if (caretOffset >= matchStart && caretOffset <= matchStart + match.Length)
-    //        {
-    //            var captures = match.Captures;
-    //        }
-    //    }
-    //}
-
     private static int offset = -1;
     private RegexMatchColorizer _colorizer;
     private RgxNode? _currentlySelectedNode;
@@ -55,6 +39,7 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
         _colorizer = new RegexMatchColorizer();
+        SampleTextEditor.Text = "Replace with Sample Text";
 
         // Handle DataContext changes
         DataContextChanged += OnDataContextChanged;
@@ -88,6 +73,9 @@ public partial class MainView : UserControl
         SampleTextEditor.PointerMoved += OnSampleTextEditorPointerMoved;
 
         SampleTextEditor.TextChanged += (s, e) => UpdateRegexHighlights();
+
+        // Intercept Enter key to control newline character based on CRLF mode
+        SampleTextEditor.TextArea.TextEntered += OnTextAreaTextEntered;
     }
 
     // Handler for caret movement (text cursor)
@@ -656,5 +644,33 @@ public partial class MainView : UserControl
 
         // Force redraw to reflect the change
         SampleTextEditor.TextArea.TextView.Redraw();
+    }
+
+    private void OnTextAreaTextEntered(object? sender, Avalonia.Input.TextInputEventArgs e)
+    {
+        if (e.Text == null)
+            return;
+
+        var useCrLf = _mainViewModel?.UseCrLf ?? false;
+
+        // After text is inserted, check if the document contains wrong newlines and fix them
+        if (e.Text.Contains('\n') || e.Text.Contains('\r'))
+        {
+            var text = SampleTextEditor.Text;
+            string corrected;
+            if (useCrLf)
+                corrected = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
+            else
+                corrected = text.Replace("\r\n", "\n");
+
+            if (corrected != text)
+            {
+                var caretOffset = SampleTextEditor.CaretOffset;
+                SampleTextEditor.Text = corrected;
+                // Adjust caret: if we removed \r characters, offset may shift
+                var diff = text.Length - corrected.Length;
+                SampleTextEditor.CaretOffset = Math.Max(0, caretOffset - diff);
+            }
+        }
     }
 }

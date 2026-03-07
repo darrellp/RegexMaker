@@ -31,7 +31,7 @@
                 <!-- Sample Text Editor -->
                 <AvaloniaEdit:TextEditor Grid.Column="0" BorderBrush="Black" BorderThickness="1"
                                          Name="SampleTextEditor"
-                                         Text="Replace with Sample Text" VerticalAlignment="Stretch"
+                                         VerticalAlignment="Stretch"
                                          FontFamily="Cascadia Code,Consolas,Menlo,Monospace" />
 
                 <!-- Match Information Panel -->
