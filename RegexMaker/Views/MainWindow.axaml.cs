@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using RegexMaker.ViewModels;
 
 namespace RegexMaker.Views;
 

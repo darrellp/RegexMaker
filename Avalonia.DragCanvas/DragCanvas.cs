@@ -1,60 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Linq;
+using System.Text.Json;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.VisualTree;
 using Avalonia.Media;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Collections.Specialized;
+using Avalonia.VisualTree;
 using static Avalonia.DragCanvas.DragCanvasNode;
-using System.Text.Json;
 
 namespace Avalonia.DragCanvas;
 
 public class DragCanvas : Canvas
 {
-    private Control? elementBeingDragged;
-    private Point origCursorLocation;
-    private double origHorizOffset, origVertOffset;
-    private bool modifyLeftOffset, modifyTopOffset;
-    private bool hasMovedBeyondThreshold;
-
-    // Connection management
-    private DragCanvasConnection? _temporaryConnection;
-    private DragCanvasNode? _connectionSourceNode;
-    private int _connectionSourcePortIndex;
-    private bool _connectionSourceIsLeftSide;
-    private readonly List<DragCanvasConnection> _connections = new();
-    private DragCanvasNode? _lastHoveredNodeDuringConnection;
-    private (int index, bool isLeftSide)? _lastHoveredPortDuringConnection;
-
-    // Selection management
-    private DragCanvasNode? _selectedNode;
-
-    // Panning management
-    private bool _isSpaceHeld;
-    private bool _isPanning;
-    private Point _panStartPosition;
-    private Cursor? _previousCursor;
-    private bool _isPointerOverCanvas;
-    private bool _keyHandlersAttached;
-
-    public bool IsDragInProgress { get; private set; }
-
     // Routed event for connections created
     public static readonly RoutedEvent<ConnectionEventArgs> ConnectionCreatedEvent =
         RoutedEvent.Register<DragCanvas, ConnectionEventArgs>(
             "ConnectionCreated",
             RoutingStrategies.Bubble);
-
-    // CLR event wrapper for XAML binding
-    public event EventHandler<ConnectionEventArgs>? ConnectionCreated
-    {
-        add => AddHandler(ConnectionCreatedEvent, value);
-        remove => RemoveHandler(ConnectionCreatedEvent, value);
-    }
 
 
     // Routed event for node selection
@@ -63,25 +28,11 @@ public class DragCanvas : Canvas
             "NodeSelected",
             RoutingStrategies.Bubble);
 
-    // CLR event wrapper for XAML binding
-    public event EventHandler<NodeSelectedEventArgs>? NodeSelected
-    {
-        add => AddHandler(NodeSelectedEvent, value);
-        remove => RemoveHandler(NodeSelectedEvent, value);
-    }
-
     // Routed event for connection deletion
     public static readonly RoutedEvent<ConnectionEventArgs> ConnectionDeletedEvent =
         RoutedEvent.Register<DragCanvas, ConnectionEventArgs>(
             "ConnectionDeleted",
             RoutingStrategies.Bubble);
-
-    // CLR event wrapper for XAML binding
-    public event EventHandler<ConnectionEventArgs>? ConnectionDeleted
-    {
-        add => AddHandler(ConnectionDeletedEvent, value);
-        remove => RemoveHandler(ConnectionDeletedEvent, value);
-    }
 
     // Routed event for node deletion
     public static readonly RoutedEvent<NodeDeletedEventArgs> NodeDeletedEvent =
@@ -89,44 +40,76 @@ public class DragCanvas : Canvas
             "NodeDeleted",
             RoutingStrategies.Bubble);
 
-    // CLR event wrapper for XAML binding
-    public event EventHandler<NodeDeletedEventArgs>? NodeDeleted
-    {
-        add => AddHandler(NodeDeletedEvent, value);
-        remove => RemoveHandler(NodeDeletedEvent, value);
-    }
-
     // Attached property for CanBeDragged
     public static readonly AttachedProperty<bool> CanBeDraggedProperty =
         AvaloniaProperty.RegisterAttached<DragCanvas, Control, bool>(
             "CanBeDragged",
-            defaultValue: true);
-
-    public static bool GetCanBeDragged(Control element) =>
-        element.GetValue(CanBeDraggedProperty);
-
-    public static void SetCanBeDragged(Control element, bool value) =>
-        element.SetValue(CanBeDraggedProperty, value);
+            true);
 
     // StyledProperty for AllowDragging
     public static readonly StyledProperty<bool> AllowDraggingProperty =
         AvaloniaProperty.Register<DragCanvas, bool>(
             nameof(AllowDragging),
-            defaultValue: true);
+            true);
+
+    public static readonly StyledProperty<IBrush?> NodeBackgroundProperty =
+        AvaloniaProperty.Register<DragCanvas, IBrush?>(
+            nameof(NodeBackground));
+
+    public static readonly StyledProperty<IBrush?> NodeForegroundProperty =
+        AvaloniaProperty.Register<DragCanvas, IBrush?>(
+            nameof(NodeForeground));
+
+    // StyledProperty for SelectColor
+    public static readonly StyledProperty<IBrush?> SelectColorProperty =
+        AvaloniaProperty.Register<DragCanvas, IBrush?>(
+            nameof(SelectColor),
+            Brushes.Blue);
+
+    private readonly List<DragCanvasConnection> _connections = new();
+    private bool _connectionSourceIsLeftSide;
+    private DragCanvasNode? _connectionSourceNode;
+    private int _connectionSourcePortIndex;
+    private bool _isPanning;
+    private bool _isPointerOverCanvas;
+
+    // Panning management
+    private bool _isSpaceHeld;
+    private bool _keyHandlersAttached;
+    private DragCanvasNode? _lastHoveredNodeDuringConnection;
+    private (int index, bool isLeftSide)? _lastHoveredPortDuringConnection;
+    private Point _panStartPosition;
+    private Cursor? _previousCursor;
+
+    // Selection management
+    private DragCanvasNode? _selectedNode;
+
+    // Connection management
+    private DragCanvasConnection? _temporaryConnection;
+    private Control? elementBeingDragged;
+    private bool hasMovedBeyondThreshold;
+    private bool modifyLeftOffset, modifyTopOffset;
+    private Point origCursorLocation;
+    private double origHorizOffset, origVertOffset;
+
+    public DragCanvas()
+    {
+        // Subscribe to port clicked events
+        AddHandler(PortClickedEvent, OnPortClicked);
+
+        // Subscribe to node deletion events
+        AddHandler(DragCanvasNode.NodeDeletedEvent, OnNodeDeleteRequested);
+
+        Focusable = true;
+    }
+
+    public bool IsDragInProgress { get; private set; }
 
     public bool AllowDragging
     {
         get => GetValue(AllowDraggingProperty);
         set => SetValue(AllowDraggingProperty, value);
     }
-
-    public static readonly StyledProperty<IBrush?> NodeBackgroundProperty =
-    AvaloniaProperty.Register<DragCanvas, IBrush?>(
-        nameof(NodeBackground));
-
-    public static readonly StyledProperty<IBrush?> NodeForegroundProperty =
-        AvaloniaProperty.Register<DragCanvas, IBrush?>(
-            nameof(NodeForeground));
 
     public IBrush? NodeBackground
     {
@@ -140,13 +123,7 @@ public class DragCanvas : Canvas
         set => SetValue(NodeForegroundProperty, value);
     }
 
-    // StyledProperty for SelectColor
-    public static readonly StyledProperty<Media.IBrush?> SelectColorProperty =
-        AvaloniaProperty.Register<DragCanvas, Media.IBrush?>(
-            nameof(SelectColor),
-            defaultValue: Media.Brushes.Blue);
-
-    public Media.IBrush? SelectColor
+    public IBrush? SelectColor
     {
         get => GetValue(SelectColorProperty);
         set => SetValue(SelectColorProperty, value);
@@ -161,10 +138,7 @@ public class DragCanvas : Canvas
             if (_selectedNode != value)
             {
                 // Clear previous selection
-                if (_selectedNode != null)
-                {
-                    _selectedNode.IsSelected = false;
-                }
+                if (_selectedNode != null) _selectedNode.IsSelected = false;
 
                 _selectedNode = value;
 
@@ -182,15 +156,47 @@ public class DragCanvas : Canvas
         }
     }
 
-    public DragCanvas()
-    {
-        // Subscribe to port clicked events
-        AddHandler(DragCanvasNode.PortClickedEvent, OnPortClicked);
-        
-        // Subscribe to node deletion events
-        AddHandler(DragCanvasNode.NodeDeletedEvent, OnNodeDeleteRequested);
+    /// <summary>
+    ///     Gets all connections in the canvas
+    /// </summary>
+    public IReadOnlyList<DragCanvasConnection> Connections => _connections.AsReadOnly();
 
-        Focusable = true;
+    // CLR event wrapper for XAML binding
+    public event EventHandler<ConnectionEventArgs>? ConnectionCreated
+    {
+        add => AddHandler(ConnectionCreatedEvent, value);
+        remove => RemoveHandler(ConnectionCreatedEvent, value);
+    }
+
+    // CLR event wrapper for XAML binding
+    public event EventHandler<NodeSelectedEventArgs>? NodeSelected
+    {
+        add => AddHandler(NodeSelectedEvent, value);
+        remove => RemoveHandler(NodeSelectedEvent, value);
+    }
+
+    // CLR event wrapper for XAML binding
+    public event EventHandler<ConnectionEventArgs>? ConnectionDeleted
+    {
+        add => AddHandler(ConnectionDeletedEvent, value);
+        remove => RemoveHandler(ConnectionDeletedEvent, value);
+    }
+
+    // CLR event wrapper for XAML binding
+    public event EventHandler<NodeDeletedEventArgs>? NodeDeleted
+    {
+        add => AddHandler(NodeDeletedEvent, value);
+        remove => RemoveHandler(NodeDeletedEvent, value);
+    }
+
+    public static bool GetCanBeDragged(Control element)
+    {
+        return element.GetValue(CanBeDraggedProperty);
+    }
+
+    public static void SetCanBeDragged(Control element, bool value)
+    {
+        element.SetValue(CanBeDraggedProperty, value);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -232,7 +238,8 @@ public class DragCanvas : Canvas
 
     private void OnTopLevelKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Space && !_isSpaceHeld && !IsDragInProgress && _temporaryConnection == null && _isPointerOverCanvas)
+        if (e.Key == Key.Space && !_isSpaceHeld && !IsDragInProgress && _temporaryConnection == null &&
+            _isPointerOverCanvas)
         {
             _isSpaceHeld = true;
             _previousCursor = Cursor;
@@ -280,36 +287,22 @@ public class DragCanvas : Canvas
 
         // Subscribe to layout updates for newly added nodes
         if (e.NewItems != null)
-        {
             foreach (var item in e.NewItems)
-            {
                 if (item is DragCanvasNode node)
-                {
                     node.LayoutUpdated += OnNodeLayoutUpdated;
-                }
-            }
-        }
 
         // Unsubscribe from layout updates for removed nodes
         if (e.OldItems != null)
-        {
             foreach (var item in e.OldItems)
-            {
                 if (item is DragCanvasNode node)
-                {
                     node.LayoutUpdated -= OnNodeLayoutUpdated;
-                }
-            }
-        }
     }
 
     private void OnNodeLayoutUpdated(object? sender, EventArgs e)
     {
         if (sender is DragCanvasNode node)
-        {
             // Update all connections involving this node when its layout changes
             UpdateConnectionsForNode(node);
-        }
     }
 
     private void OnPortClicked(object? sender, PortClickedEventArgs e)
@@ -325,7 +318,7 @@ public class DragCanvas : Canvas
             StartPoint = e.CanvasPosition,
             EndPoint = e.CanvasPosition,
             IsTemporary = true,
-            Stroke = Media.Brushes.Gray
+            Stroke = Brushes.Gray
         };
 
         Children.Add(_temporaryConnection);
@@ -352,15 +345,14 @@ public class DragCanvas : Canvas
                 _panStartPosition = point.Position;
                 e.Handled = true;
             }
+
             return;
         }
 
         // Check if a node is starting a port connection
         if (e.Source is DragCanvasNode node && node.IsPortDragInProgress)
-        {
             // Port connection is being handled by the node
             return;
-        }
 
         if (!AllowDragging) return;
 
@@ -390,10 +382,10 @@ public class DragCanvas : Canvas
                 return;
             }
 
-            double left = GetLeft(elementBeingDragged);
-            double right = GetRight(elementBeingDragged);
-            double top = GetTop(elementBeingDragged);
-            double bottom = GetBottom(elementBeingDragged);
+            var left = GetLeft(elementBeingDragged);
+            var right = GetRight(elementBeingDragged);
+            var top = GetTop(elementBeingDragged);
+            var bottom = GetBottom(elementBeingDragged);
 
             origHorizOffset = ResolveOffset(left, right, out modifyLeftOffset);
             origVertOffset = ResolveOffset(top, bottom, out modifyTopOffset);
@@ -410,35 +402,30 @@ public class DragCanvas : Canvas
         // Handle panning
         if (_isPanning)
         {
-            Point currentPosition = e.GetPosition(this);
-            double deltaX = currentPosition.X - _panStartPosition.X;
-            double deltaY = currentPosition.Y - _panStartPosition.Y;
+            var currentPosition = e.GetPosition(this);
+            var deltaX = currentPosition.X - _panStartPosition.X;
+            var deltaY = currentPosition.Y - _panStartPosition.Y;
 
             // Move all child controls
             foreach (var child in Children)
-            {
                 if (child is Control control and not DragCanvasConnection)
                 {
-                    double left = GetLeft(control);
-                    double top = GetTop(control);
+                    var left = GetLeft(control);
+                    var top = GetTop(control);
 
                     SetLeft(control, (double.IsNaN(left) ? 0 : left) + deltaX);
                     SetTop(control, (double.IsNaN(top) ? 0 : top) + deltaY);
                 }
-            }
 
             // Update all connections
-            foreach (var connection in _connections)
-            {
-                connection.UpdateFromNodes();
-            }
+            foreach (var connection in _connections) connection.UpdateFromNodes();
 
             _panStartPosition = currentPosition;
             e.Handled = true;
             return;
         }
 
-        Point cursorLocation = e.GetPosition(this);
+        var cursorLocation = e.GetPosition(this);
 
         // Update temporary connection if active
         if (_temporaryConnection != null)
@@ -455,25 +442,21 @@ public class DragCanvas : Canvas
         // Check if we've moved beyond the threshold (taxicab distance > 5)
         if (!hasMovedBeyondThreshold)
         {
-            double taxicabDistance = Math.Abs(cursorLocation.X - origCursorLocation.X) +
-                                    Math.Abs(cursorLocation.Y - origCursorLocation.Y);
+            var taxicabDistance = Math.Abs(cursorLocation.X - origCursorLocation.X) +
+                                  Math.Abs(cursorLocation.Y - origCursorLocation.Y);
 
             if (taxicabDistance > 5)
-            {
                 hasMovedBeyondThreshold = true;
-            }
             else
-            {
                 // Not ready to drag yet
                 return;
-            }
         }
 
-        double newHorizontalOffset = modifyLeftOffset
+        var newHorizontalOffset = modifyLeftOffset
             ? origHorizOffset + (cursorLocation.X - origCursorLocation.X)
             : origHorizOffset - (cursorLocation.X - origCursorLocation.X);
 
-        double newVerticalOffset = modifyTopOffset
+        var newVerticalOffset = modifyTopOffset
             ? origVertOffset + (cursorLocation.Y - origCursorLocation.Y)
             : origVertOffset - (cursorLocation.Y - origCursorLocation.Y);
 
@@ -488,10 +471,7 @@ public class DragCanvas : Canvas
             SetBottom(elementBeingDragged, newVerticalOffset);
 
         // Update all connections involving this node
-        if (elementBeingDragged is DragCanvasNode movedNode)
-        {
-            UpdateConnectionsForNode(movedNode);
-        }
+        if (elementBeingDragged is DragCanvasNode movedNode) UpdateConnectionsForNode(movedNode);
     }
 
     private void UpdateConnectionHoverFeedback(Point canvasPosition)
@@ -508,12 +488,12 @@ public class DragCanvas : Canvas
             if (hoveredPort.HasValue)
             {
                 var (_, isLeftSide) = hoveredPort.Value;
-                if (!hoveredNode.AllowConnection(hoveredPort.Value.index, isLeftSide, _connectionSourceNode!, _connectionSourcePortIndex, _connectionSourceIsLeftSide) ||
-                    !_connectionSourceNode!.AllowConnection(_connectionSourcePortIndex, _connectionSourceIsLeftSide, hoveredNode, hoveredPort.Value.index, isLeftSide))
-                {
+                if (!hoveredNode.AllowConnection(hoveredPort.Value.index, isLeftSide, _connectionSourceNode!,
+                        _connectionSourcePortIndex, _connectionSourceIsLeftSide) ||
+                    !_connectionSourceNode!.AllowConnection(_connectionSourcePortIndex, _connectionSourceIsLeftSide,
+                        hoveredNode, hoveredPort.Value.index, isLeftSide))
                     // Same side - not valid
                     hoveredPort = null;
-                }
             }
         }
 
@@ -521,10 +501,7 @@ public class DragCanvas : Canvas
         if (hoveredNode != _lastHoveredNodeDuringConnection || hoveredPort != _lastHoveredPortDuringConnection)
         {
             // Clear old hover
-            if (_lastHoveredNodeDuringConnection != null)
-            {
-                _lastHoveredNodeDuringConnection.ClearPortHover();
-            }
+            if (_lastHoveredNodeDuringConnection != null) _lastHoveredNodeDuringConnection.ClearPortHover();
 
             // Set new hover
             if (hoveredNode != null && hoveredPort.HasValue)
@@ -551,6 +528,7 @@ public class DragCanvas : Canvas
                 Cursor = _previousCursor;
                 _previousCursor = null;
             }
+
             e.Handled = true;
             return;
         }
@@ -558,7 +536,7 @@ public class DragCanvas : Canvas
         // Handle connection completion
         if (_temporaryConnection != null)
         {
-            Point releasePosition = e.GetPosition(this);
+            var releasePosition = e.GetPosition(this);
 
             // Find if we're over a node (check ports first, they might be outside node bounds)
             var hoveredNode = FindNodeNearPosition(releasePosition);
@@ -571,10 +549,13 @@ public class DragCanvas : Canvas
                 {
                     var (targetPortIndex, targetIsLeftSide) = hoveredPort.Value;
 
-                    Debug.Assert(_connectionSourceNode != null, "Source node should not be null when making a connection");
+                    Debug.Assert(_connectionSourceNode != null,
+                        "Source node should not be null when making a connection");
                     // Validate: Has to be a valid connection according to the node's rules
-                    if (hoveredNode.AllowConnection(targetPortIndex, targetIsLeftSide, _connectionSourceNode, _connectionSourcePortIndex, _connectionSourceIsLeftSide) &&
-                        _connectionSourceNode.AllowConnection(_connectionSourcePortIndex, _connectionSourceIsLeftSide, hoveredNode, targetPortIndex, targetIsLeftSide))
+                    if (hoveredNode.AllowConnection(targetPortIndex, targetIsLeftSide, _connectionSourceNode,
+                            _connectionSourcePortIndex, _connectionSourceIsLeftSide) &&
+                        _connectionSourceNode.AllowConnection(_connectionSourcePortIndex, _connectionSourceIsLeftSide,
+                            hoveredNode, targetPortIndex, targetIsLeftSide))
                     {
                         // Determine which is source (right) and which is target (left)
                         DragCanvasNode sourceNode, targetNode;
@@ -608,7 +589,7 @@ public class DragCanvas : Canvas
                             SourcePortIndex = sourcePortIndex,
                             TargetNode = targetNode,
                             TargetPortIndex = targetPortIndex2,
-                            Stroke = Media.Brushes.Black,
+                            Stroke = Brushes.Black,
                             StartPoint = sourcePortPos,
                             EndPoint = targetPortPos
                         };
@@ -667,15 +648,11 @@ public class DragCanvas : Canvas
 
         // Check all nodes - prioritize port proximity over bounds
         foreach (var child in Children)
-        {
             if (child is DragCanvasNode node)
             {
                 // First check if any port is close
                 var port = FindPortAtPosition(node, canvasPosition);
-                if (port.HasValue)
-                {
-                    return node;
-                }
+                if (port.HasValue) return node;
 
                 // Then check expanded bounds (to account for ports at edges)
                 var nodePos = node.TranslatePoint(new Point(0, 0), this);
@@ -684,13 +661,10 @@ public class DragCanvas : Canvas
                     var bounds = new Rect(nodePos.Value, node.Bounds.Size);
                     // Expand bounds by port detection radius
                     var expandedBounds = bounds.Inflate(portDetectionRadius);
-                    if (expandedBounds.Contains(canvasPosition))
-                    {
-                        return node;
-                    }
+                    if (expandedBounds.Contains(canvasPosition)) return node;
                 }
             }
-        }
+
         return null;
     }
 
@@ -699,25 +673,19 @@ public class DragCanvas : Canvas
         const double portDetectionRadius = 15.0;
 
         // Check left ports
-        for (int i = 0; i < node.PortCtLeft; i++)
+        for (var i = 0; i < node.PortCtLeft; i++)
         {
             var portPos = node.GetPortCanvasPosition(i, true);
             var dist = Distance(canvasPosition, portPos);
-            if (dist <= portDetectionRadius)
-            {
-                return (i, true);
-            }
+            if (dist <= portDetectionRadius) return (i, true);
         }
 
         // Check right ports
-        for (int i = 0; i < node.PortCtRight; i++)
+        for (var i = 0; i < node.PortCtRight; i++)
         {
             var portPos = node.GetPortCanvasPosition(i, false);
             var dist = Distance(canvasPosition, portPos);
-            if (dist <= portDetectionRadius)
-            {
-                return (i, false);
-            }
+            if (dist <= portDetectionRadius) return (i, false);
         }
 
         return null;
@@ -733,9 +701,7 @@ public class DragCanvas : Canvas
     internal void UpdateConnectionsForNode(DragCanvasNode node)
     {
         foreach (var connection in _connections.Where(c => c.SourceNode == node || c.TargetNode == node))
-        {
             connection.UpdateFromNodes();
-        }
     }
 
     private Control? FindCanvasChild(Visual? visual)
@@ -747,6 +713,7 @@ public class DragCanvas : Canvas
 
             visual = visual.GetVisualParent();
         }
+
         return null;
     }
 
@@ -757,45 +724,32 @@ public class DragCanvas : Canvas
         {
             if (double.IsNaN(side2))
                 return 0;
-            else
-            {
-                useSide1 = false;
-                return side2;
-            }
+            useSide1 = false;
+            return side2;
         }
+
         return side1;
     }
 
     /// <summary>
-    /// Gets all connections in the canvas
-    /// </summary>
-    public IReadOnlyList<DragCanvasConnection> Connections => _connections.AsReadOnly();
-
-    /// <summary>
-    /// Removes a connection from the canvas
+    ///     Removes a connection from the canvas
     /// </summary>
     public void RemoveConnection(DragCanvasConnection connection)
     {
-        if (_connections.Remove(connection))
-        {
-            Children.Remove(connection);
-        }
+        if (_connections.Remove(connection)) Children.Remove(connection);
     }
 
     /// <summary>
-    /// Clears all connections
+    ///     Clears all connections
     /// </summary>
     public void ClearConnections()
     {
-        foreach (var connection in _connections.ToList())
-        {
-            Children.Remove(connection);
-        }
+        foreach (var connection in _connections.ToList()) Children.Remove(connection);
         _connections.Clear();
     }
 
     /// <summary>
-    /// Initiates a drag operation on the specified element programmatically.
+    ///     Initiates a drag operation on the specified element programmatically.
     /// </summary>
     /// <param name="element">The element to drag</param>
     /// <param name="startPosition">The starting position relative to the canvas</param>
@@ -808,10 +762,10 @@ public class DragCanvas : Canvas
         origCursorLocation = startPosition;
         hasMovedBeyondThreshold = false;
 
-        double left = GetLeft(elementBeingDragged);
-        double right = GetRight(elementBeingDragged);
-        double top = GetTop(elementBeingDragged);
-        double bottom = GetBottom(elementBeingDragged);
+        var left = GetLeft(elementBeingDragged);
+        var right = GetRight(elementBeingDragged);
+        var top = GetTop(elementBeingDragged);
+        var bottom = GetBottom(elementBeingDragged);
 
         origHorizOffset = ResolveOffset(left, right, out modifyLeftOffset);
         origVertOffset = ResolveOffset(top, bottom, out modifyTopOffset);
@@ -820,7 +774,7 @@ public class DragCanvas : Canvas
     }
 
     /// <summary>
-    /// Deletes a connection from the canvas
+    ///     Deletes a connection from the canvas
     /// </summary>
     public void DeleteConnection(DragCanvasConnection connection)
     {
@@ -828,8 +782,8 @@ public class DragCanvas : Canvas
             return;
 
         // Update node connection tracking first
-        connection.SourceNode.OnConnectionRemoved(connection, connection.SourcePortIndex, DragCanvasNode.PortSide.Right);
-        connection.TargetNode.OnConnectionRemoved(connection, connection.TargetPortIndex, DragCanvasNode.PortSide.Left);
+        connection.SourceNode.OnConnectionRemoved(connection, connection.SourcePortIndex, PortSide.Right);
+        connection.TargetNode.OnConnectionRemoved(connection, connection.TargetPortIndex, PortSide.Left);
 
         // Raise deletion event
         var eventArgs = new ConnectionEventArgs(
@@ -846,7 +800,7 @@ public class DragCanvas : Canvas
     }
 
     /// <summary>
-    /// Deletes a node from the canvas and removes all its connections
+    ///     Deletes a node from the canvas and removes all its connections
     /// </summary>
     public void DeleteNode(DragCanvasNode node)
     {
@@ -854,19 +808,13 @@ public class DragCanvas : Canvas
         var allConnections = node.GetAllConnections().ToList();
 
         // Delete all connections to/from this node
-        foreach (var connection in allConnections)
-        {
-            DeleteConnection(connection);
-        }
+        foreach (var connection in allConnections) DeleteConnection(connection);
 
         // Remove the node from canvas
         Children.Remove(node);
 
         // Clear selection if this was the selected node
-        if (_selectedNode == node)
-        {
-            _selectedNode = null;
-        }
+        if (_selectedNode == node) _selectedNode = null;
 
         // Raise node deleted event for application-level handling
         var eventArgs = new NodeDeletedEventArgs(NodeDeletedEvent, node);
@@ -877,8 +825,8 @@ public class DragCanvas : Canvas
     {
         // Set position on canvas
         var canvasPosition = e.GetPosition(this);
-        Canvas.SetLeft(nodeBeingCreated, canvasPosition.X - 50);
-        Canvas.SetTop(nodeBeingCreated, canvasPosition.Y - 15);
+        SetLeft(nodeBeingCreated, canvasPosition.X - 50);
+        SetTop(nodeBeingCreated, canvasPosition.Y - 15);
 
         // Add to canvas
         Children.Add(nodeBeingCreated);
@@ -890,22 +838,20 @@ public class DragCanvas : Canvas
         e.Pointer.Capture(this);
 
         // Directly initiate the drag operation
-       BeginDrag(nodeBeingCreated, canvasPosition);
-
+        BeginDrag(nodeBeingCreated, canvasPosition);
     }
 
     /// <summary>
-    /// Serializes the current canvas state to a CanvasSerializationData object
+    ///     Serializes the current canvas state to a CanvasSerializationData object
     /// </summary>
     public CanvasSerializationData SerializeCanvas()
     {
         var data = new CanvasSerializationData();
         var nodeIdMap = new Dictionary<DragCanvasNode, int>();
-        int nextId = 0;
+        var nextId = 0;
 
         // Serialize nodes
         foreach (var child in Children)
-        {
             if (child is DragCanvasNode node)
             {
                 var nodeId = nextId++;
@@ -926,23 +872,18 @@ public class DragCanvas : Canvas
                     var jsonString = serializableNode.SerializeApplicationData();
                     // Parse the JSON string into a JsonElement for proper nesting
                     if (!string.IsNullOrEmpty(jsonString))
-                    {
                         nodeData.ApplicationData = JsonSerializer.Deserialize<JsonElement>(jsonString);
-                    }
                     nodeData.NodeTypeName = serializableNode.GetNodeTypeName();
                 }
 
                 data.Nodes.Add(nodeData);
             }
-        }
 
         // Serialize connections
         foreach (var connection in _connections)
-        {
             if (connection.SourceNode != null && connection.TargetNode != null &&
-                nodeIdMap.TryGetValue(connection.SourceNode, out int sourceId) &&
-                nodeIdMap.TryGetValue(connection.TargetNode, out int targetId))
-            {
+                nodeIdMap.TryGetValue(connection.SourceNode, out var sourceId) &&
+                nodeIdMap.TryGetValue(connection.TargetNode, out var targetId))
                 data.Connections.Add(new ConnectionSerializationData
                 {
                     SourceNodeId = sourceId,
@@ -950,18 +891,16 @@ public class DragCanvas : Canvas
                     SourcePortIndex = connection.SourcePortIndex,
                     TargetPortIndex = connection.TargetPortIndex
                 });
-            }
-        }
 
         return data;
     }
 
     /// <summary>
-    /// Deserializes canvas state from a CanvasSerializationData object
+    ///     Deserializes canvas state from a CanvasSerializationData object
     /// </summary>
     /// <param name="data">The serialization data</param>
     /// <param name="nodeFactory">Factory function to create nodes from type names</param>
-    public void DeserializeCanvas(CanvasSerializationData data, System.Func<string?, DragCanvasNode?> nodeFactory)
+    public void DeserializeCanvas(CanvasSerializationData data, Func<string?, DragCanvasNode?> nodeFactory)
     {
         // Clear existing canvas
         ClearConnections();
@@ -1005,7 +944,6 @@ public class DragCanvas : Canvas
 
         // Recreate connections
         foreach (var connData in data.Connections)
-        {
             if (nodeMap.TryGetValue(connData.SourceNodeId, out var sourceNode) &&
                 nodeMap.TryGetValue(connData.TargetNodeId, out var targetNode))
             {
@@ -1020,7 +958,7 @@ public class DragCanvas : Canvas
                     SourcePortIndex = connData.SourcePortIndex,
                     TargetNode = targetNode,
                     TargetPortIndex = connData.TargetPortIndex,
-                    Stroke = Media.Brushes.Black,
+                    Stroke = Brushes.Black,
                     StartPoint = sourcePos,
                     EndPoint = targetPos
                 };
@@ -1029,8 +967,8 @@ public class DragCanvas : Canvas
                 Children.Insert(0, connection);
 
                 // Update node connection tracking
-                sourceNode.OnConnectionMade(connection, connData.SourcePortIndex, DragCanvasNode.PortSide.Right);
-                targetNode.OnConnectionMade(connection, connData.TargetPortIndex, DragCanvasNode.PortSide.Left);
+                sourceNode.OnConnectionMade(connection, connData.SourcePortIndex, PortSide.Right);
+                targetNode.OnConnectionMade(connection, connData.TargetPortIndex, PortSide.Left);
 
                 // Raise connection created event
                 var eventArgs = new ConnectionEventArgs(
@@ -1046,6 +984,5 @@ public class DragCanvas : Canvas
 
                 RaiseEvent(eventArgs);
             }
-        }
     }
 }

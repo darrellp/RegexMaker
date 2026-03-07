@@ -1,3 +1,11 @@
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.DragCanvas;
@@ -7,33 +15,46 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
-using RegexMaker.ViewModels;
 using RegexMaker.Services;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using System.Text.Json.Serialization.Metadata;
-using System.Collections.ObjectModel;
+using RegexMaker.ViewModels;
 
 namespace RegexMaker.Views;
 
 public partial class MainView : UserControl
 {
+    private const double DragThreshold = 5.0;
+
+    //private void RetrieveMatchInfo()
+    //{
+    //    int caretOffset = SampleTextEditor.CaretOffset;
+
+    //    Debug.Assert(_colorizer is not null);
+
+    //    foreach (Match match in _colorizer.MatchCollection)
+    //    {
+    //        var matchStart = match.Index;
+    //        if (caretOffset >= matchStart && caretOffset <= matchStart + match.Length)
+    //        {
+    //            var captures = match.Captures;
+    //        }
+    //    }
+    //}
+
+    private static int offset = -1;
+    private RegexMatchColorizer _colorizer;
     private RgxNode? _currentlySelectedNode;
     private RgxNodeControl? _currentlySelectedNodeControl;
     private object? _currentViewModel;
     private MainViewModel? _mainViewModel;
-    private RegexMatchColorizer _colorizer;
+    private RgxNodeControl? _nodeBeingCreated;
+
+    private Point? _toolboxDragStartPoint;
     private WhitespaceMatchBackgroundRenderer? _whitespaceRenderer;
 
     public MainView()
     {
         InitializeComponent();
-        _colorizer = new();
+        _colorizer = new RegexMatchColorizer();
 
         // Handle DataContext changes
         DataContextChanged += OnDataContextChanged;
@@ -41,7 +62,7 @@ public partial class MainView : UserControl
         // Exemplars are set up in the static constructor of RgxNode using reflection to find all derived types
         // from RgxNode and create instances of them. We can just loop through those exemplars and create TextBlocks
         // for each of them in the UI.
-        foreach (var RgxNode in Nodes.RgxNode.Exemplars)
+        foreach (var RgxNode in RgxNode.Exemplars)
         {
             var text = new TextBlock
             {
@@ -77,28 +98,11 @@ public partial class MainView : UserControl
         RetrieveMatchData();
     }
 
-    //private void RetrieveMatchInfo()
-    //{
-    //    int caretOffset = SampleTextEditor.CaretOffset;
-
-    //    Debug.Assert(_colorizer is not null);
-
-    //    foreach (Match match in _colorizer.MatchCollection)
-    //    {
-    //        var matchStart = match.Index;
-    //        if (caretOffset >= matchStart && caretOffset <= matchStart + match.Length)
-    //        {
-    //            var captures = match.Captures;
-    //        }
-    //    }
-    //}
-
-    static int offset = -1;
     // Handler for mouse hover (pointer move)
     private void OnSampleTextEditorPointerMoved(object? sender, PointerEventArgs e)
     {
         // May want this in the future
-     
+
         //var position = e.GetPosition(SampleTextEditor.TextArea.TextView);
         //var logicalPos = SampleTextEditor.TextArea.TextView.GetPositionFloor(position);
         //if (logicalPos != null)
@@ -161,10 +165,7 @@ public partial class MainView : UserControl
                 }
             };
 
-            _mainViewModel.NodeDisplayUpdateRequested += () =>
-            {
-                _currentlySelectedNodeControl?.UpdateTextBlock();
-            };
+            _mainViewModel.NodeDisplayUpdateRequested += () => { _currentlySelectedNodeControl?.UpdateTextBlock(); };
         }
         else
         {
@@ -172,19 +173,12 @@ public partial class MainView : UserControl
         }
     }
 
-    private Point? _toolboxDragStartPoint;
-    private const double DragThreshold = 5.0;
-    private RgxNodeControl? _nodeBeingCreated;
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Handles pointer pressed on toolbox items. </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Pointer event information. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void OnToolboxItemPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is TextBlock textBlock && e.GetCurrentPoint(textBlock).Properties.IsLeftButtonPressed)
@@ -196,13 +190,10 @@ public partial class MainView : UserControl
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Handles pointer moved on toolbox items to initiate drag. </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Pointer event information. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private /* async */ void OnToolboxItemPointerMoved(object? sender, PointerEventArgs e)
     {
         if (_toolboxDragStartPoint.HasValue && sender is TextBlock textBlock)
@@ -233,13 +224,10 @@ public partial class MainView : UserControl
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Handles pointer released on toolbox items. </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Pointer event information. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void OnToolboxItemPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         _toolboxDragStartPoint = null;
@@ -248,13 +236,10 @@ public partial class MainView : UserControl
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Handles node selection events from the DragCanvas. </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
-    ///
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Event information to send to registered event handlers. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void OnNodeSelected(object? sender, NodeSelectedEventArgs e)
     {
         if (e.SelectedNode is RgxNodeControl rgxNodeControl)
@@ -262,23 +247,19 @@ public partial class MainView : UserControl
             Debug.Assert(rgxNodeControl.RgxNode != null, "Selected RgxNodeControl has a null RgxNode");
             _currentlySelectedNodeControl = rgxNodeControl;
             NodeSwitched(rgxNodeControl.RgxNode);
-            if (_mainViewModel != null)
-            {
-                _mainViewModel.RegexPattern = rgxNodeControl.RgxNode.ProduceResult();
-            }
+            if (_mainViewModel != null) _mainViewModel.RegexPattern = rgxNodeControl.RgxNode.ProduceResult();
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Handles the connection event. </summary>
-    ///
-    /// <remarks>   Connect the RgxNodes in the underlying data model based on the connection created in the UI
-    ///             Darrell Plank, 2/25/2026. </remarks>
-    ///
+    /// <remarks>
+    ///     Connect the RgxNodes in the underlying data model based on the connection created in the UI
+    ///     Darrell Plank, 2/25/2026.
+    /// </remarks>
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Event information to send to registered event handlers. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void OnConnectionCreated(object? sender, ConnectionEventArgs e)
     {
         var rgxNodeControlSource = e.SourceNode as RgxNodeControl;
@@ -294,15 +275,12 @@ public partial class MainView : UserControl
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Handles the connection deleted event from the DragCanvas.
+    ///     Handles the connection deleted event from the DragCanvas.
     /// </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Event information to send to registered event handlers. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void OnConnectionDeleted(object? sender, ConnectionEventArgs e)
     {
         var rgxNodeControlSource = e.SourceNode as RgxNodeControl;
@@ -318,17 +296,14 @@ public partial class MainView : UserControl
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Handles the node deleted event from the DragCanvas.
-    /// Updates the underlying RgxNode data model to reflect the deletion.
-    /// The node has already been removed from the canvas at this point.
+    ///     Handles the node deleted event from the DragCanvas.
+    ///     Updates the underlying RgxNode data model to reflect the deletion.
+    ///     The node has already been removed from the canvas at this point.
     /// </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/26/2026. </remarks>
-    ///
     /// <param name="sender">   Source of the event. </param>
     /// <param name="e">        Event information to send to registered event handlers. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void OnNodeDeleted(object? sender, NodeDeletedEventArgs e)
     {
         if (e.Node is RgxNodeControl rgxNodeControl && rgxNodeControl.RgxNode != null)
@@ -336,10 +311,7 @@ public partial class MainView : UserControl
             var rgxNode = rgxNodeControl.RgxNode;
 
             // Clear selection if this is the selected node
-            if (_currentlySelectedNode == rgxNode)
-            {
-                NodeSwitched(null);
-            }
+            if (_currentlySelectedNode == rgxNode) NodeSwitched(null);
 
             // NOTE: Do NOT call DragCanvas.DeleteNode() here!
             // The node has already been removed from the canvas by the time this event is raised.
@@ -355,23 +327,18 @@ public partial class MainView : UserControl
         if (nodeControl == null)
             return;
 
-        int currentCount = node.Parameters.Count;
+        var currentCount = node.Parameters.Count;
 
         if (newCount < currentCount)
-        {
             // Remove UI connections to ports being deleted before modifying the model
-            for (int i = newCount; i < currentCount; i++)
+            for (var i = newCount; i < currentCount; i++)
             {
                 var connectionsToRemove = DragCanvasMain.Connections
                     .Where(c => c.TargetNode == nodeControl && c.TargetPortIndex == i)
                     .ToList();
 
-                foreach (var connection in connectionsToRemove)
-                {
-                    DragCanvasMain.DeleteConnection(connection);
-                }
+                foreach (var connection in connectionsToRemove) DragCanvasMain.DeleteConnection(connection);
             }
-        }
 
         NodeGraphService.SetPortCount(node, newCount);
         nodeControl.PortCtLeft = newCount;
@@ -384,23 +351,18 @@ public partial class MainView : UserControl
         if (nodeControl == null)
             return;
 
-        int currentCount = node.Parameters.Count;
+        var currentCount = node.Parameters.Count;
 
         if (newCount < currentCount)
-        {
             // Remove UI connections to ports being deleted before modifying the model
-            for (int i = newCount; i < currentCount; i++)
+            for (var i = newCount; i < currentCount; i++)
             {
                 var connectionsToRemove = DragCanvasMain.Connections
                     .Where(c => c.TargetNode == nodeControl && c.TargetPortIndex == i)
                     .ToList();
 
-                foreach (var connection in connectionsToRemove)
-                {
-                    DragCanvasMain.DeleteConnection(connection);
-                }
+                foreach (var connection in connectionsToRemove) DragCanvasMain.DeleteConnection(connection);
             }
-        }
 
         NodeGraphService.SetPortCount(node, newCount);
         nodeControl.PortCtLeft = newCount;
@@ -410,54 +372,37 @@ public partial class MainView : UserControl
     private void UnsubscribeFromViewModel()
     {
         if (_currentViewModel is ObservableObject observableObject)
-        {
             observableObject.PropertyChanged -= OnViewModelPropertyChanged;
-        }
     }
 
-    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         UpdateNodeDisplay();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Updates the visual display of the selected node. </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     private void UpdateNodeDisplay()
     {
         if (_currentlySelectedNode != null)
-        {
             if (_mainViewModel != null)
-            {
                 _mainViewModel.RegexPattern = _currentlySelectedNode.ProduceResult();
-            }
-        }
 
-        if (_currentlySelectedNodeControl != null)
-        {
-            _currentlySelectedNodeControl.UpdateTextBlock();
-        }
+        if (_currentlySelectedNodeControl != null) _currentlySelectedNodeControl.UpdateTextBlock();
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>
-    /// Shows the parameter page in the carousel corresponding to the given RgxNodeType.
+    ///     Shows the parameter page in the carousel corresponding to the given RgxNodeType.
     /// </summary>
-    ///
     /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
-    ///
     /// <param name="nodeType"> Type of the node. </param>
     ////////////////////////////////////////////////////////////////////////////////////////////////////
-
     internal void ShowNodeParameters(RgxNodeType nodeType)
     {
-        if (_mainViewModel != null)
-        {
-            _mainViewModel.SelectedCarouselIndex = (int)nodeType;
-        }
+        if (_mainViewModel != null) _mainViewModel.SelectedCarouselIndex = (int)nodeType;
     }
 
     private async void OnSaveRequested(object? sender, SaveRequestedEventArgs e)
@@ -545,10 +490,7 @@ public partial class MainView : UserControl
                     // Deserialize the canvas with a factory function
                     DragCanvasMain.DeserializeCanvas(canvasData, CreateNodeFromTypeName);
 
-                    if (_mainViewModel != null)
-                    {
-                        _mainViewModel.RegexPattern = string.Empty;
-                    }
+                    if (_mainViewModel != null) _mainViewModel.RegexPattern = string.Empty;
 
                     // Update display
                     UpdateNodeDisplay();
@@ -567,28 +509,20 @@ public partial class MainView : UserControl
         // Clear the canvas
         DragCanvasMain.Children.Clear();
         NodeSwitched(null);
-        if (_mainViewModel != null)
-        {
-            _mainViewModel.RegexPattern = string.Empty;
-        }
+        if (_mainViewModel != null) _mainViewModel.RegexPattern = string.Empty;
         UpdateNodeDisplay();
     }
 
     private RgxNodeControl? CreateNodeFromTypeName(string? typeName)
     {
-        if (typeName == "RgxNodeControl")
-        {
-            return new RgxNodeControl();
-        }
+        if (typeName == "RgxNodeControl") return new RgxNodeControl();
         return null;
     }
+
     private async void OnCopyRegexRequested(object? sender, CopyRegexRequestedEventArgs e)
     {
         var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel?.Clipboard != null)
-        {
-            await topLevel.Clipboard.SetTextAsync(e.RegexPattern);
-        }
+        if (topLevel?.Clipboard != null) await topLevel.Clipboard.SetTextAsync(e.RegexPattern);
     }
 
     private void OnShowCodeRequested(object? sender, ShowCodeRequestedEventArgs e)
@@ -596,13 +530,9 @@ public partial class MainView : UserControl
         var codeWindow = new CodeWindow(e.Code);
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel is Window ownerWindow)
-        {
             codeWindow.Show(ownerWindow);
-        }
         else
-        {
             codeWindow.Show();
-        }
     }
 
     private void UpdateRegexHighlights()
@@ -610,7 +540,7 @@ public partial class MainView : UserControl
         if (SampleTextEditor?.Document == null || _colorizer == null)
             return;
 
-        string text = SampleTextEditor.Text;
+        var text = SampleTextEditor.Text;
         _colorizer.UpdateMatches(text);
 
         // Sync match info to the background renderer so whitespace glyphs get highlighted
@@ -626,7 +556,7 @@ public partial class MainView : UserControl
     private void RetrieveMatchData()
     {
         var result = MatchDataService.GetMatchAtOffset(
-        _colorizer?.MatchCollection, _colorizer?.Regex, SampleTextEditor.CaretOffset);
+            _colorizer?.MatchCollection, _colorizer?.Regex, SampleTextEditor.CaretOffset);
 
         if (_mainViewModel == null) return;
 
@@ -643,7 +573,7 @@ public partial class MainView : UserControl
     }
 
     /// <summary>
-    /// Switches the currently selected node and updates related state.
+    ///     Switches the currently selected node and updates related state.
     /// </summary>
     /// <param name="node">The node to switch to, or null to clear selection.</param>
     private void NodeSwitched(RgxNode? node)
@@ -651,48 +581,35 @@ public partial class MainView : UserControl
         _currentlySelectedNode = node;
 
         if (_mainViewModel != null)
-        {
             _mainViewModel.SelectNode(node, (rgxNode, newCount) =>
             {
                 if (rgxNode is ConcatenateNode catNode)
-                {
                     OnConcatenatePortCountChanged(catNode, newCount);
-                }
-                else if (rgxNode is AnyOfNode aoNode)
-                {
-                    OnAnyOfPortCountChanged(aoNode, newCount);
-                }
+                else if (rgxNode is AnyOfNode aoNode) OnAnyOfPortCountChanged(aoNode, newCount);
                 return () => { };
             });
-        }
     }
 
     /// <summary>
-    /// Finds the RgxNodeControl associated with the given RgxNode, if any.
+    ///     Finds the RgxNodeControl associated with the given RgxNode, if any.
     /// </summary>
     /// <param name="node">The RgxNode to find the control for.</param>
     /// <returns>The corresponding RgxNodeControl, or null if not found.</returns>
     private RgxNodeControl? FindNodeControlForRgxNode(RgxNode node)
     {
         foreach (var child in DragCanvasMain.Children)
-        {
             if (child is RgxNodeControl control && control.RgxNode == node)
-            {
                 return control;
-            }
-        }
+
         return null;
     }
 
-    private void OnAnyWordFromTextBoxKeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    private void OnAnyWordFromTextBoxKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key == Avalonia.Input.Key.Return || e.Key == Avalonia.Input.Key.Enter)
+        if (e.Key == Key.Return || e.Key == Key.Enter)
         {
-            if (_mainViewModel?.CurrentNodeViewModel is AnyWordFromNodeViewModel vm)
-            {
-                vm.AddWordCommand.Execute(null);
-                // Focus stays on TextBox since we just cleared it
-            }
+            if (_mainViewModel?.CurrentNodeViewModel is AnyWordFromNodeViewModel vm) vm.AddWordCommand.Execute(null);
+            // Focus stays on TextBox since we just cleared it
             e.Handled = true;
         }
     }
@@ -706,15 +623,11 @@ public partial class MainView : UserControl
 
         var text = SampleTextEditor.Text;
         if (useCrLf)
-        {
             // Convert LF to CRLF (avoid doubling existing CRLF)
             text = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-        }
         else
-        {
             // Convert CRLF to LF
             text = text.Replace("\r\n", "\n");
-        }
 
         SampleTextEditor.Text = text;
         UpdateRegexHighlights();

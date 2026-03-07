@@ -1,13 +1,12 @@
-using Avalonia.Controls;
-using Avalonia.Media;
-using Avalonia.Input;
 using System;
-using System.Diagnostics;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Media;
 
 namespace Avalonia.DragCanvas;
 
 /// <summary>
-/// Represents a visual connection line between two DragCanvasNode ports
+///     Represents a visual connection line between two DragCanvasNode ports
 /// </summary>
 public class DragCanvasConnection : Control
 {
@@ -36,7 +35,9 @@ public class DragCanvasConnection : Control
         AvaloniaProperty.Register<DragCanvasConnection, int>(nameof(TargetPortIndex), -1);
 
     public static readonly StyledProperty<bool> IsTemporaryProperty =
-        AvaloniaProperty.Register<DragCanvasConnection, bool>(nameof(IsTemporary), false);
+        AvaloniaProperty.Register<DragCanvasConnection, bool>(nameof(IsTemporary));
+
+    private bool _isAltDown;
 
     private bool _isHovered;
 
@@ -45,6 +46,17 @@ public class DragCanvasConnection : Control
         AffectsRender<DragCanvasConnection>(StartPointProperty, EndPointProperty, StrokeProperty, IsTemporaryProperty);
         StartPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, e) => x.OnPointsChanged());
         EndPointProperty.Changed.AddClassHandler<DragCanvasConnection>((x, e) => x.OnPointsChanged());
+    }
+
+    public DragCanvasConnection()
+    {
+        ClipToBounds = false;
+        // Make connections hit-testable for Alt-click deletion
+        IsHitTestVisible = true;
+        Cursor = new Cursor(StandardCursorType.Hand);
+
+        // Connections should not be draggable - they update based on their connected nodes
+        DragCanvas.SetCanBeDragged(this, false);
     }
 
     public Point StartPoint
@@ -95,17 +107,6 @@ public class DragCanvasConnection : Control
         set => SetValue(IsTemporaryProperty, value);
     }
 
-    public DragCanvasConnection()
-    {
-        ClipToBounds = false;
-        // Make connections hit-testable for Alt-click deletion
-        IsHitTestVisible = true;
-        Cursor = new Cursor(StandardCursorType.Hand);
-        
-        // Connections should not be draggable - they update based on their connected nodes
-        DragCanvas.SetCanBeDragged(this, false);
-    }
-
     private void OnPointsChanged()
     {
         var minX = Math.Min(StartPoint.X, EndPoint.X);
@@ -122,7 +123,8 @@ public class DragCanvasConnection : Control
     {
         base.OnPointerEntered(e);
         _isHovered = true;
-        InvalidateVisual();
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+            InvalidateVisual();
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
@@ -132,14 +134,26 @@ public class DragCanvasConnection : Control
         InvalidateVisual();
     }
 
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        var altDown = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
+        if (altDown != _isAltDown)
+        {
+            _isAltDown = altDown;
+            if (_isHovered)
+                InvalidateVisual();
+        }
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
 
         var point = e.GetCurrentPoint(this);
-        
+
         // Check for Alt+Click
-        if (point.Properties.IsLeftButtonPressed && 
+        if (point.Properties.IsLeftButtonPressed &&
             e.KeyModifiers.HasFlag(KeyModifiers.Alt))
         {
             // Find parent DragCanvas and request deletion
@@ -156,7 +170,7 @@ public class DragCanvasConnection : Control
         // Calculate the offset needed to transform canvas coordinates to local coordinates
         var minX = Math.Min(StartPoint.X, EndPoint.X) - HitTestThickness;
         var minY = Math.Min(StartPoint.Y, EndPoint.Y) - HitTestThickness;
-        
+
         var localStart = new Point(StartPoint.X - minX, StartPoint.Y - minY);
         var localEnd = new Point(EndPoint.X - minX, EndPoint.Y - minY);
 
@@ -167,7 +181,7 @@ public class DragCanvasConnection : Control
             var dx = localEnd.X - localStart.X;
             var dy = localEnd.Y - localStart.Y;
             var length = Math.Sqrt(dx * dx + dy * dy);
-            
+
             if (length > 0)
             {
                 var perpX = -dy / length * HitTestThickness / 2;
@@ -180,19 +194,16 @@ public class DragCanvasConnection : Control
                 hitContext.EndFigure(true);
             }
         }
-        
+
         // Draw the invisible hit test area with transparent brush
         context.DrawGeometry(Brushes.Transparent, null, hitTestGeometry);
 
         // Draw the visible line
-        var strokeBrush = _isHovered ? Brushes.Red : Stroke;
+        var strokeBrush = _isHovered && _isAltDown ? Brushes.Red : Stroke;
         var pen = new Pen(strokeBrush, StrokeThickness);
 
         // Draw dashed line for temporary connections
-        if (IsTemporary)
-        {
-            pen = new Pen(strokeBrush, StrokeThickness, new DashStyle(new[] { 4.0, 2.0 }, 0));
-        }
+        if (IsTemporary) pen = new Pen(strokeBrush, StrokeThickness, new DashStyle(new[] { 4.0, 2.0 }, 0));
 
         context.DrawLine(pen, localStart, localEnd);
     }
@@ -216,17 +227,14 @@ public class DragCanvasConnection : Control
     }
 
     /// <summary>
-    /// Updates the connection endpoints based on the current positions of connected nodes
+    ///     Updates the connection endpoints based on the current positions of connected nodes
     /// </summary>
     public void UpdateFromNodes()
     {
-        if (SourceNode == null || TargetNode == null)
-        {
-            return;
-        }
+        if (SourceNode == null || TargetNode == null) return;
 
-        var sourcePort = SourceNode.GetPortPosition(SourcePortIndex, isLeftSide: false);
-        var targetPort = TargetNode.GetPortPosition(TargetPortIndex, isLeftSide: true);
+        var sourcePort = SourceNode.GetPortPosition(SourcePortIndex, false);
+        var targetPort = TargetNode.GetPortPosition(TargetPortIndex, true);
 
         if (sourcePort.HasValue && targetPort.HasValue)
         {
@@ -243,33 +251,28 @@ public class DragCanvasConnection : Control
     public ConnectionInfo GetConnectionInfo()
     {
         if (SourceNode == null || TargetNode == null)
-        {
             throw new InvalidOperationException("Both SourceNode and TargetNode must be set to get connection info.");
-        }
         return new ConnectionInfo(SourceNode, TargetNode, SourcePortIndex, TargetPortIndex);
     }
 
     private T? FindAncestorOfType<T>() where T : class
     {
-        var current = this.Parent;
+        var current = Parent;
         while (current != null)
         {
             if (current is T t)
                 return t;
             current = (current as Visual)?.Parent;
         }
+
         return null;
     }
 }
 
 public class ConnectionInfo
 {
-    public DragCanvasNode SourceNode { get; }
-    public DragCanvasNode TargetNode { get; }
-    public int SourcePortIndex { get; }
-    public int TargetPortIndex { get; }
-
-    public ConnectionInfo(DragCanvasNode sourceNode, DragCanvasNode targetNode, int sourcePortIndex, int targetPortIndex)
+    public ConnectionInfo(DragCanvasNode sourceNode, DragCanvasNode targetNode, int sourcePortIndex,
+        int targetPortIndex)
     {
         SourceNode = sourceNode;
         TargetNode = targetNode;
@@ -277,19 +280,17 @@ public class ConnectionInfo
         TargetPortIndex = targetPortIndex;
     }
 
+    public DragCanvasNode SourceNode { get; }
+    public DragCanvasNode TargetNode { get; }
+    public int SourcePortIndex { get; }
+    public int TargetPortIndex { get; }
+
     public (DragCanvasNode otherNode, int otherPortIndex) GetOtherEnd(DragCanvasNode node)
     {
-        if (node == SourceNode)
-        {
-            return (TargetNode, TargetPortIndex);
-        }
-        else if (node == TargetNode)
-        {
-            return (SourceNode, SourcePortIndex);
-        }
-        else
-        {
-            throw new ArgumentException("The provided node and port index do not match either end of the connection.");
-        }
+        if (node == SourceNode) return (TargetNode, TargetPortIndex);
+
+        if (node == TargetNode) return (SourceNode, SourcePortIndex);
+
+        throw new ArgumentException("The provided node and port index do not match either end of the connection.");
     }
 }

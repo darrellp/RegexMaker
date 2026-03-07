@@ -1,6 +1,6 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,23 +9,17 @@ public partial class OptionsNodeViewModel : ViewModelBase
     private readonly OptionsNode _node;
     private readonly Action _onChanged;
 
-    [ObservableProperty]
-    private bool _caseSensitiveOn;
+    [ObservableProperty] private bool _caseSensitiveDflt;
 
-    [ObservableProperty]
-    private bool _caseSensitiveOff;
+    [ObservableProperty] private bool _caseSensitiveOff;
 
-    [ObservableProperty]
-    private bool _caseSensitiveDflt;
+    [ObservableProperty] private bool _caseSensitiveOn;
 
-    [ObservableProperty]
-    private bool _multilineOn;
+    [ObservableProperty] private bool _multilineDflt;
 
-    [ObservableProperty]
-    private bool _multilineOff;
+    [ObservableProperty] private bool _multilineOff;
 
-    [ObservableProperty]
-    private bool _multilineDflt;
+    [ObservableProperty] private bool _multilineOn;
 
     public OptionsNodeViewModel(OptionsNode node, Action onChanged)
     {

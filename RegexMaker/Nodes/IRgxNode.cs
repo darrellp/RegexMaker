@@ -18,8 +18,8 @@ public enum RgxNodeType
     AnyWordFrom,
     BackReference,
     Numeric,
-    Options,
-};
+    Options
+}
 
 public interface IRgxNode
 {

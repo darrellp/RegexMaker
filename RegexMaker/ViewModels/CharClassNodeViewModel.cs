@@ -1,21 +1,15 @@
-using RegexMaker.Nodes;
 using System;
 using System.Collections.ObjectModel;
-using System.Xml.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using RegexMaker.Nodes;
 
 namespace RegexMaker.ViewModels;
 
 public partial class CharClassNodeViewModel : ViewModelBase
 {
-    public CharClassNode Node { get; }
-    public ObservableCollection<CharClassType> CharClassTypes { get; } =
-        new(Enum.GetValues<CharClassType>());
-
-    [ObservableProperty]
-    private CharClassType selectedCharClass;
-
     private readonly Action? _onChanged;
+
+    [ObservableProperty] private CharClassType selectedCharClass;
 
     public CharClassNodeViewModel(CharClassNode node, Action? onChanged)
     {
@@ -23,6 +17,11 @@ public partial class CharClassNodeViewModel : ViewModelBase
         _onChanged = onChanged;
         selectedCharClass = node.CharClass;
     }
+
+    public CharClassNode Node { get; }
+
+    public ObservableCollection<CharClassType> CharClassTypes { get; } =
+        new(Enum.GetValues<CharClassType>());
 
     partial void OnSelectedCharClassChanged(CharClassType value)
     {

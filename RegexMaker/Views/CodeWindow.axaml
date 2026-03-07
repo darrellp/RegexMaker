@@ -11,5 +11,5 @@
                              FontSize="13"
                              ShowLineNumbers="True"
                              VerticalScrollBarVisibility="Auto"
-                             HorizontalScrollBarVisibility="Auto"/>
+                             HorizontalScrollBarVisibility="Auto" />
 </Window>

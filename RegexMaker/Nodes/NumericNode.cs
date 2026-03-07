@@ -1,6 +1,7 @@
-using RegexStringLibrary;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using RegexStringLibrary;
 
 namespace RegexMaker.Nodes;
 
@@ -8,13 +9,11 @@ public enum NumericType
 {
     Integer,
     Unsigned,
-    Float,
+    Float
 }
 
 public class NumericNode : RgxNode
 {
-    public NumericType NumericType { get; set; }
-
     public NumericNode() : base(RgxNodeType.Numeric)
     {
         NumericType = NumericType.Integer;
@@ -26,6 +25,10 @@ public class NumericNode : RgxNode
         NumericType = numericType;
         Parameters = [];
     }
+
+    public NumericType NumericType { get; set; }
+
+    public override string DisplayName => NumericType.ToString();
 
     internal override string CalculateResult()
     {
@@ -42,9 +45,10 @@ public class NumericNode : RgxNode
     {
         return NumericType switch
         {
-            NumericType.Integer => (random.Next(2) == 0 ? "-" : "") + random.Next(1, 10000).ToString(),
+            NumericType.Integer => (random.Next(2) == 0 ? "-" : "") + random.Next(1, 10000),
             NumericType.Unsigned => random.Next(0, 10000).ToString(),
-            NumericType.Float => (random.Next(2) == 0 ? "-" : "") + (random.Next(0, 1000) + random.NextDouble()).ToString("F2"),
+            NumericType.Float => (random.Next(2) == 0 ? "-" : "") +
+                                 (random.Next(0, 1000) + random.NextDouble()).ToString("F2"),
             _ => "0"
         };
     }
@@ -53,8 +57,6 @@ public class NumericNode : RgxNode
     {
         return new NumericNode();
     }
-
-    public override string DisplayName => NumericType.ToString();
 
     public override string RawCode(CodeCollector cc)
     {
@@ -73,12 +75,10 @@ public class NumericNode : RgxNode
         data["NumericType"] = Enum.GetName(NumericType);
     }
 
-    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    protected override void RestoreSerializationData(Dictionary<string, JsonElement> data)
     {
         base.RestoreSerializationData(data);
         if (data.TryGetValue("NumericType", out var numericType))
-        {
             NumericType = Enum.Parse<NumericType>(numericType.GetString() ?? string.Empty);
-        }
     }
 }

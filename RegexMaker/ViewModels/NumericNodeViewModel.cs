@@ -1,6 +1,6 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,14 +9,11 @@ public partial class NumericNodeViewModel : ViewModelBase
     private readonly NumericNode _node;
     private readonly Action _onChanged;
 
-    [ObservableProperty]
-    private bool _isInteger;
+    [ObservableProperty] private bool _isFloat;
 
-    [ObservableProperty]
-    private bool _isUnsigned;
+    [ObservableProperty] private bool _isInteger;
 
-    [ObservableProperty]
-    private bool _isFloat;
+    [ObservableProperty] private bool _isUnsigned;
 
     public NumericNodeViewModel(NumericNode node, Action onChanged)
     {

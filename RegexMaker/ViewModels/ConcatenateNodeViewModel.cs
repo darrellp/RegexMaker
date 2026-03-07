@@ -1,6 +1,6 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,8 +9,7 @@ public partial class ConcatenateNodeViewModel : ViewModelBase
     private readonly ConcatenateNode _node;
     private readonly Action<int> _onPortCountChanged;
 
-    [ObservableProperty]
-    private int _portCount;
+    [ObservableProperty] private int _portCount;
 
     public ConcatenateNodeViewModel(ConcatenateNode node, Action<int> onPortCountChanged)
     {

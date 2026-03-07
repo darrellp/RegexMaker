@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:dragCanvas="clr-namespace:Avalonia.DragCanvas;assembly=Avalonia.DragCanvas"
-             xmlns:nodes="clr-namespace:RegexMaker.Controls;assembly=RegexMaker"
              xmlns:vm="using:RegexMaker.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="RegexMaker.Views.MainView"
@@ -29,35 +28,36 @@
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="5">
             <Grid RowDefinitions="*" ColumnDefinitions="*,200">
 
-            <!-- Sample Text Editor -->
-            <AvaloniaEdit:TextEditor Grid.Column="0" BorderBrush="Black" BorderThickness="1" Name="SampleTextEditor" 
-                           Text="Replace with Sample Text" VerticalAlignment="Stretch"
-                           FontFamily="Cascadia Code,Consolas,Menlo,Monospace"/>
+                <!-- Sample Text Editor -->
+                <AvaloniaEdit:TextEditor Grid.Column="0" BorderBrush="Black" BorderThickness="1"
+                                         Name="SampleTextEditor"
+                                         Text="Replace with Sample Text" VerticalAlignment="Stretch"
+                                         FontFamily="Cascadia Code,Consolas,Menlo,Monospace" />
 
-            <!-- Match Information Panel -->
-            <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Stretch">
-                <TextBlock Text="Match Information" Margin="0,0,5,0" Padding="10,2" HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding MatchExtent}" HorizontalAlignment="Center" Margin="0,0,5,0" Padding="10,2" />
-                <ListBox
-                    Background="{DynamicResource BrushBackground}"
-                    ItemsSource="{Binding Matches}"
-                    x:Name="MatchesListBox"
-                    FontSize="11"
-                    ScrollViewer.VerticalScrollBarVisibility="Auto"
-                    MaxHeight="160">
-                </ListBox>
-            </StackPanel>
+                <!-- Match Information Panel -->
+                <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Stretch">
+                    <TextBlock Text="Match Information" Margin="0,0,5,0" Padding="10,2" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding MatchExtent}" HorizontalAlignment="Center" Margin="0,0,5,0"
+                               Padding="10,2" />
+                    <ListBox
+                        Background="{DynamicResource BrushBackground}"
+                        ItemsSource="{Binding Matches}"
+                        x:Name="MatchesListBox"
+                        FontSize="11"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        MaxHeight="160" />
+                </StackPanel>
             </Grid>
         </Border>
 
         <!--
         This Border at the bottom is intended to display the generated regex pattern.
         -->
-        <Border Height="20" 
+        <Border Height="20"
                 CornerRadius="8"
                 BorderBrush="{DynamicResource BrushText}" BorderThickness="1"
-                Background="{DynamicResource BrushBackground}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" >
-            <TextBlock Name="TxtRegex" Margin="2" VerticalAlignment="Center" Text="{Binding RegexPattern}"/>
+                Background="{DynamicResource BrushBackground}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3">
+            <TextBlock Name="TxtRegex" Margin="2" VerticalAlignment="Center" Text="{Binding RegexPattern}" />
         </Border>
 
         <!-- 
@@ -66,21 +66,21 @@
         runtime in RegexMaker.Views.MainView().
         -->
         <Border Grid.Row="1" Grid.Column="0" BorderBrush="Black" BorderThickness="1" Margin="5">
-            <StackPanel Grid.Row="1" Grid.Column="0" Name="SpToolBox"/>
+            <StackPanel Name="SpToolBox" />
         </Border>
 
         <!--
         The DragCanvas - the main canvas where nodes are placed and connected.
         This is positioned in the center column between the toolbox and parameters panel.
         -->
-        <dragCanvas:DragCanvas Grid.Row="1" Grid.Column="1" 
-                              Name="DragCanvasMain"
-                              Background="LightBlue"
-                              NodeSelected="OnNodeSelected"
-                              ConnectionCreated="OnConnectionCreated"
-                              ConnectionDeleted="OnConnectionDeleted"
-                              NodeBackground="Transparent"
-                              NodeDeleted="OnNodeDeleted"/>
+        <dragCanvas:DragCanvas Grid.Row="1" Grid.Column="1"
+                               Name="DragCanvasMain"
+                               Background="LightBlue"
+                               NodeSelected="OnNodeSelected"
+                               ConnectionCreated="OnConnectionCreated"
+                               ConnectionDeleted="OnConnectionDeleted"
+                               NodeBackground="Transparent"
+                               NodeDeleted="OnNodeDeleted" />
 
         <!-- 
         The Carousel control is used to display the parameters for the currently selected node type.
@@ -93,117 +93,117 @@
         All carousel items now bind to the shared CurrentNodeViewModel property using ReflectionBinding
         for dynamic type support.
         -->
-        <Carousel Grid.Row="1" Grid.Column="2" 
-                  SelectedIndex="{Binding SelectedCarouselIndex}" 
-                  Name="CarParameters" 
-                  FontSize="12">            
+        <Carousel Grid.Row="1" Grid.Column="2"
+                  SelectedIndex="{Binding SelectedCarouselIndex}"
+                  Name="CarParameters"
+                  FontSize="12">
             <!-- StringSearch - Index 0 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Literal" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Value:"/>
-                    <TextBox Text="{ReflectionBinding SearchString}" 
-                             Watermark="Enter search string"/>
-                    <CheckBox Foreground ="{DynamicResource RegexrTextColor}" IsChecked="{ReflectionBinding AutoEscape}" 
-                              Content="Auto Escape"/>
+                    <TextBlock Text="Literal" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Value:" />
+                    <TextBox Text="{ReflectionBinding SearchString}"
+                             Watermark="Enter search string" />
+                    <CheckBox Foreground="{DynamicResource RegexrTextColor}" IsChecked="{ReflectionBinding AutoEscape}"
+                              Content="Auto Escape" />
                 </StackPanel>
             </Border>
-            
+
             <!-- Concatenate - Index 1 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Concatenate" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Port Count:"/>
+                    <TextBlock Text="Concatenate" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Port Count:" />
                     <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
-                                   Value="{ReflectionBinding PortCount}" 
+                                   Value="{ReflectionBinding PortCount}"
                                    Minimum="2"
-                                   Maximum="10"/>
+                                   Maximum="10" />
                 </StackPanel>
             </Border>
-            
+
             <!-- Repeat - Index 2 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Repeat" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Minimum:"/>
+                    <TextBlock Text="Repeat" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Minimum:" />
                     <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
-                                   Value="{ReflectionBinding Least}" 
+                                   Value="{ReflectionBinding Least}"
                                    Minimum="0"
-                                   Maximum="{ReflectionBinding MaximumForLeast}"/>
-                    <TextBlock Text="Maximum:"/>
+                                   Maximum="{ReflectionBinding MaximumForLeast}" />
+                    <TextBlock Text="Maximum:" />
                     <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
-                                   Value="{ReflectionBinding Most}" 
+                                   Value="{ReflectionBinding Most}"
                                    Minimum="{ReflectionBinding Least}"
                                    Maximum="999999"
-                                   IsEnabled="{ReflectionBinding IsMostEnabled}"/>
+                                   IsEnabled="{ReflectionBinding IsMostEnabled}" />
 
-                    <CheckBox IsChecked="{ReflectionBinding IsInfinity}" 
-                              Content="Set Maximum to Infinity"/>
+                    <CheckBox IsChecked="{ReflectionBinding IsInfinity}"
+                              Content="Set Maximum to Infinity" />
 
-                    <CheckBox IsChecked="{ReflectionBinding IsLazy}" 
-                              Content="Lazy"/>
+                    <CheckBox IsChecked="{ReflectionBinding IsLazy}"
+                              Content="Lazy" />
                 </StackPanel>
             </Border>
-            
+
             <!-- PatternStart - Index 3 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5">
-                    <TextBlock Text="Pattern Start" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Pattern Start" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center" />
                 </StackPanel>
             </Border>
-            
+
             <!-- PatternEnd - Index 4 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5">
-                    <TextBlock Text="Pattern End" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Pattern End" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="No specific parameters" FontStyle="Italic" HorizontalAlignment="Center" />
                 </StackPanel>
             </Border>
-            
+
             <!-- AnyCharFrom - Index 5 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Any Char From" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Default Characters:"/>
-                    <TextBox Text="{ReflectionBinding Chars}" 
-                             Watermark="A-Za-z0-9"/>
+                    <TextBlock Text="Any Char From" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Default Characters:" />
+                    <TextBox Text="{ReflectionBinding Chars}"
+                             Watermark="A-Za-z0-9" />
                     <CheckBox Content="Not In Char Set" IsChecked="{ReflectionBinding NotIn}" />
-                    <TextBlock Text="(Also uses parameter nodes)" 
-                               FontStyle="Italic" 
+                    <TextBlock Text="(Also uses parameter nodes)"
+                               FontStyle="Italic"
                                HorizontalAlignment="Center"
-                               FontSize="10"/>
+                               FontSize="10" />
                 </StackPanel>
             </Border>
 
             <!-- AnyOf - Index 6 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Any Of" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Port Count:"/>
+                    <TextBlock Text="Any Of" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Port Count:" />
                     <NumericUpDown FormatString="N0" ParsingNumberStyle="Integer"
-                                   Value="{ReflectionBinding PortCount}" 
+                                   Value="{ReflectionBinding PortCount}"
                                    Minimum="2"
-                                   Maximum="10"/>
+                                   Maximum="10" />
                 </StackPanel>
             </Border>
-            
+
             <!-- Range - Index 7 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Start Character:"/>
-                    <TextBox Text="{ReflectionBinding CharStart}"/>
-                    <TextBlock Text="End Character:"/>
-                    <TextBox Text="{ReflectionBinding CharEnd}"/>
+                    <TextBlock Text="Range" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Start Character:" />
+                    <TextBox Text="{ReflectionBinding CharStart}" />
+                    <TextBlock Text="End Character:" />
+                    <TextBox Text="{ReflectionBinding CharEnd}" />
                 </StackPanel>
             </Border>
 
             <!-- CharClassNode - Index 8 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Char Class" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Class Type:"/>
+                    <TextBlock Text="Char Class" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Class Type:" />
                     <ComboBox ItemsSource="{ReflectionBinding CharClassTypes}"
                               SelectedItem="{ReflectionBinding SelectedCharClass, Mode=TwoWay}" />
                 </StackPanel>
@@ -212,21 +212,21 @@
             <!-- Named - Index 9 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Capture" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Name:"/>
-                    <TextBox Text="{ReflectionBinding GroupName}" 
-                             Watermark="Enter group name"/>
-                    <TextBlock Text="(Leave empty for unnamed group)" 
-                               FontStyle="Italic" 
+                    <TextBlock Text="Capture" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Name:" />
+                    <TextBox Text="{ReflectionBinding GroupName}"
+                             Watermark="Enter group name" />
+                    <TextBlock Text="(Leave empty for unnamed group)"
+                               FontStyle="Italic"
                                HorizontalAlignment="Center"
-                               FontSize="10"/>
+                               FontSize="10" />
                 </StackPanel>
             </Border>
 
             <!-- Date - Index 10 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Date" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Date" FontWeight="Bold" HorizontalAlignment="Center" />
                     <CheckBox Content="American" IsChecked="{ReflectionBinding IsAmerican}" />
                 </StackPanel>
             </Border>
@@ -234,43 +234,43 @@
             <!-- AnyWordFrom - Index 11 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Any Word From" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Words to match:"/>
+                    <TextBlock Text="Any Word From" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Words to match:" />
                     <Border Height="120" BorderBrush="Gray" BorderThickness="1">
-                        <ListBox ItemsSource="{ReflectionBinding Words}" 
+                        <ListBox ItemsSource="{ReflectionBinding Words}"
                                  SelectedItem="{ReflectionBinding SelectedWord}"
-                                 ScrollViewer.VerticalScrollBarVisibility="Visible"/>
+                                 ScrollViewer.VerticalScrollBarVisibility="Visible" />
                     </Border>
-                    <TextBox Text="{ReflectionBinding NewWord}" 
+                    <TextBox Text="{ReflectionBinding NewWord}"
                              Watermark="Enter new word"
                              Name="AnyWordFromTextBox"
-                             KeyDown="OnAnyWordFromTextBoxKeyDown"/>
-                    <Button Content="Remove Selected" 
+                             KeyDown="OnAnyWordFromTextBoxKeyDown" />
+                    <Button Content="Remove Selected"
                             Command="{ReflectionBinding RemoveWordCommand}"
-                            HorizontalAlignment="Stretch"/>
+                            HorizontalAlignment="Stretch" />
                 </StackPanel>
             </Border>
 
             <!-- BackReference - Index 12 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Back Reference" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Group Name:"/>
-                    <TextBox Text="{ReflectionBinding GroupName}" 
-                             Watermark="Enter group name"/>
-                    <TextBlock Text="References a previously captured group" 
-                               FontStyle="Italic" 
+                    <TextBlock Text="Back Reference" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Group Name:" />
+                    <TextBox Text="{ReflectionBinding GroupName}"
+                             Watermark="Enter group name" />
+                    <TextBlock Text="References a previously captured group"
+                               FontStyle="Italic"
                                HorizontalAlignment="Center"
                                FontSize="10"
-                               TextWrapping="Wrap"/>
+                               TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
 
             <!-- Numeric - Index 13 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Numeric" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Match Type:"/>
+                    <TextBlock Text="Numeric" FontWeight="Bold" HorizontalAlignment="Center" />
+                    <TextBlock Text="Match Type:" />
                     <RadioButton Content="Integer" GroupName="NumericType"
                                  IsChecked="{ReflectionBinding IsInteger, Mode=TwoWay}" />
                     <RadioButton Content="Unsigned" GroupName="NumericType"
@@ -283,9 +283,9 @@
             <!-- Options - Index 14 -->
             <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
                 <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
-                    <TextBlock Text="Options" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Options" FontWeight="Bold" HorizontalAlignment="Center" />
 
-                    <TextBlock Text="Case Sensitive:" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                    <TextBlock Text="Case Sensitive:" FontWeight="SemiBold" Margin="0,5,0,0" />
                     <RadioButton Content="On" GroupName="CaseSensitive"
                                  IsChecked="{ReflectionBinding CaseSensitiveOn, Mode=TwoWay}" />
                     <RadioButton Content="Off" GroupName="CaseSensitive"
@@ -293,7 +293,7 @@
                     <RadioButton Content="Dflt" GroupName="CaseSensitive"
                                  IsChecked="{ReflectionBinding CaseSensitiveDflt, Mode=TwoWay}" />
 
-                    <TextBlock Text="Multiline:" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                    <TextBlock Text="Multiline:" FontWeight="SemiBold" Margin="0,10,0,0" />
                     <RadioButton Content="On" GroupName="Multiline"
                                  IsChecked="{ReflectionBinding MultilineOn, Mode=TwoWay}" />
                     <RadioButton Content="Off" GroupName="Multiline"

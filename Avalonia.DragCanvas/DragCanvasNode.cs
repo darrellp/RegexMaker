@@ -1,40 +1,29 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace Avalonia.DragCanvas;
 
 public class DragCanvasNode : ContentControl
 {
+    public enum PortSide
+    {
+        Left,
+        Right
+    }
+
     private const double PortRadiusNormal = 5.0;
     private const double PortRadiusHover = 7.0;
     private const double PortSpacing = 20.0;
     private const double PortPadding = 10.0;
     protected const double SelectionBorderThickness = 2.0;
     private const double DeletionBorderThickness = 3.0;
-
-    protected readonly List<PortInfo> _leftPorts = new();
-    protected readonly List<PortInfo> _rightPorts = new();
-
-    // _leftConnections[i] is the list of connections for the port at index i on the left side.
-    // Similarly for _rightConnections.
-    // This allows for multiple connections per port (though specific implementations may restrict this)
-    private bool _connectionsInitialized = false;
-    private readonly List<List<DragCanvasConnection>> _leftConnections = new();
-    private readonly List<List<DragCanvasConnection>> _rightConnections = new();
-
-    private int? _hoveredPortIndex;
-    private PortSide? _hoveredPortSide;
-    private Point _lastPointerPosition;
-    protected Size _lastArrangedSize;
-    private bool _isPortDragInProgress;
-    private bool _isAltHovered;
 
     // Routed event for port clicked
     public static readonly RoutedEvent<PortClickedEventArgs> PortClickedEvent =
@@ -52,25 +41,58 @@ public class DragCanvasNode : ContentControl
     public static readonly StyledProperty<int> PortCtLeftProperty =
         AvaloniaProperty.Register<DragCanvasNode, int>(
             nameof(PortCtLeft),
-            defaultValue: 0,
+            0,
             validate: value => value >= 0);
 
     public static readonly StyledProperty<int> PortCtRightProperty =
         AvaloniaProperty.Register<DragCanvasNode, int>(
             nameof(PortCtRight),
-            defaultValue: 0,
+            0,
             validate: value => value >= 0);
 
     // Styled properties for selection
     public static readonly StyledProperty<bool> IsSelectedProperty =
         AvaloniaProperty.Register<DragCanvasNode, bool>(
             nameof(IsSelected),
-            defaultValue: false);
+            false);
 
     public static readonly StyledProperty<IBrush?> SelectionBrushProperty =
         AvaloniaProperty.Register<DragCanvasNode, IBrush?>(
             nameof(SelectionBrush),
-            defaultValue: Brushes.Blue);
+            Brushes.Blue);
+
+    private readonly List<List<DragCanvasConnection>> _leftConnections = new();
+
+    protected readonly List<PortInfo> _leftPorts = new();
+    private readonly List<List<DragCanvasConnection>> _rightConnections = new();
+    protected readonly List<PortInfo> _rightPorts = new();
+
+    // _leftConnections[i] is the list of connections for the port at index i on the left side.
+    // Similarly for _rightConnections.
+    // This allows for multiple connections per port (though specific implementations may restrict this)
+    private bool _connectionsInitialized;
+
+    private int? _hoveredPortIndex;
+    private PortSide? _hoveredPortSide;
+    private bool _isAltHovered;
+    protected Size _lastArrangedSize;
+    private Point _lastPointerPosition;
+
+    static DragCanvasNode()
+    {
+        AffectsRender<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty, IsSelectedProperty,
+            SelectionBrushProperty);
+        AffectsMeasure<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty);
+    }
+
+    public DragCanvasNode()
+    {
+        // Don't clip - we want to see the ports even if they extend slightly beyond bounds
+        ClipToBounds = false;
+
+        // Make sure we can receive pointer events
+        Background = Background ?? Brushes.Transparent;
+    }
 
     public int PortCtLeft
     {
@@ -96,20 +118,7 @@ public class DragCanvasNode : ContentControl
         internal set => SetValue(SelectionBrushProperty, value);
     }
 
-    static DragCanvasNode()
-    {
-        AffectsRender<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty, IsSelectedProperty, SelectionBrushProperty);
-        AffectsMeasure<DragCanvasNode>(PortCtLeftProperty, PortCtRightProperty);
-    }
-
-    public DragCanvasNode()
-    {
-        // Don't clip - we want to see the ports even if they extend slightly beyond bounds
-        ClipToBounds = false;
-
-        // Make sure we can receive pointer events
-        Background = Background ?? Brushes.Transparent;
-    }
+    public bool IsPortDragInProgress { get; private set; }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -138,23 +147,20 @@ public class DragCanvasNode : ContentControl
     }
 
     /// <summary>
-    /// Ensures the connection list matches the port count
+    ///     Ensures the connection list matches the port count
     /// </summary>
     private void SynchronizeConnectionList(List<List<DragCanvasConnection>> connectionsList, int newPortCount)
     {
         // If we need more connection lists, add them
-        while (connectionsList.Count < newPortCount)
-        {
-            connectionsList.Add(new List<DragCanvasConnection>());
-        }
-        
+        while (connectionsList.Count < newPortCount) connectionsList.Add(new List<DragCanvasConnection>());
+
         // If we have too many, we need to handle the extra connections
         // This is important - we should notify that connections are being removed
         while (connectionsList.Count > newPortCount)
         {
             var lastIndex = connectionsList.Count - 1;
             var connectionsToRemove = connectionsList[lastIndex];
-            
+
             // Remove any connections on the port being removed
             foreach (var connection in connectionsToRemove.ToList())
             {
@@ -162,7 +168,7 @@ public class DragCanvasNode : ContentControl
                 var parent = FindAncestorOfType<DragCanvas>();
                 parent?.DeleteConnection(connection);
             }
-            
+
             connectionsList.RemoveAt(lastIndex);
         }
     }
@@ -227,7 +233,8 @@ public class DragCanvasNode : ContentControl
         _connectionsInitialized = true;
     }
 
-    private void CreatePorts(List<PortInfo> portList, List<List<DragCanvasConnection>> portConnections, int count, double x, double height, PortSide side)
+    private void CreatePorts(List<PortInfo> portList, List<List<DragCanvasConnection>> portConnections, int count,
+        double x, double height, PortSide side)
     {
         if (count == 0) return;
 
@@ -237,7 +244,7 @@ public class DragCanvasNode : ContentControl
         // Center the ports vertically
         var startY = (height - totalPortsHeight) / 2;
 
-        for (int i = 0; i < count; i++)
+        for (var i = 0; i < count; i++)
         {
             var y = startY + i * PortSpacing;
             portList.Add(new PortInfo
@@ -246,12 +253,9 @@ public class DragCanvasNode : ContentControl
                 Index = i,
                 Side = side
             });
-            
+
             // Initialize connection list for this port if not already done
-            if (!_connectionsInitialized)
-            {
-                portConnections.Add(new List<DragCanvasConnection>());
-            }
+            if (!_connectionsInitialized) portConnections.Add(new List<DragCanvasConnection>());
         }
     }
 
@@ -285,9 +289,9 @@ public class DragCanvasNode : ContentControl
         {
             // Check if this port is hovered by comparing index and side
             var isHovered = _hoveredPortIndex.HasValue &&
-                           _hoveredPortSide.HasValue &&
-                           port.Index == _hoveredPortIndex.Value &&
-                           port.Side == _hoveredPortSide.Value;
+                            _hoveredPortSide.HasValue &&
+                            port.Index == _hoveredPortIndex.Value &&
+                            port.Side == _hoveredPortSide.Value;
 
             var radius = isHovered ? PortRadiusHover : PortRadiusNormal;
             var brush = isHovered ? Brushes.Blue : Brushes.Black;
@@ -299,9 +303,9 @@ public class DragCanvasNode : ContentControl
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         var point = e.GetCurrentPoint(this);
-        
+
         // Check for Alt+Click on node body (not on port) to delete the node
-        if (point.Properties.IsLeftButtonPressed && 
+        if (point.Properties.IsLeftButtonPressed &&
             e.KeyModifiers.HasFlag(KeyModifiers.Alt) &&
             !_hoveredPortIndex.HasValue)
         {
@@ -317,13 +321,13 @@ public class DragCanvasNode : ContentControl
 
         // Check if clicking on a port
         if (_hoveredPortIndex.HasValue && _hoveredPortSide.HasValue)
-        {
             if (point.Properties.IsLeftButtonPressed)
             {
-                _isPortDragInProgress = true;
+                IsPortDragInProgress = true;
 
                 // Get port position in canvas coordinates
-                var portPosition = GetPortCanvasPosition(_hoveredPortIndex.Value, _hoveredPortSide.Value == PortSide.Left);
+                var portPosition =
+                    GetPortCanvasPosition(_hoveredPortIndex.Value, _hoveredPortSide.Value == PortSide.Left);
 
                 var args = new PortClickedEventArgs(
                     PortClickedEvent,
@@ -336,14 +340,13 @@ public class DragCanvasNode : ContentControl
                 e.Handled = true;
                 return;
             }
-        }
 
         base.OnPointerPressed(e);
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
-        _isPortDragInProgress = false;
+        IsPortDragInProgress = false;
         base.OnPointerReleased(e);
     }
 
@@ -352,19 +355,16 @@ public class DragCanvasNode : ContentControl
         base.OnPointerMoved(e);
 
         // Don't update hover state if we're currently dragging a port connection
-        if (_isPortDragInProgress)
+        if (IsPortDragInProgress)
             return;
 
         _lastPointerPosition = e.GetPosition(this);
-        
+
         // Update Alt hover state
-        bool wasAltHovered = _isAltHovered;
+        var wasAltHovered = _isAltHovered;
         _isAltHovered = e.KeyModifiers.HasFlag(KeyModifiers.Alt);
-        
-        if (wasAltHovered != _isAltHovered)
-        {
-            InvalidateVisual();
-        }
+
+        if (wasAltHovered != _isAltHovered) InvalidateVisual();
 
         UpdateHoveredPort(_lastPointerPosition);
     }
@@ -392,16 +392,13 @@ public class DragCanvasNode : ContentControl
         const double hoverDistance = 20.0; // Distance within which port is considered hovered
 
         PortInfo? newHoveredPort = null;
-        double minDistanceSq = hoverDistance * hoverDistance;
+        var minDistanceSq = hoverDistance * hoverDistance;
 
         // Ensure ports are up to date
-        if (_leftPorts.Count == 0 && _rightPorts.Count == 0)
-        {
-            UpdatePorts();
-        }
+        if (_leftPorts.Count == 0 && _rightPorts.Count == 0) UpdatePorts();
 
         // If our x position isn't near the left or right side there's no need to check further.
-        if (pointerPosition.X > hoverDistance/2 && pointerPosition.X < _lastArrangedSize.Width - hoverDistance/2)
+        if (pointerPosition.X > hoverDistance / 2 && pointerPosition.X < _lastArrangedSize.Width - hoverDistance / 2)
         {
             {
                 _hoveredPortIndex = null;
@@ -423,7 +420,7 @@ public class DragCanvasNode : ContentControl
         }
 
         // Check if hover state changed
-        bool hasChanged = false;
+        var hasChanged = false;
 
         if (newHoveredPort == null)
         {
@@ -446,22 +443,16 @@ public class DragCanvasNode : ContentControl
             }
         }
 
-        if (hasChanged)
-        {
-            InvalidateVisual();
-        }
+        if (hasChanged) InvalidateVisual();
     }
 
     /// <summary>
-    /// Gets the position of a specific port in local coordinates
+    ///     Gets the position of a specific port in local coordinates
     /// </summary>
     public Point? GetPortPosition(int portIndex, bool isLeftSide)
     {
         // Ensure ports are current
-        if (_leftPorts.Count == 0 && _rightPorts.Count == 0)
-        {
-            UpdatePorts();
-        }
+        if (_leftPorts.Count == 0 && _rightPorts.Count == 0) UpdatePorts();
 
         var portList = isLeftSide ? _leftPorts : _rightPorts;
 
@@ -472,7 +463,7 @@ public class DragCanvasNode : ContentControl
     }
 
     /// <summary>
-    /// Gets the position of a specific port in canvas coordinates
+    ///     Gets the position of a specific port in canvas coordinates
     /// </summary>
     public Point GetPortCanvasPosition(int portIndex, bool isLeftSide)
     {
@@ -481,7 +472,7 @@ public class DragCanvasNode : ContentControl
             return default;
 
         // Transform to canvas coordinates - find parent DragCanvas
-        Visual? parent = this.GetVisualParent();
+        var parent = this.GetVisualParent();
         while (parent != null)
         {
             if (parent is DragCanvas canvas)
@@ -489,22 +480,21 @@ public class DragCanvasNode : ContentControl
                 var translated = this.TranslatePoint(localPos.Value, canvas);
                 return translated ?? localPos.Value;
             }
+
             parent = parent.GetVisualParent();
         }
 
         return localPos.Value;
     }
 
-    internal virtual bool AllowConnection(int portIndex, bool isLeftSide, DragCanvasNode? otherNode, int otherPortIndex, bool otherIsLeftSide)
+    internal virtual bool AllowConnection(int portIndex, bool isLeftSide, DragCanvasNode? otherNode, int otherPortIndex,
+        bool otherIsLeftSide)
     {
         if (isLeftSide)
-        {
             if (_leftConnections[portIndex] != null && _leftConnections[portIndex].Count > 0)
-            {
                 // By default we only allow one connection per left port
                 return false;
-            }
-        }
+
         // Only allow outputs to input connections
         return isLeftSide != otherIsLeftSide;
     }
@@ -516,13 +506,10 @@ public class DragCanvasNode : ContentControl
         Debug.Assert(iPort >= 0 && iPort < count, "Port index should be valid when making a connection.");
 
         var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
-        
+
         // Ensure the connection list is initialized for this port
-        while (connectionsList.Count <= iPort)
-        {
-            connectionsList.Add(new List<DragCanvasConnection>());
-        }
-        
+        while (connectionsList.Count <= iPort) connectionsList.Add(new List<DragCanvasConnection>());
+
         Debug.Assert(connectionsList[iPort] != null, "Connections list for the port should have been initialized.");
         connectionsList[iPort].Add(connection);
     }
@@ -534,15 +521,12 @@ public class DragCanvasNode : ContentControl
         Debug.Assert(iPort >= 0 && iPort < count, "Port index should be valid when removing a connection.");
 
         var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
-        
-        if (iPort < connectionsList.Count && connectionsList[iPort] != null)
-        {
-            connectionsList[iPort].Remove(connection);
-        }
+
+        if (iPort < connectionsList.Count && connectionsList[iPort] != null) connectionsList[iPort].Remove(connection);
     }
 
     /// <summary>
-    /// Gets all connections for a specific port
+    ///     Gets all connections for a specific port
     /// </summary>
     /// <param name="portIndex">The port index</param>
     /// <param name="isLeftSide">True for left (input) ports, false for right (output) ports</param>
@@ -550,65 +534,49 @@ public class DragCanvasNode : ContentControl
     public IReadOnlyList<DragCanvasConnection> GetConnectionsForPort(int portIndex, bool isLeftSide)
     {
         var connectionsList = isLeftSide ? _leftConnections : _rightConnections;
-        
+
         if (portIndex < 0 || portIndex >= connectionsList.Count)
             return Array.Empty<DragCanvasConnection>();
-        
+
         return connectionsList[portIndex].AsReadOnly();
     }
 
     /// <summary>
-    /// Gets all connections for this node (both incoming and outgoing)
+    ///     Gets all connections for this node (both incoming and outgoing)
     /// </summary>
     public IEnumerable<DragCanvasConnection> GetAllConnections()
     {
         foreach (var connectionList in _leftConnections)
-        {
-            foreach (var connection in connectionList)
-            {
-                yield return connection;
-            }
-        }
+        foreach (var connection in connectionList)
+            yield return connection;
 
         foreach (var connectionList in _rightConnections)
-        {
-            foreach (var connection in connectionList)
-            {
-                yield return connection;
-            }
-        }
+        foreach (var connection in connectionList)
+            yield return connection;
     }
 
     /// <summary>
-    /// Gets all incoming connections (left side ports)
+    ///     Gets all incoming connections (left side ports)
     /// </summary>
     public IEnumerable<DragCanvasConnection> GetIncomingConnections()
     {
         foreach (var connectionList in _leftConnections)
-        {
-            foreach (var connection in connectionList)
-            {
-                yield return connection;
-            }
-        }
+        foreach (var connection in connectionList)
+            yield return connection;
     }
 
     /// <summary>
-    /// Gets all outgoing connections (right side ports)
+    ///     Gets all outgoing connections (right side ports)
     /// </summary>
     public IEnumerable<DragCanvasConnection> GetOutgoingConnections()
     {
         foreach (var connectionList in _rightConnections)
-        {
-            foreach (var connection in connectionList)
-            {
-                yield return connection;
-            }
-        }
+        foreach (var connection in connectionList)
+            yield return connection;
     }
 
     /// <summary>
-    /// Gets the currently hovered port information
+    ///     Gets the currently hovered port information
     /// </summary>
     public (int index, bool isLeftSide)? GetHoveredPort()
     {
@@ -619,7 +587,7 @@ public class DragCanvasNode : ContentControl
     }
 
     /// <summary>
-    /// Manually sets the hover state for a specific port (used during connection dragging)
+    ///     Manually sets the hover state for a specific port (used during connection dragging)
     /// </summary>
     public void SetPortHover(int portIndex, bool isLeftSide)
     {
@@ -629,7 +597,7 @@ public class DragCanvasNode : ContentControl
     }
 
     /// <summary>
-    /// Clears the port hover state
+    ///     Clears the port hover state
     /// </summary>
     public void ClearPortHover()
     {
@@ -641,8 +609,6 @@ public class DragCanvasNode : ContentControl
         }
     }
 
-    public bool IsPortDragInProgress => _isPortDragInProgress;
-
     private static double DistanceSq(Point p1, Point p2)
     {
         var dx = p1.X - p2.X;
@@ -652,41 +618,29 @@ public class DragCanvasNode : ContentControl
 
     private T? FindAncestorOfType<T>() where T : class
     {
-        Visual? current = this.GetVisualParent();
+        var current = this.GetVisualParent();
         while (current != null)
         {
             if (current is T ancestor)
                 return ancestor;
             current = current.GetVisualParent();
         }
+
         return null;
-    }
-
-    protected class PortInfo
-    {
-        public Point Center { get; set; }
-        public int Index { get; set; }
-        public PortSide Side { get; set; }
-    }
-
-    public enum PortSide
-    {
-        Left,
-        Right
     }
 
     private IBrush? GetInheritedBackground()
     {
-        var parent = this.FindAncestorOfType<DragCanvas>();
+        var parent = FindAncestorOfType<DragCanvas>();
         return parent?.NodeBackground
-            ?? (IBrush?)this.FindResource("BrushBackground");
+               ?? (IBrush?)this.FindResource("BrushBackground");
     }
 
     private IBrush? GetInheritedForeground()
     {
-        var parent = this.FindAncestorOfType<DragCanvas>();
+        var parent = FindAncestorOfType<DragCanvas>();
         return parent?.NodeForeground
-            ?? (IBrush?)this.FindResource("BrushText");
+               ?? (IBrush?)this.FindResource("BrushText");
     }
 
     // Option 1: If you want to always use inherited values, override OnAttachedToVisualTree:
@@ -696,10 +650,17 @@ public class DragCanvasNode : ContentControl
         Background = GetInheritedBackground();
         Foreground = GetInheritedForeground();
     }
+
+    protected class PortInfo
+    {
+        public Point Center { get; set; }
+        public int Index { get; set; }
+        public PortSide Side { get; set; }
+    }
 }
 
 /// <summary>
-/// Event arguments for port click events
+///     Event arguments for port click events
 /// </summary>
 public class PortClickedEventArgs : RoutedEventArgs
 {
@@ -724,7 +685,7 @@ public class PortClickedEventArgs : RoutedEventArgs
 }
 
 /// <summary>
-/// Event arguments for node deletion events
+///     Event arguments for node deletion events
 /// </summary>
 public class NodeDeletedEventArgs : RoutedEventArgs
 {

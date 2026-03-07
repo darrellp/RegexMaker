@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,8 +9,7 @@ public partial class DateNodeViewModel : ViewModelBase
     private readonly DateNode _node;
     private readonly Action _onChanged;
 
-    [ObservableProperty]
-    private bool _isAmerican;
+    [ObservableProperty] private bool _isAmerican;
 
     public DateNodeViewModel(DateNode node, Action onChanged)
     {

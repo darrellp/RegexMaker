@@ -40,14 +40,13 @@ public class CodeCollectorTest
         cc.GatherCode();
         // Defaults to [A-Za-z0-9]
         Assert.Equal("var result = \"[A-Za-z0-9]\";\r\n", cc.Result);
-        
+
         var nodeRange = new RangeNode();
         nodeAcf.Parameters[0] = nodeRange;
         cc = new CodeCollector(nodeAcf);
         cc.GatherCode();
         // Defaults to a-z
         Assert.Equal("var result = \"[a-z]\";\r\n", cc.Result);
-
     }
 
     [Fact]
@@ -56,13 +55,13 @@ public class CodeCollectorTest
         var nodeNamed = new NamedNode();
         nodeNamed.GroupName = "Testing";
         nodeNamed.Parameters[0] = new NumericNode();
-        
+
         var cc = new CodeCollector(nodeNamed);
         cc.GatherCode();
         var expected = """
                        var Testing = Stex.Integer().Named("Testing");
                        var result = Testing;
-                       
+
                        """;
         Assert.Equal(expected, cc.Result);
     }
@@ -82,5 +81,4 @@ public class CodeCollectorTest
         var value = cc.Result;
         Assert.Equal(expected, value);
     }
-
 }

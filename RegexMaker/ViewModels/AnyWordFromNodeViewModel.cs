@@ -1,8 +1,8 @@
+using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RegexMaker.Nodes;
-using System;
-using System.Collections.ObjectModel;
 
 namespace RegexMaker.ViewModels;
 
@@ -11,13 +11,9 @@ public partial class AnyWordFromNodeViewModel : ViewModelBase
     private readonly AnyWordFromNode _node;
     private readonly Action _onChanged;
 
-    public ObservableCollection<string> Words { get; }
+    [ObservableProperty] private string _newWord = string.Empty;
 
-    [ObservableProperty]
-    private string _newWord = string.Empty;
-
-    [ObservableProperty]
-    private string? _selectedWord;
+    [ObservableProperty] private string? _selectedWord;
 
     public AnyWordFromNodeViewModel(AnyWordFromNode node, Action onChanged)
     {
@@ -25,6 +21,8 @@ public partial class AnyWordFromNodeViewModel : ViewModelBase
         _onChanged = onChanged;
         Words = new ObservableCollection<string>(node.Words);
     }
+
+    public ObservableCollection<string> Words { get; }
 
     [RelayCommand]
     private void AddWord()

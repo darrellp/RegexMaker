@@ -1,17 +1,14 @@
-using RegexStringLibrary;
-using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using RegexStringLibrary;
 
 namespace RegexMaker.Nodes;
 
 /// <summary>
-/// A node that matches a previously captured group by name.
+///     A node that matches a previously captured group by name.
 /// </summary>
 public class BackReferenceNode : RgxNode
 {
-    public string GroupName { get; set; } = string.Empty;
-
     public BackReferenceNode() : base(RgxNodeType.BackReference)
     {
         GroupName = "group1";
@@ -22,16 +19,18 @@ public class BackReferenceNode : RgxNode
         GroupName = groupName;
     }
 
+    public string GroupName { get; set; } = string.Empty;
+
+    public override string DisplayName => $"BRef {GroupName}";
+
     internal override string CalculateResult()
     {
         if (string.IsNullOrEmpty(GroupName))
             return string.Empty;
 
-        if (Int32.TryParse(GroupName, out int groupNumber))
-        {
+        if (int.TryParse(GroupName, out var groupNumber))
             // BackReference by number
             return Stex.BRef(groupNumber);
-        }
         return Stex.BRef(GroupName);
     }
 
@@ -42,8 +41,6 @@ public class BackReferenceNode : RgxNode
         return string.Empty;
     }
 
-    public override string DisplayName => $"BRef {GroupName}";
-
     public override IRgxNode Default()
     {
         return new BackReferenceNode();
@@ -51,7 +48,7 @@ public class BackReferenceNode : RgxNode
 
     public override string RawCode(CodeCollector cc)
     {
-        return Int32.TryParse(GroupName, out int groupNumber)
+        return int.TryParse(GroupName, out var groupNumber)
             ? $"Stex.BRef({groupNumber})"
             : $@"Stex.BRef(""{GroupName}"")";
     }
@@ -66,8 +63,6 @@ public class BackReferenceNode : RgxNode
     {
         base.RestoreSerializationData(data);
         if (data.TryGetValue("GroupName", out var groupNameElement))
-        {
             GroupName = groupNameElement.GetString() ?? "group1";
-        }
     }
 }

@@ -1,6 +1,6 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,11 +9,9 @@ public partial class RangeNodeViewModel : ViewModelBase
     private readonly RangeNode _node;
     private readonly Action _onChanged;
 
-    [ObservableProperty]
-    private string _charStart;
+    [ObservableProperty] private string _charEnd;
 
-    [ObservableProperty]
-    private string _charEnd;
+    [ObservableProperty] private string _charStart;
 
     public RangeNodeViewModel(RangeNode node, Action onChanged)
     {

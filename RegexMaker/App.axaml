@@ -1,6 +1,5 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:RegexMaker"
              x:Class="RegexMaker.App"
              RequestedThemeVariant="Default">
 
@@ -8,15 +7,15 @@
         <FluentTheme />
         <!-- AvaloniaEdit styles (required!) -->
         <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
-        <StyleInclude Source="avares://RegexMaker/Styles/RegexrTheme.axaml"/>
+        <StyleInclude Source="avares://RegexMaker/Styles/RegexrTheme.axaml" />
     </Application.Styles>
 
     <Application.Resources>
-      <ResourceDictionary>
-        <ResourceDictionary.MergedDictionaries>
-          <MergeResourceInclude Source="avares://RegexMaker/Styles/RegexrColors.axaml" />
-        </ResourceDictionary.MergedDictionaries>
-      </ResourceDictionary>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <MergeResourceInclude Source="avares://RegexMaker/Styles/RegexrColors.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
-    
+
 </Application>

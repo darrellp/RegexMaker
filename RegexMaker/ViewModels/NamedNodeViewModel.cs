@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,8 +9,7 @@ public partial class NamedNodeViewModel : ViewModelBase
     private readonly NamedNode _node;
     private readonly Action _onChanged;
 
-    [ObservableProperty]
-    private string _groupName;
+    [ObservableProperty] private string _groupName;
 
     public NamedNodeViewModel(NamedNode node, Action onChanged)
     {

@@ -1,18 +1,23 @@
-﻿using Avalonia;
+﻿using System.Runtime.Versioning;
+using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Browser;
 using RegexMaker;
-using System.Runtime.Versioning;
-using System.Threading.Tasks;
 
 [assembly: SupportedOSPlatform("browser")]
 
-internal sealed partial class Program
+internal sealed class Program
 {
-    private static Task Main(string[] args) => BuildAvaloniaApp()
+    private static Task Main(string[] args)
+    {
+        return BuildAvaloniaApp()
             .WithInterFont()
             .StartBrowserAppAsync("out");
+    }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        return AppBuilder.Configure<App>()
             .LogToTrace();
+    }
 }

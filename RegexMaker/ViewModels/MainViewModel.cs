@@ -1,13 +1,31 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RegexMaker.Nodes;
-using System;
-using System.Collections.ObjectModel;
 
 namespace RegexMaker.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
+    private RgxNode? _currentlySelectedNode;
+
+    [ObservableProperty] private object? _currentNodeViewModel;
+
+    private object? _currentViewModelBacking;
+
+    [ObservableProperty] private ObservableCollection<string> _matches = new();
+
+    [ObservableProperty] private string? _matchExtent;
+
+    [ObservableProperty] private string _regexPattern = string.Empty;
+
+    [ObservableProperty] private int _selectedCarouselIndex;
+
+    [ObservableProperty] private bool _showWhitespace;
+
+    [ObservableProperty] private bool _useCrLf = true;
+
     public event EventHandler<SaveRequestedEventArgs>? SaveRequested;
     public event EventHandler<LoadRequestedEventArgs>? LoadRequested;
     public event EventHandler? ClearRequested;
@@ -15,46 +33,22 @@ public partial class MainViewModel : ViewModelBase
     public event EventHandler<ShowCodeRequestedEventArgs>? ShowCodeRequested;
 
     /// <summary>
-    /// Raised when the node display needs to be refreshed (e.g., after a property change).
-    /// The View subscribes to this to update visual elements like RgxNodeControl.
+    ///     Raised when the node display needs to be refreshed (e.g., after a property change).
+    ///     The View subscribes to this to update visual elements like RgxNodeControl.
     /// </summary>
     public event Action? NodeDisplayUpdateRequested;
 
     /// <summary>
-    /// Raised when the line ending mode is toggled. The View subscribes to convert
-    /// the editor text between \r\n and \n.
+    ///     Raised when the line ending mode is toggled. The View subscribes to convert
+    ///     the editor text between \r\n and \n.
     /// </summary>
     public event Action<bool>? LineEndingToggled;
 
     /// <summary>
-    /// Raised when the show whitespace toggle changes. The View subscribes to update
-    /// the AvaloniaEdit editor options.
+    ///     Raised when the show whitespace toggle changes. The View subscribes to update
+    ///     the AvaloniaEdit editor options.
     /// </summary>
     public event Action<bool>? ShowWhitespaceToggled;
-
-    [ObservableProperty]
-    private string _regexPattern = string.Empty;
-
-    [ObservableProperty]
-    private object? _currentNodeViewModel;
-
-    [ObservableProperty]
-    private int _selectedCarouselIndex = 0;
-
-    [ObservableProperty]
-    private string? _matchExtent;
-
-    [ObservableProperty]
-    private ObservableCollection<string> _matches = new();
-
-    [ObservableProperty]
-    private bool _useCrLf = true;
-
-    [ObservableProperty]
-    private bool _showWhitespace;
-
-    private RgxNode? _currentlySelectedNode;
-    private object? _currentViewModelBacking;
 
     partial void OnUseCrLfChanged(bool value)
     {
@@ -67,12 +61,12 @@ public partial class MainViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Switches the active node selection — creates the appropriate ViewModel
-    /// and updates the carousel index. Pure logic, no UI dependencies.
+    ///     Switches the active node selection — creates the appropriate ViewModel
+    ///     and updates the carousel index. Pure logic, no UI dependencies.
     /// </summary>
     /// <param name="node">The newly selected node, or null to clear selection.</param>
     /// <param name="portCountChangedCallback">
-    /// Callback for port-count changes that require canvas manipulation (UI-side concern).
+    ///     Callback for port-count changes that require canvas manipulation (UI-side concern).
     /// </param>
     public void SelectNode(RgxNode? node, Func<RgxNode, int, Action>? portCountChangedCallback = null)
     {
@@ -123,17 +117,12 @@ public partial class MainViewModel : ViewModelBase
         CurrentNodeViewModel = _currentViewModelBacking;
 
         if (_currentViewModelBacking is ObservableObject obs)
-        {
             obs.PropertyChanged += (_, _) => RequestNodeDisplayUpdate();
-        }
     }
 
     public void RequestNodeDisplayUpdate()
     {
-        if (_currentlySelectedNode != null)
-        {
-            RegexPattern = _currentlySelectedNode.ProduceResult();
-        }
+        if (_currentlySelectedNode != null) RegexPattern = _currentlySelectedNode.ProduceResult();
         NodeDisplayUpdateRequested?.Invoke();
     }
 
@@ -144,13 +133,22 @@ public partial class MainViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Save() => SaveRequested?.Invoke(this, new SaveRequestedEventArgs());
+    private void Save()
+    {
+        SaveRequested?.Invoke(this, new SaveRequestedEventArgs());
+    }
 
     [RelayCommand]
-    private void Load() => LoadRequested?.Invoke(this, new LoadRequestedEventArgs());
+    private void Load()
+    {
+        LoadRequested?.Invoke(this, new LoadRequestedEventArgs());
+    }
 
     [RelayCommand]
-    private void Clear() => ClearRequested?.Invoke(this, EventArgs.Empty);
+    private void Clear()
+    {
+        ClearRequested?.Invoke(this, EventArgs.Empty);
+    }
 
     [RelayCommand]
     private void CopyRegex()
@@ -182,23 +180,20 @@ public class LoadRequestedEventArgs : EventArgs
 
 public class CopyRegexRequestedEventArgs : EventArgs
 {
-    public string RegexPattern { get; }
-
     public CopyRegexRequestedEventArgs(string regexPattern)
     {
         RegexPattern = regexPattern;
     }
+
+    public string RegexPattern { get; }
 }
 
 public class ShowCodeRequestedEventArgs : EventArgs
 {
-    public string Code { get; }
-
     public ShowCodeRequestedEventArgs(string code)
     {
         Code = code;
     }
+
+    public string Code { get; }
 }
-
-
-

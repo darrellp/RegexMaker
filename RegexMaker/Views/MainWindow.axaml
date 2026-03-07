@@ -8,10 +8,10 @@
         x:Class="RegexMaker.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="RegexMaker">
-    
+
     <Window.DataContext>
-        <vm:MainViewModel/>
+        <vm:MainViewModel />
     </Window.DataContext>
 
-    <views:MainView/>
+    <views:MainView />
 </Window>

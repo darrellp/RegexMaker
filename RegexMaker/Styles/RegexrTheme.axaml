@@ -1,5 +1,5 @@
-  <Styles xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style Selector="UserControl">
         <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
@@ -7,7 +7,7 @@
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
     </Style>
     <Style Selector="StackPanel">
-	    <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
+        <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
     </Style>
     <Style Selector="TextBox">
         <Setter Property="FontFamily" Value="{DynamicResource FontCode}" />
@@ -73,16 +73,16 @@
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
         <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BrushText}" />
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="ComboBoxItem">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />
         <Setter Property="Background" Value="{DynamicResource BrushBackground}" />
     </Style>
     <Style Selector="ListBoxItem">
-        <Setter Property="Padding" Value="2,0"/>
-        <Setter Property="Margin" Value="0"/>
-        <Setter Property="MinHeight" Value="18"/>
+        <Setter Property="Padding" Value="2,0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="MinHeight" Value="18" />
     </Style>
     <Style Selector="ListBox">
         <Setter Property="Foreground" Value="{DynamicResource BrushText}" />

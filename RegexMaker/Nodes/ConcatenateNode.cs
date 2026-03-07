@@ -1,14 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
-using Avalonia;
-using RegexStringLibrary;
 using System.Linq;
-using System.Text;
+using RegexStringLibrary;
 
 namespace RegexMaker.Nodes;
+
 public class ConcatenateNode : RgxNode
 {
-
     // Nodes created with the parameterless constructor are only exemplars and will never calculate
     public ConcatenateNode()
         : base(RgxNodeType.Concatenate)
@@ -16,18 +13,20 @@ public class ConcatenateNode : RgxNode
         Parameters = [null, null];
     }
 
-    public ConcatenateNode(params IRgxNode[] parameters) : base(RgxNodeType.Concatenate, parameters) { }
-    
+    public ConcatenateNode(params IRgxNode[] parameters) : base(RgxNodeType.Concatenate, parameters)
+    {
+    }
+
     internal override string CalculateResult()
     {
         // Concatenate the results of all parameter nodes.
         return Stex.Cat(Parameters.Select(p => p == null ? string.Empty : p.ProduceResult()).ToArray());
     }
 
-    override public string RandomMatch()
+    public override string RandomMatch()
     {
         // Concatenate the random matches of all parameter nodes.
-        return string.Concat(Parameters.Select(p => p?.RandomMatch()??string.Empty));
+        return string.Concat(Parameters.Select(p => p?.RandomMatch() ?? string.Empty));
     }
 
     public override IRgxNode Default()
@@ -40,15 +39,9 @@ public class ConcatenateNode : RgxNode
         var inputList = new List<string>();
         foreach (var irgx in Parameters)
         {
-            if (irgx is null)
-            {
-                continue;
-            }
+            if (irgx is null) continue;
             var node = irgx as RgxNode;
-            if (node is null)
-            {
-                continue;
-            }
+            if (node is null) continue;
 
             var insert = node switch
             {
@@ -61,9 +54,10 @@ public class ConcatenateNode : RgxNode
                 node.CheckRename(cc, true);
                 insert = node.VariableName;
             }
+
             inputList.Add(insert);
         }
-        
+
         return $"Stex.Cat({string.Join(", ", inputList)})";
     }
 }

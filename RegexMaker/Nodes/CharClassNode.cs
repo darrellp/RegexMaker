@@ -1,7 +1,7 @@
-using RegexStringLibrary;
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using System.Text.Json;
+using RegexStringLibrary;
 
 namespace RegexMaker.Nodes;
 
@@ -20,15 +20,13 @@ public enum CharClassType
     Letter,
     CapLetter,
     LowerLetter,
-    AlphaNumeric,
+    AlphaNumeric
 
     // Add more character classes as needed
 }
 
 public class CharClassNode : RgxNode
 {
-    public CharClassType CharClass { get; set; }
-
     public CharClassNode() : base(RgxNodeType.CharClass)
     {
         CharClass = CharClassType.WhiteSpace;
@@ -39,9 +37,14 @@ public class CharClassNode : RgxNode
         CharClass = charClass;
     }
 
+    public CharClassType CharClass { get; set; }
+
+    public override string DisplayName => CharClass.ToString();
+
     internal override string CalculateResult()
     {
-        return CharClass switch {
+        return CharClass switch
+        {
             CharClassType.WildCard => Stex.Any,
             CharClassType.WhiteSpace => Stex.White,
             CharClassType.Digit => Stex.Digit,
@@ -62,7 +65,8 @@ public class CharClassNode : RgxNode
 
     public override string RawCode(CodeCollector cc)
     {
-        return CharClass switch {
+        return CharClass switch
+        {
             CharClassType.WildCard => ".",
             CharClassType.WhiteSpace => "Stex.White",
             CharClassType.Digit => "Stex.Digit",
@@ -87,13 +91,11 @@ public class CharClassNode : RgxNode
         data["CharClassType"] = Enum.GetName(CharClass);
     }
 
-    protected override void RestoreSerializationData(Dictionary<string, System.Text.Json.JsonElement> data)
+    protected override void RestoreSerializationData(Dictionary<string, JsonElement> data)
     {
         base.RestoreSerializationData(data);
         if (data.TryGetValue("CharClassType", out var classType))
-        {
             CharClass = Enum.Parse<CharClassType>(classType.GetString() ?? string.Empty);
-        }
     }
 
     public override string RandomMatch()
@@ -105,6 +107,4 @@ public class CharClassNode : RgxNode
     {
         return new CharClassNode();
     }
-
-    public override string DisplayName => CharClass.ToString();
 }

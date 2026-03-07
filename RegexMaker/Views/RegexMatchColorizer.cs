@@ -1,32 +1,23 @@
 // RegexMaker/Views/RegexMatchColorizer.cs
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Avalonia.Media;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
-using Avalonia.Media;
 
 public class RegexMatchColorizer : DocumentColorizingTransformer
 {
-    private readonly Regex _regex;
     private readonly List<IBrush> _highlightBrushes;
-    private List<(int Start, int Length, int ColorIndex)> _matchInfo = new();
-    private MatchCollection? _matchCollection = null;
-    public MatchCollection? MatchCollection => _matchCollection;
-    public Regex Regex => _regex;
-
-    /// <summary>
-    /// Exposes match info so a background renderer can draw highlights behind whitespace glyphs.
-    /// </summary>
-    public List<(int Start, int Length, int ColorIndex)> MatchInfo => _matchInfo;
 
     public RegexMatchColorizer(string pattern = "", RegexOptions options = RegexOptions.None)
     {
         _highlightBrushes = [];
         try
         {
-            _regex = new Regex(pattern, options);
+            Regex = new Regex(pattern, options);
             _highlightBrushes =
             [
                 new SolidColorBrush(Color.FromRgb(255, 255, 200)), // Light yellow
@@ -35,50 +26,54 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
         }
         catch (Exception ex)
         {
-            _regex = new Regex(""); // Fallback to an empty regex to avoid null reference issues
+            Regex = new Regex(""); // Fallback to an empty regex to avoid null reference issues
             // Handle regex compilation errors
             Debug.WriteLine($"Error compiling regex: {ex.Message}");
         }
     }
 
+    public MatchCollection? MatchCollection { get; private set; }
+
+    public Regex Regex { get; }
+
+    /// <summary>
+    ///     Exposes match info so a background renderer can draw highlights behind whitespace glyphs.
+    /// </summary>
+    public List<(int Start, int Length, int ColorIndex)> MatchInfo { get; } = new();
+
     public void UpdateMatches(string text)
     {
-        _matchInfo.Clear();
-        int colorIndex = 0;
-        _matchCollection = _regex.Matches(text);
-        if (_matchCollection is null)
-        {
-            return;
-        }
+        MatchInfo.Clear();
+        var colorIndex = 0;
+        MatchCollection = Regex.Matches(text);
+        if (MatchCollection is null) return;
         foreach (Match match in MatchCollection!)
-        {
             if (match.Length > 0)
             {
-                _matchInfo.Add((match.Index, match.Length, colorIndex));
+                MatchInfo.Add((match.Index, match.Length, colorIndex));
                 colorIndex = (colorIndex + 1) % _highlightBrushes.Count;
             }
-        }
     }
 
     protected override void ColorizeLine(DocumentLine line)
     {
-        if (_matchInfo.Count == 0)
+        if (MatchInfo.Count == 0)
             return;
 
-        int lineStart = line.Offset;
-        int lineEnd = lineStart + line.Length;
+        var lineStart = line.Offset;
+        var lineEnd = lineStart + line.Length;
 
-        foreach (var (start, length, colorIndex) in _matchInfo)
+        foreach (var (start, length, colorIndex) in MatchInfo)
         {
-            int matchStart = start;
-            int matchEnd = start + length;
+            var matchStart = start;
+            var matchEnd = start + length;
 
             // Only colorize if the match is within this line
             if (matchEnd <= lineStart || matchStart >= lineEnd)
                 continue;
 
-            int colorStart = Math.Max(matchStart, lineStart);
-            int colorEnd = Math.Min(matchEnd, lineEnd);
+            var colorStart = Math.Max(matchStart, lineStart);
+            var colorEnd = Math.Min(matchEnd, lineEnd);
 
             ChangeLinePart(
                 colorStart,
@@ -86,9 +81,7 @@ public class RegexMatchColorizer : DocumentColorizingTransformer
                 element =>
                 {
                     if (element.TextRunProperties is VisualLineElementTextRunProperties props)
-                    {
                         props.SetBackgroundBrush(_highlightBrushes[colorIndex]);
-                    }
                 }
             );
         }

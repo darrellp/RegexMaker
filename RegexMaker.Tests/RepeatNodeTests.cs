@@ -96,7 +96,7 @@ public class RepeatNodeTests
     {
         // Arrange
         var node = new LiteralNode("g");
-        var repeatNode = new RepeatNode([node], 2, 4, isLazy: true);
+        var repeatNode = new RepeatNode([node], 2, 4, true);
 
         // Act
         var result = repeatNode.ProduceResult();
@@ -110,7 +110,7 @@ public class RepeatNodeTests
     {
         // Arrange
         var node = new LiteralNode("h");
-        var repeatNode = new RepeatNode([node], 0, 1, isLazy: true);
+        var repeatNode = new RepeatNode([node], 0, 1, true);
 
         // Act
         var result = repeatNode.ProduceResult();
@@ -124,7 +124,7 @@ public class RepeatNodeTests
     {
         // Arrange
         var node = new LiteralNode("i");
-        var repeatNode = new RepeatNode([node], 0, -1, isLazy: true);
+        var repeatNode = new RepeatNode([node], 0, -1, true);
 
         // Act
         var result = repeatNode.ProduceResult();
@@ -234,7 +234,7 @@ public class RepeatNodeTests
     {
         // Arrange
         var node = new LiteralNode("x");
-        var repeatNode = new RepeatNode([node], 2, 5, isLazy: true);
+        var repeatNode = new RepeatNode([node], 2, 5, true);
 
         // Assert
         Assert.Equal(2, repeatNode.Least);

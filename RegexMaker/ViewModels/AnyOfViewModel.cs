@@ -1,6 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,8 +9,7 @@ public partial class AnyOfViewModel : ViewModelBase
     private readonly AnyOfNode _node;
     private readonly Action<int> _onPortCountChanged;
 
-    [ObservableProperty]
-    private int _portCount;
+    [ObservableProperty] private int _portCount;
 
     public AnyOfViewModel(AnyOfNode node, Action<int> onPortCountChanged)
     {

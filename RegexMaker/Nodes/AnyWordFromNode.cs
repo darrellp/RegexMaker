@@ -1,18 +1,15 @@
-using RegexStringLibrary;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using RegexStringLibrary;
 
 namespace RegexMaker.Nodes;
 
 /// <summary>
-/// A node that matches any one of multiple specified words.
+///     A node that matches any one of multiple specified words.
 /// </summary>
 public class AnyWordFromNode : RgxNode
 {
-    public List<string> Words { get; set; } = [];
-
     public AnyWordFromNode() : base(RgxNodeType.AnyWordFrom)
     {
         Words = [];
@@ -21,6 +18,20 @@ public class AnyWordFromNode : RgxNode
     public AnyWordFromNode(IList<string> words) : base(RgxNodeType.AnyWordFrom)
     {
         Words = words.ToList();
+    }
+
+    public List<string> Words { get; set; } = [];
+
+    public override string DisplayName
+    {
+        get
+        {
+            if (Words.Count == 0)
+                return "AnyWord()";
+            if (Words.Count == 1)
+                return $"AnyWord({Words[0]})";
+            return $"AnyWord({Words[0]}, ...)";
+        }
     }
 
     internal override string CalculateResult()
@@ -39,18 +50,6 @@ public class AnyWordFromNode : RgxNode
             return string.Empty;
 
         return Words[random.Next(Words.Count)];
-    }
-
-    public override string DisplayName
-    {
-        get
-        {
-            if (Words.Count == 0)
-                return "AnyWord()";
-            if (Words.Count == 1)
-                return $"AnyWord({Words[0]})";
-            return $"AnyWord({Words[0]}, ...)";
-        }
     }
 
     public override IRgxNode Default()
@@ -74,10 +73,8 @@ public class AnyWordFromNode : RgxNode
     {
         base.RestoreSerializationData(data);
         if (data.TryGetValue("Words", out var wordsElement))
-        {
             Words = wordsElement.EnumerateArray()
                 .Select(e => e.GetString() ?? string.Empty)
                 .ToList();
-        }
     }
 }

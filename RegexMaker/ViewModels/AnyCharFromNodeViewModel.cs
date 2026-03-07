@@ -1,6 +1,6 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Nodes;
-using System;
 
 namespace RegexMaker.ViewModels;
 
@@ -9,11 +9,9 @@ public partial class AnyCharFromNodeViewModel : ViewModelBase
     private readonly AnyCharFromNode _node;
     private readonly Action _onChanged;
 
-    [ObservableProperty]
-    private string _chars;
+    [ObservableProperty] private string _chars;
 
-    [ObservableProperty]
-    private bool _notIn; // Add this property
+    [ObservableProperty] private bool _notIn; // Add this property
 
     public AnyCharFromNodeViewModel(AnyCharFromNode node, Action onChanged)
     {

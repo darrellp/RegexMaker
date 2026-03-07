@@ -1,12 +1,13 @@
+using System.Text.RegularExpressions;
 using RegexMaker.Nodes;
-using RegexMaker.ViewModels;
 using RegexMaker.Services;
+using RegexMaker.ViewModels;
 
 namespace RegexMaker.Tests;
 
 /// <summary>
-/// Tests for the logic exercised by MainView's event handlers,
-/// verified through the underlying data model (RgxNode graph and MainViewModel).
+///     Tests for the logic exercised by MainView's event handlers,
+///     verified through the underlying data model (RgxNode graph and MainViewModel).
 /// </summary>
 public class MainViewLogicTests
 {
@@ -44,7 +45,7 @@ public class MainViewLogicTests
         var source = new LiteralNode("hello");
         var target = new ConcatenateNode(); // Has [null, null] parameters
 
-        int targetPortIndex = 0;
+        var targetPortIndex = 0;
         target.Parameters[targetPortIndex] = source;
         source.Parents.Add(target);
 
@@ -105,7 +106,7 @@ public class MainViewLogicTests
         source.Parents.Add(target);
 
         // Delete connection
-        int targetPortIndex = 0;
+        var targetPortIndex = 0;
         target.Parameters[targetPortIndex] = null;
         source.Parents.Remove(target);
         target.MakeDirty();
@@ -153,19 +154,15 @@ public class MainViewLogicTests
 
         // Simulate deletion cleanup
         foreach (var p in deletedNode.Parents.ToList())
-        {
             if (p is RgxNode parentNode)
             {
-                for (int i = 0; i < parentNode.Parameters.Count; i++)
-                {
+                for (var i = 0; i < parentNode.Parameters.Count; i++)
                     if (parentNode.Parameters[i] == deletedNode)
-                    {
                         parentNode.Parameters[i] = null;
-                    }
-                }
+
                 parentNode.MakeDirty();
             }
-        }
+
         deletedNode.Parents.Clear();
 
         Assert.Null(parent.Parameters[0]);
@@ -187,13 +184,14 @@ public class MainViewLogicTests
         child2.Parents.Add(deletedNode);
 
         // Simulate deletion: clear parameters and remove from children's parents
-        for (int i = 0; i < deletedNode.Parameters.Count; i++)
+        for (var i = 0; i < deletedNode.Parameters.Count; i++)
         {
             if (deletedNode.Parameters[i] is RgxNode childNode)
             {
                 childNode.Parents.Remove(deletedNode);
                 childNode.MakeDirty();
             }
+
             deletedNode.Parameters[i] = null;
         }
 
@@ -216,27 +214,25 @@ public class MainViewLogicTests
 
         // Delete middleNode: cleanup parents
         foreach (var p in middleNode.Parents.ToList())
-        {
             if (p is RgxNode pNode)
             {
-                for (int i = 0; i < pNode.Parameters.Count; i++)
-                {
+                for (var i = 0; i < pNode.Parameters.Count; i++)
                     if (pNode.Parameters[i] == middleNode)
                         pNode.Parameters[i] = null;
-                }
                 pNode.MakeDirty();
             }
-        }
+
         middleNode.Parents.Clear();
 
         // Delete middleNode: cleanup children
-        for (int i = 0; i < middleNode.Parameters.Count; i++)
+        for (var i = 0; i < middleNode.Parameters.Count; i++)
         {
             if (middleNode.Parameters[i] is RgxNode childNode)
             {
                 childNode.Parents.Remove(middleNode);
                 childNode.MakeDirty();
             }
+
             middleNode.Parameters[i] = null;
         }
 
@@ -254,14 +250,11 @@ public class MainViewLogicTests
     {
         // Simulates OnConcatenatePortCountChanged adding ports
         var node = new ConcatenateNode();
-        int currentCount = node.Parameters.Count; // 2
-        int newCount = 5;
+        var currentCount = node.Parameters.Count; // 2
+        var newCount = 5;
 
-        int portsToAdd = newCount - currentCount;
-        for (int i = 0; i < portsToAdd; i++)
-        {
-            node.Parameters.Add(null);
-        }
+        var portsToAdd = newCount - currentCount;
+        for (var i = 0; i < portsToAdd; i++) node.Parameters.Add(null);
 
         Assert.Equal(newCount, node.Parameters.Count);
         Assert.All(node.Parameters, p => Assert.Null(p));
@@ -277,21 +270,15 @@ public class MainViewLogicTests
         node.Parameters.Add(null);
         Assert.Equal(4, node.Parameters.Count);
 
-        int newCount = 2;
-        int currentCount = node.Parameters.Count;
+        var newCount = 2;
+        var currentCount = node.Parameters.Count;
 
         // Clear parameters being removed
-        for (int i = newCount; i < currentCount; i++)
-        {
-            node.Parameters[i] = null;
-        }
+        for (var i = newCount; i < currentCount; i++) node.Parameters[i] = null;
 
         // Remove extra parameters
-        int portsToRemove = currentCount - newCount;
-        for (int i = 0; i < portsToRemove; i++)
-        {
-            node.Parameters.RemoveAt(node.Parameters.Count - 1);
-        }
+        var portsToRemove = currentCount - newCount;
+        for (var i = 0; i < portsToRemove; i++) node.Parameters.RemoveAt(node.Parameters.Count - 1);
 
         node.MakeDirty();
 
@@ -309,24 +296,18 @@ public class MainViewLogicTests
         node.Parameters[2] = source;
         source.Parents.Add(node);
 
-        // Decrease to 2 ports — port 2 should be removed
-        int newCount = 2;
-        int currentCount = node.Parameters.Count;
+        // Decrease to 2 ports ï¿½ port 2 should be removed
+        var newCount = 2;
+        var currentCount = node.Parameters.Count;
 
-        for (int i = newCount; i < currentCount; i++)
+        for (var i = newCount; i < currentCount; i++)
         {
-            if (node.Parameters[i] is RgxNode child)
-            {
-                child.Parents.Remove(node);
-            }
+            if (node.Parameters[i] is RgxNode child) child.Parents.Remove(node);
             node.Parameters[i] = null;
         }
 
-        int portsToRemove = currentCount - newCount;
-        for (int i = 0; i < portsToRemove; i++)
-        {
-            node.Parameters.RemoveAt(node.Parameters.Count - 1);
-        }
+        var portsToRemove = currentCount - newCount;
+        for (var i = 0; i < portsToRemove; i++) node.Parameters.RemoveAt(node.Parameters.Count - 1);
         node.MakeDirty();
 
         Assert.Equal(2, node.Parameters.Count);
@@ -362,7 +343,7 @@ public class MainViewLogicTests
     public void MainViewModel_SettingCarouselIndex_ShouldRaisePropertyChanged()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         vm.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.SelectedCarouselIndex))
@@ -379,7 +360,7 @@ public class MainViewLogicTests
     public void MainViewModel_SettingRegexPattern_ShouldRaisePropertyChanged()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         vm.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.RegexPattern))
@@ -396,7 +377,7 @@ public class MainViewLogicTests
     public void MainViewModel_SaveCommand_ShouldRaiseSaveRequested()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         vm.SaveRequested += (s, e) => raised = true;
 
         vm.SaveCommand.Execute(null);
@@ -408,7 +389,7 @@ public class MainViewLogicTests
     public void MainViewModel_LoadCommand_ShouldRaiseLoadRequested()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         vm.LoadRequested += (s, e) => raised = true;
 
         vm.LoadCommand.Execute(null);
@@ -420,7 +401,7 @@ public class MainViewLogicTests
     public void MainViewModel_ClearCommand_ShouldRaiseClearRequested()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         vm.ClearRequested += (s, e) => raised = true;
 
         vm.ClearCommand.Execute(null);
@@ -432,7 +413,7 @@ public class MainViewLogicTests
     public void MainViewModel_CopyRegexCommand_ShouldNotRaiseWhenPatternEmpty()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         vm.CopyRegexRequested += (s, e) => raised = true;
 
         vm.CopyRegexCommand.Execute(null);
@@ -444,7 +425,7 @@ public class MainViewLogicTests
     public void MainViewModel_CopyRegexCommand_ShouldRaiseWhenPatternSet()
     {
         var vm = new MainViewModel();
-        bool raised = false;
+        var raised = false;
         string? copiedPattern = null;
         vm.CopyRegexRequested += (s, e) =>
         {
@@ -721,7 +702,7 @@ public class MainViewLogicTests
         Assert.Same(source, node.Parameters[2]);
         Assert.Contains(node, source.Parents);
 
-        // Shrink back to 2 — port 2 should be removed and source disconnected
+        // Shrink back to 2 ï¿½ port 2 should be removed and source disconnected
         NodeGraphService.SetPortCount(node, 2);
 
         Assert.Equal(2, node.Parameters.Count);
@@ -791,7 +772,7 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_CaretInsideMatch_ShouldReturnMatchResult()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var regex = new Regex(@"\d+");
         var matches = regex.Matches("abc 123 def");
 
         // Caret at position 5, inside "123" (index 4, length 3)
@@ -805,10 +786,10 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_CaretOutsideAllMatches_ShouldReturnNull()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var regex = new Regex(@"\d+");
         var matches = regex.Matches("abc 123 def");
 
-        // Caret at position 0, inside "abc" — no match
+        // Caret at position 0, inside "abc" ï¿½ no match
         var result = MatchDataService.GetMatchAtOffset(matches, regex, 0);
 
         Assert.Null(result);
@@ -817,7 +798,7 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_CaretAtMatchStart_ShouldReturnMatchResult()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var regex = new Regex(@"\d+");
         var matches = regex.Matches("abc 123 def");
 
         // Caret at position 4, the start of "123"
@@ -830,10 +811,10 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_CaretAtMatchEnd_ShouldReturnNull()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var regex = new Regex(@"\d+");
         var matches = regex.Matches("abc 123 def");
 
-        // Caret at position 7 — one past the end of "123" (exclusive), should not match
+        // Caret at position 7 ï¿½ one past the end of "123" (exclusive), should not match
         var result = MatchDataService.GetMatchAtOffset(matches, regex, 7);
 
         Assert.Null(result);
@@ -842,7 +823,7 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_MultipleMatches_ShouldReturnCorrectOne()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var regex = new Regex(@"\d+");
         var matches = regex.Matches("12 ab 34 cd 56");
 
         // Caret at position 6, inside "34" (index 6, length 2)
@@ -855,7 +836,7 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_WithNamedGroups_ShouldReturnGroupNames()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"(?<year>\d{4})-(?<month>\d{2})");
+        var regex = new Regex(@"(?<year>\d{4})-(?<month>\d{2})");
         var matches = regex.Matches("date: 2026-03 end");
 
         // Caret inside the match (index 6, length 7)
@@ -869,7 +850,7 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_WithUnnamedGroups_ShouldReturnNumericGroupNames()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"(\d+)-(\d+)");
+        var regex = new Regex(@"(\d+)-(\d+)");
         var matches = regex.Matches("val: 100-200 end");
 
         var result = MatchDataService.GetMatchAtOffset(matches, regex, 7);
@@ -884,10 +865,10 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_NullRegex_ShouldStillReturnGroupsWithNumericNames()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"(?<name>\w+)");
+        var regex = new Regex(@"(?<name>\w+)");
         var matches = regex.Matches("hello");
 
-        // Pass null for the regex parameter — should fall back to numeric names
+        // Pass null for the regex parameter ï¿½ should fall back to numeric names
         var result = MatchDataService.GetMatchAtOffset(matches, null, 2);
 
         Assert.NotNull(result);
@@ -899,7 +880,7 @@ public class MainViewLogicTests
     [Fact]
     public void MatchDataService_NoMatches_ShouldReturnNull()
     {
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var regex = new Regex(@"\d+");
         var matches = regex.Matches("no digits here");
 
         var result = MatchDataService.GetMatchAtOffset(matches, regex, 3);

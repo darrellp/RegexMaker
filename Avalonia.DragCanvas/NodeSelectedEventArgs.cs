@@ -3,7 +3,7 @@ using Avalonia.Interactivity;
 namespace Avalonia.DragCanvas;
 
 /// <summary>
-/// Event arguments for node selection events
+///     Event arguments for node selection events
 /// </summary>
 public class NodeSelectedEventArgs : RoutedEventArgs
 {
@@ -14,7 +14,7 @@ public class NodeSelectedEventArgs : RoutedEventArgs
     }
 
     /// <summary>
-    /// The node that was selected
+    ///     The node that was selected
     /// </summary>
     public DragCanvasNode SelectedNode { get; }
 }

@@ -15,9 +15,9 @@ namespace RegexMaker.Nodes;
 
 public class CodeCollector(RgxNode node)
 {
-    private List<string> _codeLines = [];
     private static int _varCounter;
-    
+    private List<string> _codeLines = [];
+
     public string Result { get; private set; } = "";
 
     public string NextVariable(string baseName)
@@ -38,10 +38,7 @@ public class CodeCollector(RgxNode node)
         var result = node.Code(this);
 
         var sb = new StringBuilder();
-        foreach (var line in _codeLines)
-        {
-            sb.AppendLine(line);
-        }
+        foreach (var line in _codeLines) sb.AppendLine(line);
         sb.AppendLine($"var result = {result};");
         Result = sb.ToString();
     }
