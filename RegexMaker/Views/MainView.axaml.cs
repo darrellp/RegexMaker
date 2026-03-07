@@ -131,6 +131,7 @@ public partial class MainView : UserControl
             _mainViewModel.ShowCodeRequested -= OnShowCodeRequested;
             _mainViewModel.LineEndingToggled -= OnLineEndingToggled;
             _mainViewModel.ShowWhitespaceToggled -= OnShowWhitespaceToggled;
+            _mainViewModel.VariableNameChanged -= OnVariableNameChanged;
         }
 
         // Subscribe to new view model
@@ -144,6 +145,7 @@ public partial class MainView : UserControl
             _mainViewModel.ShowCodeRequested += OnShowCodeRequested;
             _mainViewModel.LineEndingToggled += OnLineEndingToggled;
             _mainViewModel.ShowWhitespaceToggled += OnShowWhitespaceToggled;
+            _mainViewModel.VariableNameChanged += OnVariableNameChanged;
 
             _mainViewModel.PropertyChanged += (s, e) =>
             {
@@ -247,8 +249,18 @@ public partial class MainView : UserControl
             Debug.Assert(rgxNodeControl.RgxNode != null, "Selected RgxNodeControl has a null RgxNode");
             _currentlySelectedNodeControl = rgxNodeControl;
             NodeSwitched(rgxNodeControl.RgxNode);
-            if (_mainViewModel != null) _mainViewModel.RegexPattern = rgxNodeControl.RgxNode.ProduceResult();
+            if (_mainViewModel != null)
+            {
+                _mainViewModel.RegexPattern = rgxNodeControl.RgxNode.ProduceResult();
+                _mainViewModel.SelectedVariableName = rgxNodeControl.VariableName;
+            }
         }
+    }
+
+    private void OnVariableNameChanged(string? variableName)
+    {
+        if (_currentlySelectedNodeControl != null)
+            _currentlySelectedNodeControl.VariableName = variableName;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

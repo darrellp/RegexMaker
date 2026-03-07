@@ -22,9 +22,11 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty] private int _selectedCarouselIndex;
 
+    [ObservableProperty] private string? _selectedVariableName;
+
     [ObservableProperty] private bool _showWhitespace;
 
-    [ObservableProperty] private bool _useCrLf = true;
+    [ObservableProperty] private bool _useCrLf;
 
     public event EventHandler<SaveRequestedEventArgs>? SaveRequested;
     public event EventHandler<LoadRequestedEventArgs>? LoadRequested;
@@ -37,6 +39,12 @@ public partial class MainViewModel : ViewModelBase
     ///     The View subscribes to this to update visual elements like RgxNodeControl.
     /// </summary>
     public event Action? NodeDisplayUpdateRequested;
+
+    /// <summary>
+    ///     Raised when the variable name is changed by the user.
+    ///     The View subscribes to sync this back to the selected RgxNodeControl.
+    /// </summary>
+    public event Action<string?>? VariableNameChanged;
 
     /// <summary>
     ///     Raised when the line ending mode is toggled. The View subscribes to convert
@@ -60,6 +68,11 @@ public partial class MainViewModel : ViewModelBase
         ShowWhitespaceToggled?.Invoke(value);
     }
 
+    partial void OnSelectedVariableNameChanged(string? value)
+    {
+        VariableNameChanged?.Invoke(value);
+    }
+
     /// <summary>
     ///     Switches the active node selection — creates the appropriate ViewModel
     ///     and updates the carousel index. Pure logic, no UI dependencies.
@@ -77,6 +90,7 @@ public partial class MainViewModel : ViewModelBase
             _currentViewModelBacking = null;
             CurrentNodeViewModel = null;
             SelectedCarouselIndex = 0;
+            SelectedVariableName = null;
             return;
         }
 

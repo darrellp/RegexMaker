@@ -21,6 +21,8 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
     private IDisposable? _portCtLeftSubscription;
     private RgxNode? _rgxNode;
 
+    protected string? _variableName;
+
     public RgxNodeControl()
     {
         _textBlock = new TextBlock
@@ -50,6 +52,17 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
         set => SetValue(NodeNameProperty, value);
     }
 
+    public string? VariableName
+    {
+        get => _variableName;
+        set
+        {
+            _variableName = value;
+            if (_rgxNode is not null)
+                _rgxNode.UserVariableName = value;
+        }
+    }
+
     public RgxNode? RgxNode
     {
         get => _rgxNode;
@@ -70,6 +83,7 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
         var data = new RgxNodeSerializationData
         {
             NodeName = NodeName,
+            VariableName = VariableName,
             RgxNodeData = GetRgxNodeDataAsDictionary()
         };
 
@@ -87,6 +101,7 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
             if (nodeData != null && !string.IsNullOrEmpty(nodeData.NodeName))
             {
                 NodeName = nodeData.NodeName;
+                VariableName = nodeData.VariableName;
 
                 // Restore the RgxNode from the data dictionary
                 if (_rgxNode != null && nodeData.RgxNodeData != null)
@@ -206,6 +221,7 @@ public class RgxNodeControl : DragCanvasNode, ISerializableNode
     private class RgxNodeSerializationData
     {
         public string? NodeName { get; set; }
+        public string? VariableName { get; set; }
         public Dictionary<string, object?>? RgxNodeData { get; set; }
     }
 

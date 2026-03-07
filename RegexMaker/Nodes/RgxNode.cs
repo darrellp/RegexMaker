@@ -61,6 +61,7 @@ public abstract class RgxNode : IRgxNode
         _cachedResult = null;
     }
 
+    public string? UserVariableName { get; set; }
     public string? VariableName { get; set; }
     public IList<IRgxNode> Parents { get; set; } = [];
     public virtual string DisplayName => Name ?? "No Node";
@@ -98,12 +99,20 @@ public abstract class RgxNode : IRgxNode
         // We can't have fForce being true when we've already got a Variable name
         Debug.Assert(!(fForce && VariableName is not null));
         if ((VariableName != null || Parents.Count <= 1) && !fForce) return false;
-        var variableBaseName = GetType().Name;
-        if (variableBaseName.EndsWith("Node"))
-            variableBaseName = variableBaseName.Remove(variableBaseName.Length - "Node".Length);
-
+        string variableBaseName;
         var code = RawCode(cc);
-        VariableName = cc.NextVariable(variableBaseName);
+        if (UserVariableName != null && UserVariableName.Length > 0)
+        {
+            VariableName = UserVariableName;
+        }
+        else
+        {
+            variableBaseName = GetType().Name;
+            if (variableBaseName.EndsWith("Node"))
+                variableBaseName = variableBaseName.Remove(variableBaseName.Length - "Node".Length);
+            VariableName = cc.NextVariable(variableBaseName);
+        }
+
         cc.AddCode(VariableName, code);
         return true;
     }

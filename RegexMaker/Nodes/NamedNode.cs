@@ -50,9 +50,17 @@ public class NamedNode : RgxNode
 
     public override string Code(CodeCollector cc)
     {
-        VariableName = GroupName == string.Empty ? cc.NextVariable("Capture") : GroupName;
+        var isNamedCapture = GroupName != null && GroupName != string.Empty;
+        if (VariableName != null)
+            return VariableName;
+        else if (UserVariableName != null && UserVariableName != string.Empty)
+            VariableName = UserVariableName;
+        else if (isNamedCapture)
+            VariableName = GroupName;
+        else
+            VariableName = cc.NextVariable("Capture");
         var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "";
-        var code = $@"{input}.Named(""{VariableName}"")";
+        var code = isNamedCapture ? $@"{input}.Named(""{GroupName}"")" : "Stex.Capture()";
         cc.AddCode(VariableName, code);
         return VariableName;
     }
