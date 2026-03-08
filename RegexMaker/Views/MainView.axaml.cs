@@ -35,6 +35,22 @@ public partial class MainView : UserControl
     private Point? _toolboxDragStartPoint;
     private WhitespaceMatchBackgroundRenderer? _whitespaceRenderer;
 
+    /// <summary>
+    ///     Remembers the last user-set width for the replacement column so it
+    ///     persists across RPLC toggle off/on cycles.
+    /// </summary>
+    private GridLength _lastReplaceColumnWidth = new(1, GridUnitType.Star);
+
+    /// <summary>
+    ///     The column definition for the splitter (index 1 in SampleTextGrid).
+    /// </summary>
+    private ColumnDefinition SplitterColumn => SampleTextGrid.ColumnDefinitions[1];
+
+    /// <summary>
+    ///     The column definition for the replace panel (index 2 in SampleTextGrid).
+    /// </summary>
+    private ColumnDefinition ReplaceColumn => SampleTextGrid.ColumnDefinitions[2];
+
     public MainView()
     {
         InitializeComponent();
@@ -76,6 +92,9 @@ public partial class MainView : UserControl
 
         // Intercept Enter key to control newline character based on CRLF mode
         SampleTextEditor.TextArea.TextEntered += OnTextAreaTextEntered;
+
+        // Start with the replace panel hidden
+        SetReplacePanelVisible(false);
     }
 
     // Handler for caret movement (text cursor)
@@ -119,6 +138,8 @@ public partial class MainView : UserControl
             _mainViewModel.ShowCodeRequested -= OnShowCodeRequested;
             _mainViewModel.LineEndingToggled -= OnLineEndingToggled;
             _mainViewModel.ShowWhitespaceToggled -= OnShowWhitespaceToggled;
+            _mainViewModel.ShowReplaceToggled -= OnShowReplaceToggled;
+            _mainViewModel.ReplacePatternChanged -= OnReplacePatternChanged;
             _mainViewModel.VariableNameChanged -= OnVariableNameChanged;
         }
 
@@ -133,6 +154,8 @@ public partial class MainView : UserControl
             _mainViewModel.ShowCodeRequested += OnShowCodeRequested;
             _mainViewModel.LineEndingToggled += OnLineEndingToggled;
             _mainViewModel.ShowWhitespaceToggled += OnShowWhitespaceToggled;
+            _mainViewModel.ShowReplaceToggled += OnShowReplaceToggled;
+            _mainViewModel.ReplacePatternChanged += OnReplacePatternChanged;
             _mainViewModel.VariableNameChanged += OnVariableNameChanged;
 
             _mainViewModel.PropertyChanged += (s, e) =>
@@ -550,6 +573,9 @@ public partial class MainView : UserControl
 
         // Force the editor to redraw so highlights update
         SampleTextEditor.TextArea.TextView.Redraw();
+
+        // Update replacement text whenever sample text changes
+        UpdateReplacementResult();
     }
 
     // Assume you have a reference to your ViewModel as '_mainViewModel'
@@ -673,4 +699,62 @@ public partial class MainView : UserControl
             }
         }
     }
+
+    #region Replace Panel
+
+    /// <summary>
+    ///     Shows or hides the replacement panel, splitter, and column.
+    ///     Remembers the last user-dragged column width across toggles.
+    /// </summary>
+    private void SetReplacePanelVisible(bool visible)
+    {
+        ReplaceSplitter.IsVisible = visible;
+        ReplacePanel.IsVisible = visible;
+
+        if (visible)
+        {
+            // Restore the remembered width
+            if (ReplaceColumn != null)
+                ReplaceColumn.Width = _lastReplaceColumnWidth;
+            if (SplitterColumn != null)
+                SplitterColumn.Width = GridLength.Auto;
+        }
+        else
+        {
+            // Save current width before collapsing
+            if (ReplaceColumn != null && ReplaceColumn.Width.Value > 0)
+                _lastReplaceColumnWidth = ReplaceColumn.Width;
+
+            ReplaceColumn.Width = new GridLength(0);
+            SplitterColumn.Width = new GridLength(0);
+        }
+    }
+
+    private void OnShowReplaceToggled(bool showReplace)
+    {
+        SetReplacePanelVisible(showReplace);
+        if (showReplace)
+            UpdateReplacementResult();
+    }
+
+    private void OnReplacePatternChanged()
+    {
+        UpdateReplacementResult();
+    }
+
+    /// <summary>
+    ///     Runs the regex replacement against the current sample text and
+    ///     displays the result in the replacement editor.
+    /// </summary>
+    private void UpdateReplacementResult()
+    {
+        if (_mainViewModel == null || !_mainViewModel.ShowReplace)
+            return;
+
+        var sampleText = SampleTextEditor?.Text ?? string.Empty;
+        _mainViewModel.UpdateReplacementText(sampleText);
+        ReplacementResultEditor.Text = _mainViewModel.ReplacementText;
+    }
+
+    #endregion
 }

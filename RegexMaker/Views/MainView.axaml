@@ -24,15 +24,48 @@
             <ToggleButton Content="WS" Margin="5,2" Padding="10,2"
                           IsChecked="{Binding ShowWhitespace}"
                           ToolTip.Tip="Show/hide whitespace characters in the sample text editor" />
+            <ToggleButton Content="RPLC" Margin="5,2" Padding="10,2"
+                          IsChecked="{Binding ShowReplace}"
+                          ToolTip.Tip="Show/hide the regex replacement panel" />
         </StackPanel>
         <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="5">
-            <Grid RowDefinitions="*" ColumnDefinitions="*,200">
+            <Grid RowDefinitions="*" ColumnDefinitions="*,200" Name="TextGrid">
 
-                <!-- Sample Text Editor -->
-                <AvaloniaEdit:TextEditor Grid.Column="0" BorderBrush="Black" BorderThickness="1"
-                                         Name="SampleTextEditor"
-                                         VerticalAlignment="Stretch"
-                                         FontFamily="Cascadia Code,Consolas,Menlo,Monospace" />
+                <!-- Sample Text Editor with optional Replacement Panel -->
+                <Grid Grid.Column="0" Name="SampleTextGrid" ColumnDefinitions="*,Auto,*">
+
+                    <!-- Sample Text Editor -->
+                    <AvaloniaEdit:TextEditor Grid.Column="0" BorderBrush="Black" BorderThickness="1"
+                                             Name="SampleTextEditor"
+                                             VerticalAlignment="Stretch"
+                                             FontFamily="Cascadia Code,Consolas,Menlo,Monospace" />
+
+                    <!-- GridSplitter (hidden by default) -->
+                    <GridSplitter Grid.Column="1" Width="5" Background="Gray"
+                                  Name="ReplaceSplitter"
+                                  IsVisible="False"
+                                  ResizeDirection="Columns" />
+
+                    <!-- Replacement Panel (hidden by default) -->
+                    <Grid Grid.Column="2" RowDefinitions="Auto,*"
+                          Name="ReplacePanel"
+                          IsVisible="False">
+                        <TextBox Grid.Row="0"
+                                 Name="ReplacePatternTextBox"
+                                 Text="{Binding ReplacePattern}"
+                                 Watermark="Replace pattern"
+                                 FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                 Margin="2,0,0,2" />
+                        <AvaloniaEdit:TextEditor Grid.Row="1"
+                                                 Name="ReplacementResultEditor"
+                                                 IsReadOnly="True"
+                                                 BorderBrush="Black"
+                                                 BorderThickness="1"
+                                                 VerticalAlignment="Stretch"
+                                                 FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                                 Margin="2,0,0,0" />
+                    </Grid>
+                </Grid>
 
                 <!-- Match Information Panel -->
                 <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Stretch">

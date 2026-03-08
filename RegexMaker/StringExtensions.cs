@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Avalonia.Media.TextFormatting.Unicode;
+using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -888,7 +890,7 @@ public static class Stex
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     public static string Named(this string str, string strName)
     {
-        return string.Format(strName == string.Empty ? str.Capture() : "(?<{0}>{1})", strName, str);
+        return strName == string.Empty ? str.Capture() : string.Format("(?<{0}>{1})", strName, str);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

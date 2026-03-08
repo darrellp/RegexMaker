@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RegexMaker.Nodes;
@@ -20,9 +21,15 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty] private string _regexPattern = string.Empty;
 
+    [ObservableProperty] private string _replacePattern = string.Empty;
+
+    [ObservableProperty] private string _replacementText = string.Empty;
+
     [ObservableProperty] private int _selectedCarouselIndex;
 
     [ObservableProperty] private string? _selectedVariableName;
+
+    [ObservableProperty] private bool _showReplace;
 
     [ObservableProperty] private bool _showWhitespace;
 
@@ -58,19 +65,63 @@ public partial class MainViewModel : ViewModelBase
     /// </summary>
     public event Action<bool>? ShowWhitespaceToggled;
 
-    partial void OnUseCrLfChanged(bool value)
+    /// <summary>
+    ///     Raised when the show replace toggle changes. The View subscribes to show/hide
+    ///     the replacement panel.
+    /// </summary>
+    public event Action<bool>? ShowReplaceToggled;
+
+    /// <summary>
+    ///     Raised when the replace pattern changes so the view can update replacement text.
+    /// </summary>
+    public event Action? ReplacePatternChanged;
+
+    partial void OnUseCrLfChanged(bool oldValue, bool newValue)
     {
-        LineEndingToggled?.Invoke(value);
+        LineEndingToggled?.Invoke(newValue);
     }
 
-    partial void OnShowWhitespaceChanged(bool value)
+    partial void OnShowWhitespaceChanged(bool oldValue, bool newValue)
     {
-        ShowWhitespaceToggled?.Invoke(value);
+        ShowWhitespaceToggled?.Invoke(newValue);
     }
 
-    partial void OnSelectedVariableNameChanged(string? value)
+    partial void OnShowReplaceChanged(bool oldValue, bool newValue)
     {
-        VariableNameChanged?.Invoke(value);
+        ShowReplaceToggled?.Invoke(newValue);
+    }
+
+    partial void OnReplacePatternChanged(string? oldValue, string newValue)
+    {
+        ReplacePatternChanged?.Invoke();
+    }
+
+    partial void OnSelectedVariableNameChanged(string? oldValue, string? newValue)
+    {
+        VariableNameChanged?.Invoke(newValue);
+    }
+
+    /// <summary>
+    ///     Performs the regex replacement and updates <see cref="ReplacementText"/>.
+    /// </summary>
+    /// <param name="sampleText">The current sample text from the editor.</param>
+    public void UpdateReplacementText(string sampleText)
+    {
+        if (!ShowReplace || string.IsNullOrEmpty(RegexPattern))
+        {
+            ReplacementText = string.Empty;
+            return;
+        }
+
+        try
+        {
+            var regex = new Regex(RegexPattern);
+            ReplacementText = regex.Replace(sampleText, ReplacePattern ?? string.Empty);
+        }
+        catch
+        {
+            ReplacementText = "<!-- invalid regex or replace pattern -->";
+        }
     }
 
     /// <summary>
