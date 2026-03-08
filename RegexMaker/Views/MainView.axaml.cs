@@ -449,14 +449,20 @@ public partial class MainView : UserControl
 
             if (file != null)
             {
-                // Serialize the canvas
+                // Serialize the canvas together with sample text and replace pattern
                 var canvasData = DragCanvasMain.SerializeCanvas();
+                var fileData = new Models.RegexFileData
+                {
+                    CanvasData = canvasData,
+                    SampleText = SampleTextEditor.Text,
+                    ReplacePattern = _mainViewModel?.ReplacePattern ?? string.Empty
+                };
                 var options = new JsonSerializerOptions
                 {
                     WriteIndented = true,
                     Converters = { new JsonStringEnumConverter() }
                 };
-                var json = JsonSerializer.Serialize(canvasData, options);
+                var json = JsonSerializer.Serialize(fileData, options);
 
                 // Write to file
                 await using var stream = await file.OpenWriteAsync();
@@ -504,7 +510,25 @@ public partial class MainView : UserControl
                     WriteIndented = true,
                     Converters = { new JsonStringEnumConverter() }
                 };
-                var canvasData = JsonSerializer.Deserialize<CanvasSerializationData>(json, options);
+
+                CanvasSerializationData? canvasData;
+                string? sampleText = null;
+                string? replacePattern = null;
+
+                // Try the new format first (RegexFileData wrapper)
+                var fileData = JsonSerializer.Deserialize<Models.RegexFileData>(json, options);
+                if (fileData?.CanvasData != null)
+                {
+                    canvasData = fileData.CanvasData;
+                    sampleText = fileData.SampleText;
+                    replacePattern = fileData.ReplacePattern;
+                }
+                else
+                {
+                    // Fall back to legacy format (bare CanvasSerializationData)
+                    canvasData = JsonSerializer.Deserialize<CanvasSerializationData>(json, options);
+                }
+
                 if (canvasData != null)
                 {
                     // Clear current selection
@@ -514,6 +538,13 @@ public partial class MainView : UserControl
                     DragCanvasMain.DeserializeCanvas(canvasData, CreateNodeFromTypeName);
 
                     if (_mainViewModel != null) _mainViewModel.RegexPattern = string.Empty;
+
+                    // Restore sample text and replace pattern if present
+                    if (sampleText != null)
+                        SampleTextEditor.Text = sampleText;
+
+                    if (replacePattern != null && _mainViewModel != null)
+                        _mainViewModel.ReplacePattern = replacePattern;
 
                     // Update display
                     UpdateNodeDisplay();
