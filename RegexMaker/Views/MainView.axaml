@@ -349,6 +349,25 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Anchor - Index 15 -->
+                <Border BorderBrush="Gray" BorderThickness="1" Padding="5">
+                    <StackPanel Spacing="5" DataContext="{Binding CurrentNodeViewModel}">
+                        <TextBlock Text="Anchor" FontWeight="Bold" HorizontalAlignment="Center" />
+
+                        <TextBlock Text="Polarity:" FontWeight="SemiBold" Margin="0,5,0,0" />
+                        <RadioButton Content="Positive" GroupName="AnchorPolarity"
+                                     IsChecked="{ReflectionBinding IsPositive, Mode=TwoWay}" />
+                        <RadioButton Content="Negative" GroupName="AnchorPolarity"
+                                     IsChecked="{ReflectionBinding IsNegative, Mode=TwoWay}" />
+
+                        <TextBlock Text="Direction:" FontWeight="SemiBold" Margin="0,10,0,0" />
+                        <RadioButton Content="Ahead" GroupName="AnchorDirection"
+                                     IsChecked="{ReflectionBinding IsAhead, Mode=TwoWay}" />
+                        <RadioButton Content="Behind" GroupName="AnchorDirection"
+                                     IsChecked="{ReflectionBinding IsBehind, Mode=TwoWay}" />
+                    </StackPanel>
+                </Border>
+
             </Carousel>
         </Grid>
     </Grid>

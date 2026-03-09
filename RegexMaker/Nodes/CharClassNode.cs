@@ -67,7 +67,7 @@ public class CharClassNode : RgxNode
     {
         return CharClass switch
         {
-            CharClassType.WildCard => ".",
+            CharClassType.WildCard => "Stex.Any",
             CharClassType.WhiteSpace => "Stex.White",
             CharClassType.Digit => "Stex.Digit",
             CharClassType.NonDigit => "Stex.NonDigit",

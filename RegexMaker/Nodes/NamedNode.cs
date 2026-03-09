@@ -60,7 +60,7 @@ public class NamedNode : RgxNode
         else
             VariableName = cc.NextVariable("Capture");
         var input = (Parameters[0] as RgxNode)?.Code(cc) ?? "";
-        var code = isNamedCapture ? $@"{input}.Named(""{GroupName}"")" : "Stex.Capture()";
+        var code = isNamedCapture ? $@"{input}.Named(""{GroupName}"")" : $"Stex.Capture({input})";
         cc.AddCode(VariableName, code);
         return VariableName;
     }

@@ -176,6 +176,8 @@ public partial class MainViewModel : ViewModelBase
                 => new NumericNodeViewModel(num, RequestNodeDisplayUpdate),
             RgxNodeType.Options when node is OptionsNode opt
                 => new OptionsNodeViewModel(opt, RequestNodeDisplayUpdate),
+            RgxNodeType.Anchor when node is AnchorNode anc
+                => new AnchorNodeViewModel(anc, RequestNodeDisplayUpdate),
             _ => null
         };
 

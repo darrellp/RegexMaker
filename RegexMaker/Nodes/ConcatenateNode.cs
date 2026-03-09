@@ -45,7 +45,7 @@ public class ConcatenateNode : RgxNode
 
             var insert = node switch
             {
-                LiteralNode literal => $"\"{literal.SearchString}\"",
+                LiteralNode literal => $"@\"{literal.CalculateResult()}\"",
                 NamedNode named => named.Code(cc),
                 _ => node.VariableName
             };
