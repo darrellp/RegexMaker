@@ -16,6 +16,7 @@ namespace Avalonia.DragCanvas;
 public class DragCanvas : Canvas
 {
     // Routed event for connections created
+    // ReSharper disable MemberCanBePrivate.Global
     public static readonly RoutedEvent<ConnectionEventArgs> ConnectionCreatedEvent =
         RoutedEvent.Register<DragCanvas, ConnectionEventArgs>(
             "ConnectionCreated",
@@ -65,6 +66,7 @@ public class DragCanvas : Canvas
         AvaloniaProperty.Register<DragCanvas, IBrush?>(
             nameof(SelectColor),
             Brushes.Blue);
+    // ReSharper restore MemberCanBePrivate.Global
 
     private readonly List<DragCanvasConnection> _connections = new();
     private bool _connectionSourceIsLeftSide;
@@ -103,7 +105,7 @@ public class DragCanvas : Canvas
         Focusable = true;
     }
 
-    public bool IsDragInProgress { get; private set; }
+    private bool IsDragInProgress { get; set; }
 
     public bool AllowDragging
     {
@@ -189,7 +191,7 @@ public class DragCanvas : Canvas
         remove => RemoveHandler(NodeDeletedEvent, value);
     }
 
-    public static bool GetCanBeDragged(Control element)
+    private static bool GetCanBeDragged(Control element)
     {
         return element.GetValue(CanBeDraggedProperty);
     }
@@ -350,7 +352,7 @@ public class DragCanvas : Canvas
         }
 
         // Check if a node is starting a port connection
-        if (e.Source is DragCanvasNode node && node.IsPortDragInProgress)
+        if (e.Source is DragCanvasNode { IsPortDragInProgress: true })
             // Port connection is being handled by the node
             return;
 
@@ -376,7 +378,7 @@ public class DragCanvas : Canvas
             }
 
             // Don't drag if it's a node with an active port drag
-            if (_elementBeingDragged is DragCanvasNode dragNode && dragNode.IsPortDragInProgress)
+            if (_elementBeingDragged is DragCanvasNode { IsPortDragInProgress: true })
             {
                 _elementBeingDragged = null;
                 return;
@@ -698,7 +700,7 @@ public class DragCanvas : Canvas
         return Math.Sqrt(dx * dx + dy * dy);
     }
 
-    internal void UpdateConnectionsForNode(DragCanvasNode node)
+    private void UpdateConnectionsForNode(DragCanvasNode node)
     {
         foreach (var connection in _connections.Where(c => c.SourceNode == node || c.TargetNode == node))
             connection.UpdateFromNodes();
@@ -734,7 +736,7 @@ public class DragCanvas : Canvas
     /// <summary>
     ///     Removes a connection from the canvas
     /// </summary>
-    public void RemoveConnection(DragCanvasConnection connection)
+    private void RemoveConnection(DragCanvasConnection connection)
     {
         if (_connections.Remove(connection)) Children.Remove(connection);
     }
@@ -742,7 +744,7 @@ public class DragCanvas : Canvas
     /// <summary>
     ///     Clears all connections
     /// </summary>
-    public void ClearConnections()
+    private void ClearConnections()
     {
         foreach (var connection in _connections.ToList()) Children.Remove(connection);
         _connections.Clear();
@@ -753,7 +755,7 @@ public class DragCanvas : Canvas
     /// </summary>
     /// <param name="element">The element to drag</param>
     /// <param name="startPosition">The starting position relative to the canvas</param>
-    public void BeginDrag(Control element, Point startPosition)
+    private void BeginDrag(Control element, Point startPosition)
     {
         if (!AllowDragging) return;
         if (!Children.Contains(element)) return;
@@ -802,7 +804,7 @@ public class DragCanvas : Canvas
     /// <summary>
     ///     Deletes a node from the canvas and removes all its connections
     /// </summary>
-    public void DeleteNode(DragCanvasNode node)
+    private void DeleteNode(DragCanvasNode node)
     {
         // Get all connections using the node's built-in tracking
         var allConnections = node.GetAllConnections().ToList();
@@ -881,7 +883,7 @@ public class DragCanvas : Canvas
 
         // Serialize connections
         foreach (var connection in _connections)
-            if (connection.SourceNode != null && connection.TargetNode != null &&
+            if (connection is { SourceNode: not null, TargetNode: not null } &&
                 nodeIdMap.TryGetValue(connection.SourceNode, out var sourceId) &&
                 nodeIdMap.TryGetValue(connection.TargetNode, out var targetId))
                 data.Connections.Add(new ConnectionSerializationData

@@ -11,12 +11,12 @@ public class CanvasSerializationData
     /// <summary>
     ///     Serialized node data
     /// </summary>
-    public List<NodeSerializationData> Nodes { get; set; } = new();
+    public List<NodeSerializationData> Nodes { get; init; } = new();
 
     /// <summary>
     ///     Connection data (indices refer to nodes in the Nodes list)
     /// </summary>
-    public List<ConnectionSerializationData> Connections { get; set; } = new();
+    public List<ConnectionSerializationData> Connections { get; init; } = new();
 }
 
 /// <summary>
@@ -27,27 +27,27 @@ public class NodeSerializationData
     /// <summary>
     ///     Unique identifier for cross-referencing connections
     /// </summary>
-    public int NodeId { get; set; }
+    public int NodeId { get; init; }
 
     /// <summary>
     ///     X position on canvas
     /// </summary>
-    public double X { get; set; }
+    public double X { get; init; }
 
     /// <summary>
     ///     Y position on canvas
     /// </summary>
-    public double Y { get; set; }
+    public double Y { get; init; }
 
     /// <summary>
     ///     Number of left ports
     /// </summary>
-    public int PortCtLeft { get; set; }
+    public int PortCtLeft { get; init; }
 
     /// <summary>
     ///     Number of right ports
     /// </summary>
-    public int PortCtRight { get; set; }
+    public int PortCtRight { get; init; }
 
     /// <summary>
     ///     Application-specific node data (stored as JsonElement for proper JSON nesting)
@@ -68,20 +68,20 @@ public class ConnectionSerializationData
     /// <summary>
     ///     ID of the source node
     /// </summary>
-    public int SourceNodeId { get; set; }
+    public int SourceNodeId { get; init; }
 
     /// <summary>
     ///     ID of the target node
     /// </summary>
-    public int TargetNodeId { get; set; }
+    public int TargetNodeId { get; init; }
 
     /// <summary>
     ///     Index of the source port
     /// </summary>
-    public int SourcePortIndex { get; set; }
+    public int SourcePortIndex { get; init; }
 
     /// <summary>
     ///     Index of the target port
     /// </summary>
-    public int TargetPortIndex { get; set; }
+    public int TargetPortIndex { get; init; }
 }

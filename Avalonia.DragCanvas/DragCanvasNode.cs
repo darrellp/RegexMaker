@@ -484,11 +484,12 @@ public class DragCanvasNode : ContentControl
         return localPos.Value;
     }
 
-    internal virtual bool AllowConnection(int portIndex, bool isLeftSide, DragCanvasNode? otherNode, int otherPortIndex,
+    internal virtual bool AllowConnection(int portIndex, bool isLeftSide, DragCanvasNode otherNode, int otherPortIndex,
         bool otherIsLeftSide)
     {
+        ArgumentNullException.ThrowIfNull(otherNode);
         if (isLeftSide)
-            if (_leftConnections[portIndex] != null && _leftConnections[portIndex].Count > 0)
+            if (_leftConnections[portIndex].Count > 0)
                 // By default we only allow one connection per left port
                 return false;
 
@@ -519,7 +520,8 @@ public class DragCanvasNode : ContentControl
 
         var connectionsList = thisSide == PortSide.Left ? _leftConnections : _rightConnections;
 
-        if (iPort < connectionsList.Count && connectionsList[iPort] != null) connectionsList[iPort].Remove(connection);
+        if (iPort < connectionsList.Count)
+            connectionsList[iPort].Remove(connection);
     }
 
     /// <summary>
@@ -659,38 +661,24 @@ public class DragCanvasNode : ContentControl
 /// <summary>
 ///     Event arguments for port click events
 /// </summary>
-public class PortClickedEventArgs : RoutedEventArgs
+public class PortClickedEventArgs(
+    RoutedEvent routedEvent,
+    DragCanvasNode node,
+    int portIndex,
+    bool isLeftSide,
+    Point canvasPosition)
+    : RoutedEventArgs(routedEvent)
 {
-    public PortClickedEventArgs(
-        RoutedEvent routedEvent,
-        DragCanvasNode node,
-        int portIndex,
-        bool isLeftSide,
-        Point canvasPosition)
-        : base(routedEvent)
-    {
-        Node = node;
-        PortIndex = portIndex;
-        IsLeftSide = isLeftSide;
-        CanvasPosition = canvasPosition;
-    }
-
-    public DragCanvasNode Node { get; }
-    public int PortIndex { get; }
-    public bool IsLeftSide { get; }
-    public Point CanvasPosition { get; }
+    public DragCanvasNode Node { get; } = node;
+    public int PortIndex { get; } = portIndex;
+    public bool IsLeftSide { get; } = isLeftSide;
+    public Point CanvasPosition { get; } = canvasPosition;
 }
 
 /// <summary>
 ///     Event arguments for node deletion events
 /// </summary>
-public class NodeDeletedEventArgs : RoutedEventArgs
+public class NodeDeletedEventArgs(RoutedEvent routedEvent, DragCanvasNode node) : RoutedEventArgs(routedEvent)
 {
-    public NodeDeletedEventArgs(RoutedEvent routedEvent, DragCanvasNode node)
-        : base(routedEvent)
-    {
-        Node = node;
-    }
-
-    public DragCanvasNode Node { get; }
+    public DragCanvasNode Node { get; } = node;
 }
