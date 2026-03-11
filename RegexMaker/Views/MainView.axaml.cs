@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,6 @@ using Avalonia.DragCanvas;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.ComponentModel;
 using RegexMaker.Controls;
 using RegexMaker.Nodes;
 using RegexMaker.Services;
@@ -24,11 +22,10 @@ public partial class MainView : UserControl
 {
     private const double DragThreshold = 5.0;
 
-    private static int offset = -1;
     private RegexMatchColorizer _colorizer;
     private RgxNode? _currentlySelectedNode;
     private RgxNodeControl? _currentlySelectedNodeControl;
-    private object? _currentViewModel;
+    
     private MainViewModel? _mainViewModel;
     private RgxNodeControl? _nodeBeingCreated;
 
@@ -63,14 +60,14 @@ public partial class MainView : UserControl
         // Exemplars are set up in the static constructor of RgxNode using reflection to find all derived types
         // from RgxNode and create instances of them. We can just loop through those exemplars and create TextBlocks
         // for each of them in the UI.
-        foreach (var RgxNode in RgxNode.Exemplars)
+        foreach (var rgxNode in RgxNode.Exemplars)
         {
             var text = new TextBlock
             {
-                Text = RgxNode.Name,
+                Text = rgxNode.Name,
                 FontSize = 12,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                Tag = RgxNode.Name // Store node name for later retrieval
+                Tag = rgxNode.Name // Store node name for later retrieval
             };
 
             // Enable drag-drop for toolbox items
@@ -88,7 +85,7 @@ public partial class MainView : UserControl
         // Subscribe to pointer move for mouse hover
         SampleTextEditor.PointerMoved += OnSampleTextEditorPointerMoved;
 
-        SampleTextEditor.TextChanged += (s, e) => UpdateRegexHighlights();
+        SampleTextEditor.TextChanged += (_, _) => UpdateRegexHighlights();
 
         // Intercept Enter key to control newline character based on CRLF mode
         SampleTextEditor.TextArea.TextEntered += OnTextAreaTextEntered;
@@ -100,7 +97,7 @@ public partial class MainView : UserControl
     // Handler for caret movement (text cursor)
     private void OnCaretPositionChanged(object? sender, EventArgs e)
     {
-        if (_colorizer == null || _colorizer.MatchCollection == null)
+        if (_colorizer.MatchCollection == null)
             return;
         RetrieveMatchData();
     }
@@ -158,24 +155,23 @@ public partial class MainView : UserControl
             _mainViewModel.ReplacePatternChanged += OnReplacePatternChanged;
             _mainViewModel.VariableNameChanged += OnVariableNameChanged;
 
-            _mainViewModel.PropertyChanged += (s, e) =>
+            _mainViewModel.PropertyChanged += (_, ePropChange) =>
             {
-                if (e.PropertyName == nameof(MainViewModel.RegexPattern))
+                if (ePropChange.PropertyName != nameof(MainViewModel.RegexPattern)) return;
+                
+                // Only runs when RegexPattern changes
+                _colorizer = new(_mainViewModel.RegexPattern);
+                SampleTextEditor.TextArea.TextView.LineTransformers.Clear();
+                SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
+
+                // Ensure background renderer exists for whitespace highlighting
+                if (_whitespaceRenderer == null)
                 {
-                    // Only runs when RegexPattern changes
-                    _colorizer = new RegexMatchColorizer(_mainViewModel.RegexPattern);
-                    SampleTextEditor.TextArea.TextView.LineTransformers.Clear();
-                    SampleTextEditor.TextArea.TextView.LineTransformers.Add(_colorizer);
-
-                    // Ensure background renderer exists for whitespace highlighting
-                    if (_whitespaceRenderer == null)
-                    {
-                        _whitespaceRenderer = new WhitespaceMatchBackgroundRenderer();
-                        SampleTextEditor.TextArea.TextView.BackgroundRenderers.Add(_whitespaceRenderer);
-                    }
-
-                    UpdateRegexHighlights();
+                    _whitespaceRenderer = new WhitespaceMatchBackgroundRenderer();
+                    SampleTextEditor.TextArea.TextView.BackgroundRenderers.Add(_whitespaceRenderer);
                 }
+
+                UpdateRegexHighlights();
             };
 
             _mainViewModel.NodeDisplayUpdateRequested += () => { _currentlySelectedNodeControl?.UpdateTextBlock(); };
@@ -183,6 +179,15 @@ public partial class MainView : UserControl
         else
         {
             _mainViewModel = null;
+        }
+
+        return;
+
+        // ReSharper disable once AsyncVoidEventHandlerMethod
+        async void OnCopyRegexRequested(object? _, CopyRegexRequestedEventArgs eCopy)
+        {
+            var topLevel = TopLevel.GetTopLevel(this);
+            if (topLevel?.Clipboard != null) await topLevel.Clipboard.SetTextAsync(eCopy.RegexPattern);
         }
     }
 
@@ -329,7 +334,7 @@ public partial class MainView : UserControl
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     private void OnNodeDeleted(object? sender, NodeDeletedEventArgs e)
     {
-        if (e.Node is RgxNodeControl rgxNodeControl && rgxNodeControl.RgxNode != null)
+        if (e.Node is RgxNodeControl {RgxNode: not null} rgxNodeControl)
         {
             var rgxNode = rgxNodeControl.RgxNode;
 
@@ -392,17 +397,6 @@ public partial class MainView : UserControl
         UpdateNodeDisplay();
     }
 
-    private void UnsubscribeFromViewModel()
-    {
-        if (_currentViewModel is ObservableObject observableObject)
-            observableObject.PropertyChanged -= OnViewModelPropertyChanged;
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        UpdateNodeDisplay();
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     /// <summary>   Updates the visual display of the selected node. </summary>
     /// <remarks>   Darrell Plank, 2/25/2026. </remarks>
@@ -440,35 +434,34 @@ public partial class MainView : UserControl
                 Title = "Save Regex Network",
                 DefaultExtension = "json",
                 SuggestedFileName = "regex_network.json",
-                FileTypeChoices = new[]
-                {
-                    new FilePickerFileType("JSON Files") { Patterns = new[] { "*.json" } },
-                    new FilePickerFileType("All Files") { Patterns = new[] { "*" } }
-                }
+                FileTypeChoices =
+                [
+                    new FilePickerFileType("JSON Files") { Patterns = ["*.json"] },
+                    new FilePickerFileType("All Files") { Patterns = ["*"] }
+                ]
             });
 
-            if (file != null)
+            if (file == null) return;
+            
+            // Serialize the canvas together with sample text and replace pattern
+            var canvasData = DragCanvasMain.SerializeCanvas();
+            var fileData = new Models.RegexFileData
             {
-                // Serialize the canvas together with sample text and replace pattern
-                var canvasData = DragCanvasMain.SerializeCanvas();
-                var fileData = new Models.RegexFileData
-                {
-                    CanvasData = canvasData,
-                    SampleText = SampleTextEditor.Text,
-                    ReplacePattern = _mainViewModel?.ReplacePattern ?? string.Empty
-                };
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    Converters = { new JsonStringEnumConverter() }
-                };
-                var json = JsonSerializer.Serialize(fileData, options);
+                CanvasData = canvasData,
+                SampleText = SampleTextEditor.Text,
+                ReplacePattern = _mainViewModel?.ReplacePattern ?? string.Empty
+            };
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
+            var json = JsonSerializer.Serialize(fileData, options);
 
-                // Write to file
-                await using var stream = await file.OpenWriteAsync();
-                await using var writer = new StreamWriter(stream);
-                await writer.WriteAsync(json);
-            }
+            // Write to file
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(json);
         }
         catch (Exception ex)
         {
@@ -488,11 +481,15 @@ public partial class MainView : UserControl
             {
                 Title = "Load Regex Network",
                 AllowMultiple = false,
-                FileTypeFilter = new[]
-                {
-                    new FilePickerFileType("JSON Files") { Patterns = new[] { "*.json" } },
-                    new FilePickerFileType("All Files") { Patterns = new[] { "*" } }
-                }
+                FileTypeFilter =
+                [
+                    // ReSharper disable HeapView.ObjectAllocation
+                    // ReSharper disable HeapView.ObjectAllocation.Evident
+                    new FilePickerFileType("JSON Files") { Patterns = ["*.json"] },
+                    new FilePickerFileType("All Files") { Patterns = ["*"] }
+                    // ReSharper restore HeapView.ObjectAllocation.Evident
+                    // ReSharper restore HeapView.ObjectAllocation
+                ]
             });
 
             if (files.Count > 0)
@@ -569,18 +566,12 @@ public partial class MainView : UserControl
 
     private RgxNodeControl? CreateNodeFromTypeName(string? typeName)
     {
-        if (typeName == "RgxNodeControl") return new RgxNodeControl();
-        return null;
-    }
-
-    private async void OnCopyRegexRequested(object? sender, CopyRegexRequestedEventArgs e)
-    {
-        var topLevel = TopLevel.GetTopLevel(this);
-        if (topLevel?.Clipboard != null) await topLevel.Clipboard.SetTextAsync(e.RegexPattern);
+        return typeName == "RgxNodeControl" ? new RgxNodeControl() : null;
     }
 
     private void OnShowCodeRequested(object? sender, ShowCodeRequestedEventArgs e)
     {
+        // ReSharper disable once HeapView.ObjectAllocation.Evident
         var codeWindow = new CodeWindow(e.Code);
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel is Window ownerWindow)
@@ -591,7 +582,7 @@ public partial class MainView : UserControl
 
     private void UpdateRegexHighlights()
     {
-        if (SampleTextEditor?.Document == null || _colorizer == null)
+        if (SampleTextEditor?.Document == null)
             return;
 
         var text = SampleTextEditor.Text;
@@ -613,7 +604,7 @@ public partial class MainView : UserControl
     private void RetrieveMatchData()
     {
         var result = MatchDataService.GetMatchAtOffset(
-            _colorizer?.MatchCollection, _colorizer?.Regex, SampleTextEditor.CaretOffset);
+            _colorizer.MatchCollection, _colorizer.Regex, SampleTextEditor.CaretOffset);
 
         if (_mainViewModel == null) return;
 
@@ -679,12 +670,10 @@ public partial class MainView : UserControl
             return;
 
         var text = SampleTextEditor.Text;
-        if (useCrLf)
-            // Convert LF to CRLF (avoid doubling existing CRLF)
-            text = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-        else
+        // Convert LF to CRLF (avoid doubling existing CRLF)
+        text = useCrLf ? text.Replace("\r\n", "\n").Replace("\n", "\r\n") :
             // Convert CRLF to LF
-            text = text.Replace("\r\n", "\n");
+            text.Replace("\r\n", "\n");
 
         SampleTextEditor.Text = text;
         UpdateRegexHighlights();
@@ -703,7 +692,7 @@ public partial class MainView : UserControl
         SampleTextEditor.TextArea.TextView.Redraw();
     }
 
-    private void OnTextAreaTextEntered(object? sender, Avalonia.Input.TextInputEventArgs e)
+    private void OnTextAreaTextEntered(object? sender, TextInputEventArgs e)
     {
         if (e.Text == null)
             return;
@@ -714,11 +703,7 @@ public partial class MainView : UserControl
         if (e.Text.Contains('\n') || e.Text.Contains('\r'))
         {
             var text = SampleTextEditor.Text;
-            string corrected;
-            if (useCrLf)
-                corrected = text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-            else
-                corrected = text.Replace("\r\n", "\n");
+            var corrected = useCrLf ? text.Replace("\r\n", "\n").Replace("\n", "\r\n") : text.Replace("\r\n", "\n");
 
             if (corrected != text)
             {
@@ -745,17 +730,16 @@ public partial class MainView : UserControl
         if (visible)
         {
             // Restore the remembered width
-            if (ReplaceColumn != null)
-                ReplaceColumn.Width = _lastReplaceColumnWidth;
-            if (SplitterColumn != null)
-                SplitterColumn.Width = GridLength.Auto;
+            ReplaceColumn.Width = _lastReplaceColumnWidth;
+            SplitterColumn.Width = GridLength.Auto;
         }
         else
         {
             // Save current width before collapsing
-            if (ReplaceColumn != null && ReplaceColumn.Width.Value > 0)
+            if (ReplaceColumn.Width.Value > 0)
                 _lastReplaceColumnWidth = ReplaceColumn.Width;
 
+            Debug.Assert(ReplaceColumn != null, nameof(ReplaceColumn) + " != null");
             ReplaceColumn.Width = new GridLength(0);
             SplitterColumn.Width = new GridLength(0);
         }

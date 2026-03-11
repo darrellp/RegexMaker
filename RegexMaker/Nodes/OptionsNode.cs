@@ -46,7 +46,7 @@ public class OptionsNode : RgxNode
 
     internal override string CalculateResult()
     {
-        var result = Parameters[0] == null ? "options Value" : Parameters[0].ProduceResult();
+        var result = Parameters[0] == null ? "options Value" : Parameters[0]!.ProduceResult();
 
         if (CaseSensitiveState != TriState.Dflt) result = result.CaseSensitive(CaseSensitiveState == TriState.On);
 
@@ -57,7 +57,7 @@ public class OptionsNode : RgxNode
 
     public override string RandomMatch()
     {
-        return Parameters[0] == null ? string.Empty : Parameters[0].RandomMatch();
+        return Parameters[0] == null ? string.Empty : Parameters[0]!.RandomMatch();
     }
 
     public override IRgxNode Default()

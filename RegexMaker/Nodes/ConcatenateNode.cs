@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using RegexStringLibrary;
 
@@ -55,6 +56,7 @@ public class ConcatenateNode : RgxNode
                 insert = node.VariableName;
             }
 
+            Debug.Assert(insert != null, nameof(insert) + " != null");
             inputList.Add(insert);
         }
 

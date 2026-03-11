@@ -13,28 +13,28 @@ public class DragCanvasConnection : Control
     private const double StrokeThickness = 2.0;
     private const double HitTestThickness = 15.0; // Wider area for easier clicking
 
-    public static readonly StyledProperty<Point> StartPointProperty =
+    private static readonly StyledProperty<Point> StartPointProperty =
         AvaloniaProperty.Register<DragCanvasConnection, Point>(nameof(StartPoint));
 
-    public static readonly StyledProperty<Point> EndPointProperty =
+    private static readonly StyledProperty<Point> EndPointProperty =
         AvaloniaProperty.Register<DragCanvasConnection, Point>(nameof(EndPoint));
 
-    public static readonly StyledProperty<IBrush?> StrokeProperty =
+    private static readonly StyledProperty<IBrush?> StrokeProperty =
         AvaloniaProperty.Register<DragCanvasConnection, IBrush?>(nameof(Stroke), Brushes.Black);
 
-    public static readonly StyledProperty<DragCanvasNode?> SourceNodeProperty =
+    private static readonly StyledProperty<DragCanvasNode?> SourceNodeProperty =
         AvaloniaProperty.Register<DragCanvasConnection, DragCanvasNode?>(nameof(SourceNode));
 
-    public static readonly StyledProperty<DragCanvasNode?> TargetNodeProperty =
+    private static readonly StyledProperty<DragCanvasNode?> TargetNodeProperty =
         AvaloniaProperty.Register<DragCanvasConnection, DragCanvasNode?>(nameof(TargetNode));
 
-    public static readonly StyledProperty<int> SourcePortIndexProperty =
+    private static readonly StyledProperty<int> SourcePortIndexProperty =
         AvaloniaProperty.Register<DragCanvasConnection, int>(nameof(SourcePortIndex), -1);
 
-    public static readonly StyledProperty<int> TargetPortIndexProperty =
+    private static readonly StyledProperty<int> TargetPortIndexProperty =
         AvaloniaProperty.Register<DragCanvasConnection, int>(nameof(TargetPortIndex), -1);
 
-    public static readonly StyledProperty<bool> IsTemporaryProperty =
+    private static readonly StyledProperty<bool> IsTemporaryProperty =
         AvaloniaProperty.Register<DragCanvasConnection, bool>(nameof(IsTemporary));
 
     private bool _isAltDown;
@@ -74,37 +74,37 @@ public class DragCanvasConnection : Control
     public IBrush? Stroke
     {
         get => GetValue(StrokeProperty);
-        set => SetValue(StrokeProperty, value);
+        init => SetValue(StrokeProperty, value);
     }
 
     public DragCanvasNode? SourceNode
     {
         get => GetValue(SourceNodeProperty);
-        set => SetValue(SourceNodeProperty, value);
+        init => SetValue(SourceNodeProperty, value);
     }
 
     public DragCanvasNode? TargetNode
     {
         get => GetValue(TargetNodeProperty);
-        set => SetValue(TargetNodeProperty, value);
+        init => SetValue(TargetNodeProperty, value);
     }
 
     public int SourcePortIndex
     {
         get => GetValue(SourcePortIndexProperty);
-        set => SetValue(SourcePortIndexProperty, value);
+        init => SetValue(SourcePortIndexProperty, value);
     }
 
     public int TargetPortIndex
     {
         get => GetValue(TargetPortIndexProperty);
-        set => SetValue(TargetPortIndexProperty, value);
+        init => SetValue(TargetPortIndexProperty, value);
     }
 
     public bool IsTemporary
     {
         get => GetValue(IsTemporaryProperty);
-        set => SetValue(IsTemporaryProperty, value);
+        init => SetValue(IsTemporaryProperty, value);
     }
 
     private void OnPointsChanged()
@@ -248,13 +248,6 @@ public class DragCanvasConnection : Control
         }
     }
 
-    public ConnectionInfo GetConnectionInfo()
-    {
-        if (SourceNode == null || TargetNode == null)
-            throw new InvalidOperationException("Both SourceNode and TargetNode must be set to get connection info.");
-        return new ConnectionInfo(SourceNode, TargetNode, SourcePortIndex, TargetPortIndex);
-    }
-
     private T? FindAncestorOfType<T>() where T : class
     {
         var current = Parent;
@@ -266,26 +259,5 @@ public class DragCanvasConnection : Control
         }
 
         return null;
-    }
-}
-
-public class ConnectionInfo(
-    DragCanvasNode sourceNode,
-    DragCanvasNode targetNode,
-    int sourcePortIndex,
-    int targetPortIndex)
-{
-    public DragCanvasNode SourceNode { get; } = sourceNode;
-    public DragCanvasNode TargetNode { get; } = targetNode;
-    public int SourcePortIndex { get; } = sourcePortIndex;
-    public int TargetPortIndex { get; } = targetPortIndex;
-
-    public (DragCanvasNode otherNode, int otherPortIndex) GetOtherEnd(DragCanvasNode node)
-    {
-        if (node == SourceNode) return (TargetNode, TargetPortIndex);
-
-        if (node == TargetNode) return (SourceNode, SourcePortIndex);
-
-        throw new ArgumentException("The provided node and port index do not match either end of the connection.");
     }
 }

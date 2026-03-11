@@ -296,22 +296,14 @@ public static class Stex
         // TODO: We should be caching the compiled Regex's
 
         var iType = (fAmerican ? 2 : 0) + (fAllowBetween ? 1 : 0);
-        Regex rgx = null;
-        switch (iType)
+        var rgx = iType switch
         {
-            case 0:
-                rgx = EuropeanDateRegExp;
-                break;
-            case 1:
-                rgx = EuropeanDateBetRegExp;
-                break;
-            case 2:
-                rgx = AmericanDateRegExp;
-                break;
-            case 3:
-                rgx = AmericanDateBetRegExp;
-                break;
-        }
+            0 => EuropeanDateRegExp,
+            1 => EuropeanDateBetRegExp,
+            2 => AmericanDateRegExp,
+            3 => AmericanDateBetRegExp,
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
         // ReSharper disable PossibleNullReferenceException
         var mtch = rgx.Match(strDate);

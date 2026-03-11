@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using RegexStringLibrary;
 
@@ -49,7 +50,7 @@ public class AnyOfNode : RgxNode
 
             var insert = node switch
             {
-                LiteralNode literal => $"\"{literal.SearchString}\"",
+                LiteralNode literal => $"@\"{literal.CalculateResult()}\"",
                 NamedNode named => named.Code(cc),
                 _ => node.VariableName
             };
@@ -59,6 +60,7 @@ public class AnyOfNode : RgxNode
                 insert = node.VariableName;
             }
 
+            Debug.Assert(insert != null, nameof(insert) + " != null");
             inputList.Add(insert);
         }
 

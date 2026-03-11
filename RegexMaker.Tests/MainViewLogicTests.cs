@@ -754,7 +754,7 @@ public class MainViewLogicTests
         Assert.Equal(4, node.Parameters.Count);
 
         NodeGraphService.SetPortCount(node, 1);
-        Assert.Equal(1, node.Parameters.Count);
+        Assert.Single(node.Parameters);
     }
 
     #endregion
